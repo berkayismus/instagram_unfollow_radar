@@ -5,7 +5,8 @@
   "description": "Automatically detect and unfollow users who don't follow you back on Instagram",
   "permissions": [
     "storage",
-    "activeTab"
+    "activeTab",
+    "tabs"
   ],
   "host_permissions": [
     "https://www.instagram.com/*"

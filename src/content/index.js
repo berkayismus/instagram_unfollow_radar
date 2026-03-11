@@ -339,8 +339,8 @@ const IGUnfollowRadarContent = (function () {
             processedUsers.add(user.username);
 
             const status = statuses[user.id];
-            // followed_by_viewer === false means they do NOT follow us back
-            if (status && status.followed_by_viewer === false) {
+            // followed_by === false means they do NOT follow us back
+            if (status && status.followed_by === false) {
                 const displayText = `${user.username} ${user.full_name || ''}`;
                 const skipCheck = shouldSkipUser(user.username, displayText);
 
