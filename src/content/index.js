@@ -185,12 +185,17 @@ const IGUnfollowRadarContent = (function () {
             }
 
             const data = await response.json();
+            const users = data.users || [];
+            console.log(`[IGRadar] fetchFollowingPage: ${users.length} users fetched, nextCursor: ${data.next_max_id || null}`);
+            if (users.length > 0) {
+                console.log('[IGRadar] Sample user object:', JSON.stringify(users[0]));
+            }
             return {
-                users: data.users || [],
+                users,
                 nextCursor: data.next_max_id || null
             };
         } catch (error) {
-            console.error('fetchFollowingPage exception:', error);
+            console.error('[IGRadar] fetchFollowingPage exception:', error);
             return null;
         }
     }
@@ -217,11 +222,24 @@ const IGUnfollowRadarContent = (function () {
                 return {};
             }
 
-            if (!response.ok) return {};
+            if (!response.ok) {
+                console.error('[IGRadar] show_many HTTP error:', response.status, response.statusText);
+                return {};
+            }
             const data = await response.json();
-            return data.friendship_statuses || {};
+            const statuses = data.friendship_statuses || {};
+
+            // Debug: log the raw structure of the first result so we can verify field names
+            const firstId = Object.keys(statuses)[0];
+            if (firstId) {
+                console.log('[IGRadar] show_many sample status (user', firstId, '):', JSON.stringify(statuses[firstId]));
+            } else {
+                console.warn('[IGRadar] show_many returned empty friendship_statuses. Full response:', JSON.stringify(data));
+            }
+
+            return statuses;
         } catch (error) {
-            console.error('batchCheckFriendship exception:', error);
+            console.error('[IGRadar] batchCheckFriendship exception:', error);
             return {};
         }
     }
@@ -339,8 +357,13 @@ const IGUnfollowRadarContent = (function () {
             processedUsers.add(user.username);
 
             const status = statuses[user.id];
-            // followed_by === false means they do NOT follow us back
-            if (status && status.followed_by === false) {
+            // followed_by === false  → they don't follow us back (Instagram REST API field name)
+            // follows_viewer === false is the Graph API equivalent; check both for safety
+            const doesNotFollowBack = status && (
+                status.followed_by === false ||
+                status.follows_viewer === false
+            );
+            if (doesNotFollowBack) {
                 const displayText = `${user.username} ${user.full_name || ''}`;
                 const skipCheck = shouldSkipUser(user.username, displayText);
 
