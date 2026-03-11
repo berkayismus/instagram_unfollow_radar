@@ -201,47 +201,71 @@ const IGUnfollowRadarContent = (function () {
     }
 
     /**
-     * Batch-checks friendship status for up to 50 users via show_many.
-     * @param {Array<{id: string, username: string, full_name: string}>} users
-     * @returns {Promise<Object>} friendship_statuses map {userId: {followed_by_viewer, following}}
+     * Fetches one page of the followers list.
+     * @param {string} userId
+     * @param {string|null} cursor
+     * @returns {Promise<{users: Array, nextCursor: string|null}|null>}
      */
-    async function batchCheckFriendship(users) {
+    async function fetchFollowersPage(userId, cursor) {
         try {
-            const userIds = users.map(u => u.id).join(',');
-            const response = await fetch(Constants.API.FRIENDSHIP_MANY, {
-                method: 'POST',
-                headers: {
-                    ...getApiHeaders(),
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: `user_ids=${encodeURIComponent(userIds)}`
-            });
+            const params = new URLSearchParams({ count: Constants.LIMITS.SCAN_PAGE_SIZE });
+            if (cursor) params.append('max_id', cursor);
+
+            const response = await fetch(
+                `${Constants.API.FOLLOWERS(userId)}?${params}`,
+                { headers: getApiHeaders() }
+            );
 
             if (response.status === 429) {
                 await handleRateLimit();
-                return {};
+                return null;
             }
 
             if (!response.ok) {
-                console.error('[IGRadar] show_many HTTP error:', response.status, response.statusText);
-                return {};
+                console.error('[IGRadar] fetchFollowersPage error:', response.status);
+                return null;
             }
+
             const data = await response.json();
-            const statuses = data.friendship_statuses || {};
-
-            // Debug: log the raw structure of the first result so we can verify field names
-            const firstId = Object.keys(statuses)[0];
-            if (firstId) {
-                console.log('[IGRadar] show_many sample status (user', firstId, '):', JSON.stringify(statuses[firstId]));
-            } else {
-                console.warn('[IGRadar] show_many returned empty friendship_statuses. Full response:', JSON.stringify(data));
-            }
-
-            return statuses;
+            return {
+                users: data.users || [],
+                nextCursor: data.next_max_id || null
+            };
         } catch (error) {
-            console.error('[IGRadar] batchCheckFriendship exception:', error);
-            return {};
+            console.error('[IGRadar] fetchFollowersPage exception:', error);
+            return null;
         }
+    }
+
+    /**
+     * Builds a Set of all follower PKs by paginating through the followers list.
+     * @param {string} userId
+     * @returns {Promise<Set<string>>}
+     */
+    async function buildFollowerSet(userId) {
+        const followerSet = new Set();
+        let cursor = null;
+
+        do {
+            if (!isRunning) break;
+
+            sendStatus(Constants.STATUS.SCANNING, {
+                message: `Takipçi listesi yükleniyor... (${followerSet.size})`
+            });
+
+            const result = await fetchFollowersPage(userId, cursor);
+            if (!result) break;
+
+            result.users.forEach(u => followerSet.add(String(u.pk || u.id)));
+            cursor = result.nextCursor;
+
+            if (cursor && isRunning) {
+                await randomDelay(Constants.TIMING.MIN_DELAY, Constants.TIMING.MAX_DELAY);
+            }
+        } while (cursor);
+
+        console.log(`[IGRadar] Follower set ready: ${followerSet.size} followers`);
+        return followerSet;
     }
 
     /**
@@ -335,12 +359,14 @@ const IGUnfollowRadarContent = (function () {
     // ─── SCAN ─────────────────────────────────────────────────────────────────
 
     /**
-     * Fetches one page, checks friendship status, and pushes non-followers to unfollowQueue.
+     * Fetches one page of the following list and pushes non-followers to unfollowQueue.
+     * Non-followers are determined by checking against the pre-built followerSet.
      * @param {string} userId
      * @param {string|null} cursor
+     * @param {Set<string>} followerSet - Set of PKs of users who follow us
      * @returns {Promise<{nextCursor: string|null, fetched: number}|null>}
      */
-    async function scanPage(userId, cursor) {
+    async function scanPage(userId, cursor, followerSet) {
         const result = await fetchFollowingPage(userId, cursor);
         if (!result) return null;
 
@@ -349,21 +375,12 @@ const IGUnfollowRadarContent = (function () {
 
         sendStatus(Constants.STATUS.SCANNING, { queueSize: unfollowQueue.length });
 
-        // Batch friendship check
-        const statuses = await batchCheckFriendship(users);
-
         for (const user of users) {
             if (processedUsers.has(user.username)) continue;
             processedUsers.add(user.username);
 
-            const status = statuses[user.id];
-            // followed_by === false  → they don't follow us back (Instagram REST API field name)
-            // follows_viewer === false is the Graph API equivalent; check both for safety
-            const doesNotFollowBack = status && (
-                status.followed_by === false ||
-                status.follows_viewer === false
-            );
-            if (doesNotFollowBack) {
+            const pk = String(user.pk || user.id);
+            if (!followerSet.has(pk)) {
                 const displayText = `${user.username} ${user.full_name || ''}`;
                 const skipCheck = shouldSkipUser(user.username, displayText);
 
@@ -395,12 +412,20 @@ const IGUnfollowRadarContent = (function () {
 
         const userId = getCurrentUserId();
         if (!userId) {
-            console.error('Not logged in — ds_user_id cookie not found');
+            console.error('[IGRadar] Not logged in — ds_user_id cookie not found');
             sendStatus(Constants.STATUS.ERROR, { message: 'Not logged in' });
             isRunning = false;
             return;
         }
 
+        // ── Phase 1: Build follower set ───────────────────────────────────────
+        // Fetch all followers first, then compare against following list.
+        // The show_many endpoint does not return "followed_by" data, so this
+        // is the only reliable way to detect who doesn't follow back.
+        const followerSet = await buildFollowerSet(userId);
+        if (!isRunning) return;
+
+        // ── Phase 2: Scan following list ──────────────────────────────────────
         let cursor = null;
         let hasMore = true;
 
@@ -431,16 +456,14 @@ const IGUnfollowRadarContent = (function () {
 
             // ── Fetch next page if queue is empty and pages remain ────────────
             if (unfollowQueue.length === 0 && hasMore) {
-                const scanResult = await scanPage(userId, cursor);
+                const scanResult = await scanPage(userId, cursor, followerSet);
                 if (scanResult) {
                     cursor = scanResult.nextCursor;
                     hasMore = !!scanResult.nextCursor;
                 } else {
-                    // API error / rate limit — wait and retry
                     await randomDelay(Constants.TIMING.MIN_DELAY, Constants.TIMING.MAX_DELAY);
                     continue;
                 }
-                // Small delay between API pages
                 await randomDelay(Constants.TIMING.MIN_DELAY, Constants.TIMING.MAX_DELAY);
             }
 
@@ -459,7 +482,6 @@ const IGUnfollowRadarContent = (function () {
                 await unfollowUser(user);
                 await randomDelay(Constants.TIMING.MIN_DELAY, Constants.TIMING.MAX_DELAY);
 
-                // Occasional human-like pause
                 if (Math.random() < Constants.UI.HUMAN_PAUSE_PROBABILITY) {
                     await randomDelay(
                         Constants.TIMING.HUMAN_PAUSE_MIN,

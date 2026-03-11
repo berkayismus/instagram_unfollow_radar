@@ -526,7 +526,11 @@ const IGUnfollowRadarPopup = (function () {
                 updateStatus('active', `🔄 ${I18n.t('status.processing')}...`);
                 break;
             case Constants.STATUS.SCANNING:
-                updateStatus('active', `🔍 ${I18n.t('status.scanning')}... (${data.queueSize || 0} ${I18n.t('aria.found')})`);
+                if (data.message) {
+                    updateStatus('active', `🔍 ${data.message}`);
+                } else {
+                    updateStatus('active', `🔍 ${I18n.t('status.scanning')}... (${data.queueSize || 0} ${I18n.t('aria.found')})`);
+                }
                 break;
             case Constants.STATUS.UNFOLLOWED:
                 updateStatus('active', `${data.dryRun ? '[DRY RUN] ' : ''}✓ @${data.username || 'user'}`);

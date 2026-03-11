@@ -44,7 +44,8 @@ const Constants = (function () {
             APP_ID: '936619743392459',
             FOLLOWING: (userId) =>
                 `https://www.instagram.com/api/v1/friendships/${userId}/following/`,
-            FRIENDSHIP_MANY: 'https://www.instagram.com/api/v1/friendships/show_many/',
+            FOLLOWERS: (userId) =>
+                `https://www.instagram.com/api/v1/friendships/${userId}/followers/`,
             DESTROY: (userId) =>
                 `https://www.instagram.com/api/v1/friendships/destroy/${userId}/`,
             CREATE: (userId) =>
