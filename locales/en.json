@@ -1,0 +1,115 @@
+{
+    "app": {
+        "title": "Instagram Unfollow Radar",
+        "subtitle": "Automatically find and unfollow non-followers on Instagram"
+    },
+    "tabs": {
+        "main": "Main",
+        "filters": "Filters",
+        "stats": "Statistics"
+    },
+    "stats": {
+        "dailyLimit": "24 Hour Limit",
+        "totalUnfollowed": "Total Unfollowed"
+    },
+    "status": {
+        "ready": "Ready",
+        "scanning": "Scanning",
+        "processing": "Processing",
+        "paused": "Paused",
+        "stopped": "Stopped",
+        "reset": "Reset complete",
+        "completed": "Completed"
+    },
+    "alerts": {
+        "batchComplete": "Batch Complete",
+        "batchCompleteDesc": "50 users unfollowed. Do you want to continue?",
+        "rateLimit": "Rate Limit!",
+        "rateLimitDesc": "Instagram has rate-limited you. Please wait.",
+        "dailyLimitReached": "24 Hour Limit Reached",
+        "dailyLimitDesc": "You've unfollowed 100 users in the last 24 hours. Please wait 24 hours for a new session."
+    },
+    "buttons": {
+        "start": "Start",
+        "stop": "Stop",
+        "continue": "Continue (50 more)",
+        "undo": "Undo",
+        "reset": "Reset",
+        "add": "Add",
+        "exportCsv": "Export CSV"
+    },
+    "controls": {
+        "dryRunMode": "Dry Run Mode (Test)"
+    },
+    "filters": {
+        "keywordsTitle": "Keywords",
+        "keywordsDesc": "Users whose name or username contains these keywords will be skipped",
+        "keywordsPlaceholder": "e.g. crypto, nft, bot",
+        "whitelistTitle": "Whitelist",
+        "whitelistDesc": "These users will never be unfollowed",
+        "whitelistPlaceholder": "@username"
+    },
+    "statsTab": {
+        "last30Days": "Last 30 Days"
+    },
+    "userList": {
+        "title": "Processed Users",
+        "undoBtn": "Undo",
+        "addToWhitelist": "Add to Whitelist",
+        "addedToWhitelist": "Added to Whitelist"
+    },
+    "info": {
+        "lastRun": "Last run"
+    },
+    "warning": {
+        "title": "Warning:",
+        "item1": "Must be logged in at instagram.com",
+        "item2": "Works with 5-10 second delays",
+        "item3": "Pauses after first 50 users for confirmation",
+        "item4": "Maximum 100 users per 24 hours",
+        "item5": "Limit resets automatically after 24 hours"
+    },
+    "messages": {
+        "confirmReset": "All statistics will be reset. Are you sure?",
+        "confirmReload": "Extension not loaded yet. Would you like to reload the page?",
+        "noUndoAction": "No action to undo",
+        "undoFailed": "Undo failed",
+        "undoFailedDetail": "Undo failed. Make sure you are logged in at instagram.com.",
+        "noHistory": "No history yet",
+        "undone": "Undone",
+        "addedToWhitelist": "Added to Whitelist",
+        "dryRunActive": "Dry Run Mode active",
+        "normalMode": "Normal mode",
+        "notOnInstagram": "You are not on instagram.com",
+        "pageReloaded": "Page reloaded — try again",
+        "startFailed": "Failed to start — reload the page"
+    },
+    "theme": {
+        "toggle": "Toggle Theme"
+    },
+    "language": {
+        "toggle": "Dil Değiştir",
+        "current": "EN"
+    },
+    "aria": {
+        "startButton": "Start automatic unfollowing",
+        "stopButton": "Stop automatic unfollowing",
+        "continueButton": "Continue unfollowing 50 more users",
+        "resetButton": "Reset all statistics",
+        "undoButton": "{count} actions can be undone",
+        "themeToggle": "Toggle theme (light/dark)",
+        "languageToggle": "Change language",
+        "exportCsvButton": "Export statistics as CSV file",
+        "keywordInput": "Enter keyword to skip",
+        "whitelistInput": "Enter username to protect",
+        "addKeywordButton": "Add keyword to skip list",
+        "addWhitelistButton": "Add user to protection list",
+        "removeKeyword": "Remove keyword {keyword}",
+        "removeWhitelist": "Remove @{username} from protection list",
+        "undoUser": "Undo unfollow for @{username}",
+        "whitelistUser": "Add @{username} to protection list",
+        "rateLimitCountdown": "will automatically resume after",
+        "found": "found",
+        "chartDescription": "Chart showing the number of users unfollowed in the last 30 days"
+    }
+}

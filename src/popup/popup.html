@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Unfollow Radar</title>
+    <link rel="stylesheet" href="popup.css">
+    <link rel="stylesheet" href="../../vendor/chartist.min.css">
+</head>
+
+<body>
+    <div class="container" role="main">
+
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>📸 <span data-i18n="app.title">Instagram Unfollow Radar</span></h1>
+                <div class="header-buttons">
+                    <button id="langToggle" class="lang-toggle" type="button" role="button"
+                        aria-label="Change language" title="Change Language">TR</button>
+                    <button id="themeToggle" class="theme-toggle" type="button" role="button"
+                        aria-label="Toggle theme" aria-pressed="false" title="Dark Mode">🌙</button>
+                </div>
+            </div>
+            <p class="subtitle" data-i18n="app.subtitle">Seni takip etmeyenleri otomatik bul ve takipten çık</p>
+        </header>
+
+        <!-- Tabs -->
+        <div class="tabs" role="tablist" aria-label="Extension sections">
+            <button class="tab-btn active" data-tab="main" data-i18n="tabs.main" role="tab" id="tab-main"
+                aria-selected="true" aria-controls="main-tab" tabindex="0">Ana</button>
+            <button class="tab-btn" data-tab="filters" data-i18n="tabs.filters" role="tab" id="tab-filters"
+                aria-selected="false" aria-controls="filters-tab" tabindex="-1">Filtreler</button>
+            <button class="tab-btn" data-tab="stats" data-i18n="tabs.stats" role="tab" id="tab-stats"
+                aria-selected="false" aria-controls="stats-tab" tabindex="-1">İstatistikler</button>
+        </div>
+
+        <!-- Main Tab -->
+        <div class="tab-content active" id="main-tab" role="tabpanel" aria-labelledby="tab-main" tabindex="0">
+
+            <!-- Stats -->
+            <div class="stats" role="region" aria-label="Statistics">
+                <div class="stat-item">
+                    <span class="stat-label" data-i18n="stats.dailyLimit">24 Saatlik Limit</span>
+                    <span class="stat-value" id="sessionCount" aria-live="polite">0/100</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label" data-i18n="stats.totalUnfollowed">Toplam Çıkarılan</span>
+                    <span class="stat-value" id="totalCount" aria-live="polite">0</span>
+                </div>
+            </div>
+
+            <!-- Status Bar -->
+            <div class="status-bar" role="status" aria-live="polite">
+                <span class="status-indicator" id="statusIndicator" aria-hidden="true">●</span>
+                <span id="statusText" data-i18n="status.ready">Hazır</span>
+            </div>
+
+            <!-- Batch complete alert -->
+            <div id="testModeAlert" class="alert alert-warning" style="display: none;" role="alert"
+                aria-live="assertive">
+                <p><strong>⚠️ <span data-i18n="alerts.batchComplete">Batch Tamamlandı</span></strong></p>
+                <p data-i18n="alerts.batchCompleteDesc">50 kişi takipten çıkarıldı. Devam etmek istiyor musunuz?</p>
+                <button id="continueBtn" class="btn btn-success" type="button">✓
+                    <span data-i18n="buttons.continue">Devam Et (50 kişi daha)</span>
+                </button>
+            </div>
+
+            <!-- Rate limit alert -->
+            <div id="rateLimitAlert" class="alert alert-danger" style="display: none;" role="alert"
+                aria-live="assertive">
+                <p><strong>🚫 <span data-i18n="alerts.rateLimit">Rate Limit!</span></strong></p>
+                <p id="rateLimitText" data-i18n="alerts.rateLimitDesc">Instagram hız sınırına takıldınız.</p>
+                <p id="rateLimitCountdown" style="font-weight: bold;" aria-live="polite">--</p>
+            </div>
+
+            <!-- Daily limit alert -->
+            <div id="limitReachedAlert" class="alert alert-info" style="display: none;" role="alert"
+                aria-live="assertive">
+                <p><strong>✋ <span data-i18n="alerts.dailyLimitReached">24 Saatlik Limit Doldu</span></strong></p>
+                <p data-i18n="alerts.dailyLimitDesc">Son 24 saatte 100 kişiden takipten çıktınız.</p>
+            </div>
+
+            <!-- Dry-run toggle -->
+            <div class="control-row">
+                <label class="checkbox-container">
+                    <input type="checkbox" id="dryRunMode">
+                    <span data-i18n="controls.dryRunMode">Dry Run Mode (Test)</span>
+                </label>
+            </div>
+
+            <!-- Main controls -->
+            <div class="controls" role="group" aria-label="Main controls">
+                <button id="startBtn" class="btn btn-primary" type="button">▶
+                    <span data-i18n="buttons.start">Başlat</span>
+                </button>
+                <button id="stopBtn" class="btn btn-danger" style="display: none;" type="button">■
+                    <span data-i18n="buttons.stop">Durdur</span>
+                </button>
+            </div>
+
+            <div class="control-row" role="group" aria-label="Secondary controls">
+                <button id="undoBtn" class="btn btn-secondary" style="display: none;" type="button">↶
+                    <span data-i18n="buttons.undo">Geri Al</span>
+                    (<span id="undoCount" aria-hidden="true">0</span>)
+                </button>
+                <button id="resetBtn" class="btn btn-secondary" type="button">🔄
+                    <span data-i18n="buttons.reset">Sıfırla</span>
+                </button>
+            </div>
+
+            <!-- Processed user list -->
+            <div class="user-list-container" aria-labelledby="userListTitle">
+                <h3 id="userListTitle" data-i18n="userList.title">İşlenen Kullanıcılar</h3>
+                <ul class="user-list" id="userList" role="list" aria-live="polite"></ul>
+            </div>
+
+            <div class="info">
+                <p class="last-run">
+                    <span data-i18n="info.lastRun">Son çalıştırma</span>: <span id="lastRun">-</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Filters Tab -->
+        <div class="tab-content" id="filters-tab" role="tabpanel" aria-labelledby="tab-filters" hidden>
+
+            <section class="filter-section" aria-labelledby="keywordsTitle">
+                <h3 id="keywordsTitle">🔍 <span data-i18n="filters.keywordsTitle">Anahtar Kelimeler</span></h3>
+                <p class="filter-desc" data-i18n="filters.keywordsDesc">Bu kelimeleri içeren kullanıcılar atlanacak</p>
+                <div class="input-group" role="group">
+                    <input type="text" id="keywordInput"
+                        data-i18n-placeholder="filters.keywordsPlaceholder"
+                        placeholder="Örn: crypto, nft, bot">
+                    <button id="addKeywordBtn" class="btn btn-primary" type="button"
+                        data-i18n="buttons.add">Ekle</button>
+                </div>
+                <ul class="filter-list" id="keywordList" role="list"></ul>
+            </section>
+
+            <section class="filter-section" aria-labelledby="whitelistTitle">
+                <h3 id="whitelistTitle">⭐ <span data-i18n="filters.whitelistTitle">Whitelist</span></h3>
+                <p class="filter-desc" data-i18n="filters.whitelistDesc">Bu kullanıcılar asla takipten çıkarılmayacak</p>
+                <div class="input-group" role="group">
+                    <input type="text" id="whitelistInput"
+                        data-i18n-placeholder="filters.whitelistPlaceholder"
+                        placeholder="@kullaniciadi">
+                    <button id="addWhitelistBtn" class="btn btn-primary" type="button"
+                        data-i18n="buttons.add">Ekle</button>
+                </div>
+                <ul class="filter-list" id="whitelistList" role="list"></ul>
+            </section>
+        </div>
+
+        <!-- Stats Tab -->
+        <div class="tab-content" id="stats-tab" role="tabpanel" aria-labelledby="tab-stats" hidden>
+            <section class="stats-section" aria-labelledby="statsTitle">
+                <h3 id="statsTitle">📊 <span data-i18n="statsTab.last30Days">Son 30 Gün</span></h3>
+                <div class="ct-chart" id="chart" role="img" aria-label="Unfollow statistics chart"></div>
+                <button id="exportCsvBtn" class="btn btn-primary" type="button">📥
+                    <span data-i18n="buttons.exportCsv">CSV İndir</span>
+                </button>
+            </section>
+        </div>
+
+        <!-- Warning footer -->
+        <aside class="warning" role="note">
+            <p><strong>⚠️ <span data-i18n="warning.title">Uyarı:</span></strong></p>
+            <ul>
+                <li data-i18n="warning.item1">instagram.com'da oturum açık olmalı</li>
+                <li data-i18n="warning.item2">5-10 saniye gecikme ile çalışır</li>
+                <li data-i18n="warning.item3">İlk 50 kişide durup onay ister</li>
+                <li data-i18n="warning.item4">24 saatte maksimum 100 kişi limiti</li>
+                <li data-i18n="warning.item5">24 saat sonra limit otomatik sıfırlanır</li>
+            </ul>
+        </aside>
+
+    </div>
+
+    <script src="../../vendor/chartist.min.js"></script>
+    <script src="../shared/constants.js"></script>
+    <script src="../shared/i18n.js"></script>
+    <script src="popup.js"></script>
+</body>
+
+</html>

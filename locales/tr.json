@@ -1,0 +1,115 @@
+{
+    "app": {
+        "title": "Instagram Unfollow Radar",
+        "subtitle": "Seni takip etmeyenleri otomatik bul ve takipten çık"
+    },
+    "tabs": {
+        "main": "Ana",
+        "filters": "Filtreler",
+        "stats": "İstatistikler"
+    },
+    "stats": {
+        "dailyLimit": "24 Saatlik Limit",
+        "totalUnfollowed": "Toplam Çıkarılan"
+    },
+    "status": {
+        "ready": "Hazır",
+        "scanning": "Taranıyor",
+        "processing": "İşleniyor",
+        "paused": "Duraklatıldı",
+        "stopped": "Durduruldu",
+        "reset": "Sıfırlandı",
+        "completed": "Tamamlandı"
+    },
+    "alerts": {
+        "batchComplete": "Batch Tamamlandı",
+        "batchCompleteDesc": "50 kişi takipten çıkarıldı. Devam etmek istiyor musunuz?",
+        "rateLimit": "Rate Limit!",
+        "rateLimitDesc": "Instagram tarafından hız sınırına takıldınız. Lütfen bekleyin.",
+        "dailyLimitReached": "24 Saatlik Limit Doldu",
+        "dailyLimitDesc": "Son 24 saatte 100 kişiden takipten çıktınız. Yeni oturum için 24 saat beklemeniz gerekiyor."
+    },
+    "buttons": {
+        "start": "Başlat",
+        "stop": "Durdur",
+        "continue": "Devam Et (50 kişi daha)",
+        "undo": "Geri Al",
+        "reset": "Sıfırla",
+        "add": "Ekle",
+        "exportCsv": "CSV İndir"
+    },
+    "controls": {
+        "dryRunMode": "Dry Run Mode (Test)"
+    },
+    "filters": {
+        "keywordsTitle": "Anahtar Kelimeler",
+        "keywordsDesc": "Bu kelimeleri adında veya isimde içeren kullanıcılar atlanacak",
+        "keywordsPlaceholder": "Örn: crypto, nft, bot",
+        "whitelistTitle": "Whitelist",
+        "whitelistDesc": "Bu kullanıcılar asla takipten çıkarılmayacak",
+        "whitelistPlaceholder": "@kullaniciadi"
+    },
+    "statsTab": {
+        "last30Days": "Son 30 Gün"
+    },
+    "userList": {
+        "title": "İşlenen Kullanıcılar",
+        "undoBtn": "Geri Al",
+        "addToWhitelist": "Whitelist'e Ekle",
+        "addedToWhitelist": "Whitelist'e eklendi"
+    },
+    "info": {
+        "lastRun": "Son çalıştırma"
+    },
+    "warning": {
+        "title": "Uyarı:",
+        "item1": "instagram.com'da oturum açık olmalı",
+        "item2": "5-10 saniye gecikme ile çalışır",
+        "item3": "İlk 50 kişide durup onay ister",
+        "item4": "24 saatte maksimum 100 kişi limiti",
+        "item5": "24 saat sonra limit otomatik sıfırlanır"
+    },
+    "messages": {
+        "confirmReset": "Tüm istatistikler sıfırlanacak. Emin misiniz?",
+        "confirmReload": "Eklenti henüz yüklenmedi. Sayfayı yenilemek ister misiniz?",
+        "noUndoAction": "Geri alınacak işlem yok",
+        "undoFailed": "Geri alınamadı",
+        "undoFailedDetail": "Geri alma işlemi başarısız. instagram.com'da oturum açık olduğunuzdan emin olun.",
+        "noHistory": "Henüz işlem geçmişi yok",
+        "undone": "Geri alındı",
+        "addedToWhitelist": "Whitelist'e eklendi",
+        "dryRunActive": "Dry Run Mode aktif",
+        "normalMode": "Normal mode",
+        "notOnInstagram": "instagram.com'da değilsiniz",
+        "pageReloaded": "Sayfa yenilendi - Tekrar deneyin",
+        "startFailed": "Başlatılamadı - Sayfayı yenileyin"
+    },
+    "theme": {
+        "toggle": "Tema Değiştir"
+    },
+    "language": {
+        "toggle": "Change Language",
+        "current": "TR"
+    },
+    "aria": {
+        "startButton": "Otomatik takipten çıkarmayı başlat",
+        "stopButton": "Otomatik takipten çıkarmayı durdur",
+        "continueButton": "50 kişi daha takipten çık",
+        "resetButton": "Tüm istatistikleri sıfırla",
+        "undoButton": "{count} işlem geri alınabilir",
+        "themeToggle": "Tema değiştir (açık/koyu)",
+        "languageToggle": "Dil değiştir",
+        "exportCsvButton": "İstatistikleri CSV olarak indir",
+        "keywordInput": "Atlanacak anahtar kelime girin",
+        "whitelistInput": "Korunacak kullanıcı adı girin",
+        "addKeywordButton": "Anahtar kelimeyi atlama listesine ekle",
+        "addWhitelistButton": "Kullanıcıyı koruma listesine ekle",
+        "removeKeyword": "{keyword} anahtar kelimesini kaldır",
+        "removeWhitelist": "@{username} kullanıcısını koruma listesinden kaldır",
+        "undoUser": "@{username} için takipten çıkmayı geri al",
+        "whitelistUser": "@{username} kullanıcısını koruma listesine ekle",
+        "rateLimitCountdown": "sonra otomatik devam edilecek",
+        "found": "bulundu",
+        "chartDescription": "Son 30 günde takipten çıkılan kullanıcı sayısını gösteren grafik"
+    }
+}
