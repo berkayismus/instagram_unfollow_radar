@@ -64,8 +64,13 @@ const I18n = (function () {
 
     async function init() {
         const data = await chrome.storage.local.get([Constants.STORAGE_KEYS.LANGUAGE]);
-        currentLocale = data[Constants.STORAGE_KEYS.LANGUAGE] || 'tr';
-        if (!supportedLocales.includes(currentLocale)) currentLocale = 'tr';
+        if (data[Constants.STORAGE_KEYS.LANGUAGE]) {
+            currentLocale = data[Constants.STORAGE_KEYS.LANGUAGE];
+        } else {
+            // No saved preference — detect from browser/system UI language
+            const uiLang = (chrome.i18n.getUILanguage() || 'tr').toLowerCase().split('-')[0];
+            currentLocale = supportedLocales.includes(uiLang) ? uiLang : 'tr';
+        }
         await loadTranslations(currentLocale);
         applyTranslations();
         return currentLocale;
