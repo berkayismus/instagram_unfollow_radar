@@ -1,61 +1,66 @@
 /**
  * @fileoverview Instagram Unfollow Radar - Shared Constants
- * @description Centralized configuration and constants for the extension
- * @version 1.0.0
+ * @description Centralized, immutable configuration for the extension.
+ *   All nested objects are recursively frozen so accidental mutation fails fast.
+ * @version 2.0.0
  */
 
 const Constants = (function () {
     'use strict';
 
-    return {
+    /**
+     * Recursively freezes an object and all its enumerable nested objects.
+     * Function-valued properties are left callable but their containing object
+     * is still frozen (no new properties can be added/removed).
+     * @template T
+     * @param {T} obj
+     * @returns {T}
+     */
+    function deepFreeze(obj) {
+        for (const key of Object.getOwnPropertyNames(obj)) {
+            const val = obj[key];
+            if (val && typeof val === 'object') deepFreeze(val);
+        }
+        return Object.freeze(obj);
+    }
+
+    return deepFreeze({
 
         // ─── TIMING ──────────────────────────────────────────────────────────
         TIMING: {
-            MIN_DELAY: 5000,
-            MAX_DELAY: 10000,
-            BUTTON_CLICK_MIN: 500,
-            BUTTON_CLICK_MAX: 1500,
-            SCROLL_DELAY: 2000,
-            SCROLL_DELAY_EXTRA: 1000,
+            MIN_DELAY:            5000,
+            MAX_DELAY:            10000,
             PAUSE_CHECK_INTERVAL: 1000,
-            HUMAN_PAUSE_MIN: 5000,
-            HUMAN_PAUSE_MAX: 15000,
-            SESSION_DURATION: 24 * 60 * 60 * 1000,
-            RATE_LIMIT_WAIT: 15 * 60 * 1000,
-            RATE_LIMIT_MINUTES: 15
+            HUMAN_PAUSE_MIN:      5000,
+            HUMAN_PAUSE_MAX:      15000,
+            SESSION_DURATION:     24 * 60 * 60 * 1000,
+            RATE_LIMIT_WAIT:      15 * 60 * 1000,
+            RATE_LIMIT_MINUTES:   15
         },
 
         // ─── LIMITS ──────────────────────────────────────────────────────────
         LIMITS: {
-            MAX_SESSION: 100,
-            BATCH_SIZE: 50,
-            MAX_UNDO_QUEUE: 10,
-            HISTORY_RETENTION_DAYS: 30,
-            MAX_USER_LIST_DISPLAY: 50,
-            SCAN_PAGE_SIZE: 50,
-            MAX_FRIENDSHIP_BATCH: 50,
-            MAX_EMPTY_SCANS: 3,
-            MAX_SAME_COUNT_STREAK: 3,
-            CHART_DAYS: 30
+            MAX_SESSION:             100,
+            BATCH_SIZE:              50,
+            MAX_UNDO_QUEUE:          10,
+            HISTORY_RETENTION_DAYS:  30,
+            MAX_USER_LIST_DISPLAY:   50,
+            SCAN_PAGE_SIZE:          50,
+            CHART_DAYS:              30
         },
 
         // ─── INSTAGRAM API ────────────────────────────────────────────────────
         API: {
-            APP_ID: '936619743392459',
-            FOLLOWING: (userId) =>
-                `https://www.instagram.com/api/v1/friendships/${userId}/following/`,
-            FOLLOWERS: (userId) =>
-                `https://www.instagram.com/api/v1/friendships/${userId}/followers/`,
-            DESTROY: (userId) =>
-                `https://www.instagram.com/api/v1/friendships/destroy/${userId}/`,
-            CREATE: (userId) =>
-                `https://www.instagram.com/api/v1/friendships/create/${userId}/`
+            APP_ID:    '936619743392459',
+            FOLLOWING: (userId) => `https://www.instagram.com/api/v1/friendships/${userId}/following/`,
+            FOLLOWERS: (userId) => `https://www.instagram.com/api/v1/friendships/${userId}/followers/`,
+            DESTROY:   (userId) => `https://www.instagram.com/api/v1/friendships/destroy/${userId}/`,
+            CREATE:    (userId) => `https://www.instagram.com/api/v1/friendships/create/${userId}/`
         },
 
         // ─── UI ──────────────────────────────────────────────────────────────
         UI: {
-            HUMAN_PAUSE_PROBABILITY: 0.1,
-            SCROLL_AMOUNT: 400
+            HUMAN_PAUSE_PROBABILITY: 0.1
         },
 
         // ─── STORAGE KEYS ────────────────────────────────────────────────────
@@ -133,9 +138,7 @@ const Constants = (function () {
             EN:      'en',
             DEFAULT: 'tr'
         }
-    };
+    });
 })();
 
-if (typeof window !== 'undefined') {
-    window.Constants = Constants;
-}
+if (typeof window !== 'undefined') window.Constants = Constants;
