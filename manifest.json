@@ -11,6 +11,9 @@
   "host_permissions": [
     "https://www.instagram.com/*"
   ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
   "icons": {
     "16": "assets/icons/icon16.png",
     "48": "assets/icons/icon48.png",
@@ -31,6 +34,10 @@
       ],
       "js": [
         "src/shared/constants.js",
+        "src/content/api.js",
+        "src/content/storage.js",
+        "src/content/filters.js",
+        "src/content/automation.js",
         "src/content/index.js"
       ],
       "run_at": "document_idle"
@@ -45,7 +52,7 @@
         "locales/*.json"
       ],
       "matches": [
-        "<all_urls>"
+        "https://www.instagram.com/*"
       ]
     }
   ]
