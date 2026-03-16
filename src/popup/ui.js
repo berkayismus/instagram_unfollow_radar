@@ -69,6 +69,8 @@ const IGRadarUI = (function() {
         el.deactivateLicenseBtn = document.getElementById('deactivateLicenseBtn');
         el.licenseForm          = document.getElementById('licenseForm');
         el.limitUpgradeHint     = document.getElementById('limitUpgradeHint');
+        el.buyWrapper           = document.getElementById('buyWrapper');
+        el.buyOnGumroadBtn      = document.getElementById('buyOnGumroadBtn');
     }
 
     // ─── DOM HELPERS ──────────────────────────────────────────────────────────
@@ -523,21 +525,29 @@ const IGRadarUI = (function() {
     function renderPremiumStatus(isPremium, email) {
         if (!el.premiumBadge) return;
 
+        // Always set the Gumroad buy link
+        if (el.buyOnGumroadBtn) {
+            el.buyOnGumroadBtn.href =
+                `https://cayliverse.gumroad.com/l/${Constants.GUMROAD.PRODUCT_PERMALINK}`;
+        }
+
         if (isPremium) {
             el.premiumBadge.textContent = I18n.t('premium.activeBadge');
             el.premiumBadge.className   = 'premium-badge premium-badge--active';
             if (email) {
-                el.premiumEmail.textContent = email;
+                el.premiumEmail.textContent   = email;
                 el.premiumEmail.style.display = 'block';
             }
             el.licenseForm.style.display       = 'none';
             el.deactivateWrapper.style.display = 'block';
+            if (el.buyWrapper) el.buyWrapper.style.display = 'none';
         } else {
             el.premiumBadge.textContent = I18n.t('premium.freeBadge');
             el.premiumBadge.className   = 'premium-badge premium-badge--free';
             el.premiumEmail.style.display      = 'none';
             el.licenseForm.style.display       = 'block';
             el.deactivateWrapper.style.display = 'none';
+            if (el.buyWrapper) el.buyWrapper.style.display = 'block';
         }
     }
 

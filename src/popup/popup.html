@@ -191,13 +191,47 @@
                     <p class="premium-email" id="premiumEmail" style="display: none;"></p>
                 </div>
 
-                <!-- Feature comparison -->
-                <div class="premium-features">
+                <!-- Feature comparison table (free vs premium) -->
+                <div class="premium-features" id="featureTable">
+                    <div class="feature-row feature-row--header">
+                        <span class="feature-label"></span>
+                        <span class="feature-col-header" data-i18n="premium.colFree">Ücretsiz</span>
+                        <span class="feature-col-header feature-col-header--premium" data-i18n="premium.colPremium">Premium</span>
+                    </div>
                     <div class="feature-row">
                         <span class="feature-label" data-i18n="premium.featureDailyLimit">Günlük Limit</span>
                         <span class="feature-free">50</span>
                         <span class="feature-premium">500</span>
                     </div>
+                    <div class="feature-row">
+                        <span class="feature-label" data-i18n="premium.featureUndo">Geri Alma</span>
+                        <span class="feature-free">✓</span>
+                        <span class="feature-premium">✓</span>
+                    </div>
+                    <div class="feature-row">
+                        <span class="feature-label" data-i18n="premium.featureFilters">Filtreler</span>
+                        <span class="feature-free">✓</span>
+                        <span class="feature-premium">✓</span>
+                    </div>
+                    <div class="feature-row">
+                        <span class="feature-label" data-i18n="premium.featureStats">İstatistikler</span>
+                        <span class="feature-free">✓</span>
+                        <span class="feature-premium">✓</span>
+                    </div>
+                    <div class="feature-row">
+                        <span class="feature-label" data-i18n="premium.featureSupport">Öncelikli Destek</span>
+                        <span class="feature-free">—</span>
+                        <span class="feature-premium">✓</span>
+                    </div>
+                </div>
+
+                <!-- Buy on Gumroad CTA (shown when free) -->
+                <div id="buyWrapper">
+                    <a id="buyOnGumroadBtn" class="btn btn-primary btn-gumroad" href="#" target="_blank"
+                        rel="noopener noreferrer">
+                        ⭐ <span data-i18n="premium.buyBtn">Gumroad'dan Satın Al — $1/ay</span>
+                    </a>
+                    <p class="buy-hint" data-i18n="premium.buyHint">Satın aldıktan sonra e-posta ile gelen lisans anahtarını aşağıya girin</p>
                 </div>
 
                 <!-- License activation form -->

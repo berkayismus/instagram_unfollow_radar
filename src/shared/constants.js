@@ -53,7 +53,7 @@ const Constants = (function () {
 
         // ─── GUMROAD ─────────────────────────────────────────────────────────
         GUMROAD: {
-            PRODUCT_PERMALINK: 'YOUR_PERMALINK_HERE',
+            PRODUCT_PERMALINK: 'vnzrgn',
             VERIFY_URL:        'https://api.gumroad.com/v2/licenses/verify'
         },
 
