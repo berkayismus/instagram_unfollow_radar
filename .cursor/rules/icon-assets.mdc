@@ -1,0 +1,50 @@
+---
+description: Icon asset specifications for the Chrome extension and Chrome Web Store listing. Apply when working with assets/icons/ or assets/store_icon.png.
+globs: assets/**/*.png
+alwaysApply: false
+---
+
+# Icon Asset Specifications
+
+## File Locations & Required Sizes
+
+| File | Size | Mode | Background |
+|------|------|------|------------|
+| `assets/icons/icon16.png` | 16×16 | RGBA | Transparent |
+| `assets/icons/icon48.png` | 48×48 | RGBA | Transparent |
+| `assets/icons/icon128.png` | 128×128 | RGBA | Transparent |
+| `assets/store_icon.png` | 128×128 | RGB | Instagram gradient (opaque) |
+
+All icons are **square (1:1 aspect ratio)**. Never change dimensions or crop asymmetrically.
+
+## Design Concept
+
+- **Motif:** Camera aperture/iris (shutter blades) at center + concentric radar rings + diagonal sweep line
+- **Color palette:** Instagram gradient — orange `#F58529` → pink `#DD2A7B` → purple `#833AB4`
+- **Extension icons (`icon*.png`):** Gradient-colored icon on transparent background
+- **Store icon (`store_icon.png`):** White icon on Instagram gradient background (full square fill, no white corners)
+
+## Rules
+
+```
+# ✅ DOĞRU
+assets/icons/icon128.png → 128×128 RGBA, transparent bg
+assets/store_icon.png    → 128×128 RGB, opaque gradient bg
+
+# ❌ YANLIŞ
+- Boyutları değiştirme (örn. 64×64 ekleme — manifest.json'da tanımlı değil)
+- RGBA yerine RGB kaydetme (şeffaflık bozulur)
+- store_icon'u RGBA/transparent olarak kaydetme
+- 1:1 oranını bozan herhangi bir kırpma/yeniden boyutlandırma
+```
+
+## manifest.json Bağlantısı
+
+`manifest.json` yalnızca `16`, `48`, `128` boyutlarına referans verir. Yeni boyut eklenecekse manifest'e de eklenmeli.
+
+## Yeniden Oluşturma Notu
+
+Iconlar yeniden üretildiğinde tüm dört dosya aynı tasarım dilini korumalı (aynı aperture+radar konsepti, aynı gradient). Boyut başına detay seviyesi:
+- **16px** — sadece iris + 2 ring (çok minimal)
+- **48px** — iris + 3 ring + sweep line
+- **128px / store** — iris + 5 ring + sweep line (tam detay)
