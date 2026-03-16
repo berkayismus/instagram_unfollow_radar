@@ -335,6 +335,10 @@ const IGRadarEvents = (function() {
             if (e.key === 'Enter') handleLicenseActivate();
         });
         IGRadarUI.el.deactivateLicenseBtn.addEventListener('click', handleDeactivateLicense);
+
+        if (IGRadarUI.el.exportCsvLock) {
+            IGRadarUI.el.exportCsvLock.addEventListener('click', () => IGRadarUI.switchTab('premium'));
+        }
     }
 
     return {

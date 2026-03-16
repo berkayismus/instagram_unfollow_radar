@@ -71,6 +71,7 @@ const IGRadarUI = (function() {
         el.limitUpgradeHint     = document.getElementById('limitUpgradeHint');
         el.buyWrapper           = document.getElementById('buyWrapper');
         el.buyOnGumroadBtn      = document.getElementById('buyOnGumroadBtn');
+        el.exportCsvLock        = document.getElementById('exportCsvLock');
     }
 
     // ─── DOM HELPERS ──────────────────────────────────────────────────────────
@@ -320,8 +321,14 @@ const IGRadarUI = (function() {
         }
     }
 
-    /** Downloads the unfollow history as a UTF-8 BOM CSV file. */
+    /** Downloads the unfollow history as a UTF-8 BOM CSV file. Premium only. */
     async function handleExportCsv() {
+        const premiumData = await chrome.storage.local.get([Constants.STORAGE_KEYS.IS_PREMIUM]);
+        if (!premiumData[Constants.STORAGE_KEYS.IS_PREMIUM]) {
+            IGRadarUI.switchTab('premium');
+            return;
+        }
+
         const data    = await chrome.storage.local.get([Constants.STORAGE_KEYS.UNFOLLOW_HISTORY]);
         const history = data[Constants.STORAGE_KEYS.UNFOLLOW_HISTORY] || [];
         if (history.length === 0) { alert(I18n.t('messages.noHistory')); return; }
@@ -541,6 +548,12 @@ const IGRadarUI = (function() {
             el.licenseForm.style.display       = 'none';
             el.deactivateWrapper.style.display = 'block';
             if (el.buyWrapper) el.buyWrapper.style.display = 'none';
+            // Unlock CSV export
+            if (el.exportCsvBtn) {
+                el.exportCsvBtn.disabled = false;
+                el.exportCsvBtn.classList.remove('btn--locked');
+            }
+            if (el.exportCsvLock) el.exportCsvLock.style.display = 'none';
         } else {
             el.premiumBadge.textContent = I18n.t('premium.freeBadge');
             el.premiumBadge.className   = 'premium-badge premium-badge--free';
@@ -548,6 +561,12 @@ const IGRadarUI = (function() {
             el.licenseForm.style.display       = 'block';
             el.deactivateWrapper.style.display = 'none';
             if (el.buyWrapper) el.buyWrapper.style.display = 'block';
+            // Lock CSV export
+            if (el.exportCsvBtn) {
+                el.exportCsvBtn.disabled = false; // clickable so we can redirect to Premium tab
+                el.exportCsvBtn.classList.add('btn--locked');
+            }
+            if (el.exportCsvLock) el.exportCsvLock.style.display = 'block';
         }
     }
 

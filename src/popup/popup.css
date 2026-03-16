@@ -780,6 +780,24 @@ h2, h3, h4, h5, h6 { color: var(--text-primary); }
     line-height: 1.4;
 }
 
+.btn--locked {
+    opacity: 0.55;
+    cursor: pointer;
+    position: relative;
+}
+
+.export-lock-hint {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-top: 6px;
+    cursor: pointer;
+}
+
+.export-lock-hint:hover { color: var(--primary-color); }
+
+.feature-locked { color: var(--text-secondary); }
+
 .license-form { margin-bottom: 12px; }
 
 .license-label {
