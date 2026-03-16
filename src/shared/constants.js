@@ -54,7 +54,8 @@ const Constants = (function () {
         // ─── GUMROAD ─────────────────────────────────────────────────────────
         GUMROAD: {
             PRODUCT_PERMALINK: 'vnzrgn',
-            VERIFY_URL:        'https://api.gumroad.com/v2/licenses/verify'
+            VERIFY_URL:        'https://api.gumroad.com/v2/licenses/verify',
+            MANAGE_URL:        'https://app.gumroad.com/library'
         },
 
         // ─── INSTAGRAM API ────────────────────────────────────────────────────

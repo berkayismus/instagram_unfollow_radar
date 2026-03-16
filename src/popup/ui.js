@@ -71,6 +71,7 @@ const IGRadarUI = (function() {
         el.limitUpgradeHint     = document.getElementById('limitUpgradeHint');
         el.buyWrapper           = document.getElementById('buyWrapper');
         el.buyOnGumroadBtn      = document.getElementById('buyOnGumroadBtn');
+        el.manageSubscriptionLink = document.getElementById('manageSubscriptionLink');
         el.exportCsvLock        = document.getElementById('exportCsvLock');
     }
 
@@ -536,6 +537,9 @@ const IGRadarUI = (function() {
         if (el.buyOnGumroadBtn) {
             el.buyOnGumroadBtn.href =
                 `https://cayliverse.gumroad.com/l/${Constants.GUMROAD.PRODUCT_PERMALINK}`;
+        }
+        if (el.manageSubscriptionLink) {
+            el.manageSubscriptionLink.href = Constants.GUMROAD.MANAGE_URL;
         }
 
         if (isPremium) {

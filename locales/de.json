@@ -109,6 +109,8 @@
         "exportLockHint": "🔒 CSV-Export ist eine Premium-Funktion — Upgrade erforderlich",
         "buyBtn": "Bei Gumroad kaufen — 1 $/Monat",
         "buyHint": "Nach dem Kauf den Lizenzschlüssel aus der Bestätigungs-E-Mail unten eingeben",
+        "manageSubscriptionLink": "Abo verwalten",
+        "manageSubscriptionHint": " bei Gumroad, um die monatliche Zahlung zu kündigen.",
         "successMessage": "Premium aktiviert! Sie können jetzt bis zu 500 Benutzer pro Tag entfolgen.",
         "errorInvalid": "Ungültiger Lizenzschlüssel. Bitte überprüfen Sie ihn und versuchen Sie es erneut.",
         "errorNetwork": "Überprüfung fehlgeschlagen — bitte Internetverbindung prüfen."

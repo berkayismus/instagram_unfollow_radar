@@ -109,6 +109,8 @@
         "exportLockHint": "🔒 CSV indirme Premium özelliğidir — Premium'a geç",
         "buyBtn": "Gumroad'dan Satın Al — $1/ay",
         "buyHint": "Satın aldıktan sonra e-posta ile gelen lisans anahtarını aşağıya girin",
+        "manageSubscriptionLink": "Aboneliği Yönet",
+        "manageSubscriptionHint": " linkiyle Gumroad aboneliğini iptal edebilirsiniz.",
         "successMessage": "Premium aktif! Artık günlük 500 takipten çıkarabilirsiniz.",
         "errorInvalid": "Geçersiz lisans anahtarı. Lütfen kontrol edip tekrar deneyin.",
         "errorNetwork": "Doğrulama başarısız — internet bağlantınızı kontrol edin."

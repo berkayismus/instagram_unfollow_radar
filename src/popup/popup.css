@@ -865,6 +865,24 @@ h2, h3, h4, h5, h6 { color: var(--text-primary); }
     margin-top: 8px;
 }
 
+.subscription-manage-note {
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.subscription-manage-note a {
+    color: var(--primary-color);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.subscription-manage-note a:hover {
+    filter: brightness(0.9);
+}
+
 .btn--small {
     flex: 0 0 auto;
     padding: 7px 16px;
