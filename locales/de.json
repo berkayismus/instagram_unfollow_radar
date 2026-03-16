@@ -6,7 +6,8 @@
     "tabs": {
         "main": "Haupt",
         "filters": "Filter",
-        "stats": "Statistiken"
+        "stats": "Statistiken",
+        "premium": "Premium"
     },
     "stats": {
         "dailyLimit": "24-Stunden-Limit",
@@ -30,7 +31,8 @@
         "rateLimit": "Rate Limit!",
         "rateLimitDesc": "Instagram hat Sie wegen zu vieler Anfragen begrenzt. Bitte warten.",
         "dailyLimitReached": "24-Stunden-Limit erreicht",
-        "dailyLimitDesc": "Sie haben in den letzten 24 Stunden 100 Benutzer entfolgt. Bitte warten Sie 24 Stunden für eine neue Sitzung."
+        "dailyLimitDesc": "Sie haben in den letzten 24 Stunden 100 Benutzer entfolgt. Bitte warten Sie 24 Stunden für eine neue Sitzung.",
+        "upgradeHint": "Für mehr Entfolgungen auf Premium upgraden — 500/Tag"
     },
     "buttons": {
         "start": "Start",
@@ -70,7 +72,7 @@
         "item1": "Sie müssen auf instagram.com eingeloggt sein",
         "item2": "Arbeitet mit 5–10 Sekunden Verzögerung",
         "item3": "Hält nach den ersten 50 Nutzern an und fragt nach Bestätigung",
-        "item4": "Maximal 100 Nutzer pro 24 Stunden",
+        "item4": "Kostenlos: 50 — Premium: 500 Benutzer pro Tag",
         "item5": "Limit wird nach 24 Stunden automatisch zurückgesetzt"
     },
     "messages": {
@@ -87,6 +89,29 @@
         "notOnInstagram": "Sie sind nicht auf instagram.com",
         "pageReloaded": "Seite neu geladen — bitte erneut versuchen",
         "startFailed": "Konnte nicht gestartet werden — bitte Seite neu laden"
+    },
+    "premium": {
+        "activeBadge": "⭐ Premium Aktiv",
+        "freeBadge": "Kostenloser Plan",
+        "colFree": "Kostenlos",
+        "colPremium": "Premium",
+        "licenseLabel": "Lizenzschlüssel",
+        "licensePlaceholder": "Gumroad-Lizenzschlüssel eingeben",
+        "activateBtn": "Aktivieren",
+        "deactivateBtn": "Lizenz entfernen",
+        "confirmDeactivate": "Premium-Lizenz entfernen? Sie kehren zum kostenlosen Plan zurück (50/Tag).",
+        "featureDailyLimit": "Tageslimit",
+        "featureUndo": "Aktionen rückgängig machen",
+        "featureFilters": "Filter & Whitelist",
+        "featureStats": "Statistiken",
+        "featureExportCsv": "CSV-Export",
+        "featureSupport": "Prioritäts-Support",
+        "exportLockHint": "🔒 CSV-Export ist eine Premium-Funktion — Upgrade erforderlich",
+        "buyBtn": "Bei Gumroad kaufen — 1 $/Monat",
+        "buyHint": "Nach dem Kauf den Lizenzschlüssel aus der Bestätigungs-E-Mail unten eingeben",
+        "successMessage": "Premium aktiviert! Sie können jetzt bis zu 500 Benutzer pro Tag entfolgen.",
+        "errorInvalid": "Ungültiger Lizenzschlüssel. Bitte überprüfen Sie ihn und versuchen Sie es erneut.",
+        "errorNetwork": "Überprüfung fehlgeschlagen — bitte Internetverbindung prüfen."
     },
     "theme": {
         "toggle": "Theme wechseln"
