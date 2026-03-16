@@ -71,67 +71,104 @@ body {
 .header {
     display: flex;
     flex-direction: column;
-    margin-bottom: 16px;
+    gap: 6px;
+    margin-bottom: 14px;
 }
 
 .header-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 4px;
+    gap: 10px;
+    min-width: 0;
 }
 
-h1 {
+.app-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    flex: 1;
     font-size: 17px;
     font-weight: 700;
     color: var(--primary-color);
+    line-height: 1.2;
+}
+
+.app-title-icon {
+    flex: 0 0 auto;
+    font-size: 16px;
+}
+
+.app-title-text {
+    min-width: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .subtitle {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text-secondary);
+    line-height: 1.35;
+    letter-spacing: 0.1px;
 }
 
 .header-buttons {
     display: flex;
     gap: 8px;
     align-items: center;
+    flex-shrink: 0;
 }
 
 #themeToggle {
-    background: var(--surface-bg);
-    border: none;
-    width: 36px;
-    height: 36px;
+    background: var(--container-bg);
+    border: 1px solid var(--border-color);
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
     cursor: pointer;
-    font-size: 18px;
-    transition: all 0.3s ease;
-    flex: 0 0 36px;
+    font-size: 17px;
+    transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+    flex: 0 0 34px;
 }
 
-#themeToggle:hover { transform: scale(1.1); }
-
-#langToggle {
+#themeToggle:hover {
+    transform: translateY(-1px);
+    border-color: var(--primary-color);
     background: var(--surface-bg);
+}
+
+.lang-toggle {
+    appearance: none;
+    background: var(--container-bg);
     border: 1px solid var(--border-color);
-    padding: 6px 10px;
+    height: 34px;
+    min-width: 64px;
+    padding: 0 28px 0 10px;
     border-radius: 6px;
     cursor: pointer;
     font-size: 12px;
     font-weight: 600;
     color: var(--text-primary);
-    transition: all 0.3s ease;
+    line-height: 1;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+    background-image: linear-gradient(45deg, transparent 50%, var(--text-secondary) 50%),
+        linear-gradient(135deg, var(--text-secondary) 50%, transparent 50%);
+    background-position: calc(100% - 14px) calc(50% - 2px), calc(100% - 9px) calc(50% - 2px);
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
 }
 
-#langToggle:hover {
-    background: var(--primary-color);
-    color: #fff;
+.lang-toggle:hover {
+    background-color: var(--surface-bg);
     border-color: var(--primary-color);
+}
+
+.lang-toggle:focus-visible,
+#themeToggle:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
 }
 
 /* ── Tabs ─────────────────────────────────── */
