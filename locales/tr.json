@@ -16,6 +16,8 @@
         "ready": "Hazır",
         "scanning": "Taranıyor",
         "buildingFollowers": "Takipçi listesi yükleniyor...",
+        "checked": "kontrol edildi",
+        "error": "Tarama başarısız — Instagram'ı yeniden yükleyip tekrar deneyin",
         "processing": "İşleniyor",
         "paused": "Duraklatıldı",
         "stopped": "Durduruldu",

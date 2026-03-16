@@ -16,6 +16,8 @@
         "ready": "Ready",
         "scanning": "Scanning",
         "buildingFollowers": "Loading follower list...",
+        "checked": "checked",
+        "error": "Scan failed — please reload Instagram and try again",
         "processing": "Processing",
         "paused": "Paused",
         "stopped": "Stopped",

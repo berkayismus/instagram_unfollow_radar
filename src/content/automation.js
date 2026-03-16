@@ -163,9 +163,10 @@ const IGRadarAutomation = (function() {
      * @param {Set<string>} followerSet
      * @param {Object}      state
      * @param {Function}    sendStatus
+     * @param {number}      totalScanned - cumulative users checked so far (for display)
      * @returns {Promise<{nextCursor: string|null, fetched: number}|null>}
      */
-    async function scanPage(userId, cursor, followerSet, state, sendStatus) {
+    async function scanPage(userId, cursor, followerSet, state, sendStatus, totalScanned) {
         const signal = state.abortController && state.abortController.signal;
         const result = await IGRadarAPI.fetchFollowingPage(userId, cursor, signal);
         if (!result) return null;
@@ -173,13 +174,11 @@ const IGRadarAutomation = (function() {
         const { users, nextCursor } = result;
         if (users.length === 0) return { nextCursor: null, fetched: 0 };
 
-        sendStatus(Constants.STATUS.SCANNING, { queueSize: state.unfollowQueue.length });
-
         for (const user of users) {
             if (state.processedUsers.has(user.username)) continue;
             state.processedUsers.add(user.username);
 
-            const pk = String(user.pk || user.id);
+            const pk = String(user.pk || user.id || '');
             if (followerSet.has(pk)) continue;
 
             const displayText       = `${user.username} ${user.full_name || ''}`;
@@ -198,7 +197,10 @@ const IGRadarAutomation = (function() {
             state.unfollowQueue.push({ id: user.id, username: user.username });
         }
 
-        sendStatus(Constants.STATUS.SCANNING, { queueSize: state.unfollowQueue.length });
+        sendStatus(Constants.STATUS.SCANNING, {
+            queueSize:    state.unfollowQueue.length,
+            totalScanned: totalScanned + users.length
+        });
         return { nextCursor, fetched: users.length };
     }
 
@@ -238,9 +240,15 @@ const IGRadarAutomation = (function() {
 
         if (!state.isRunning) return;
 
+        // Brief pause between Phase 1 and Phase 2 to avoid back-to-back bursts
+        await randomDelay(Constants.TIMING.MIN_DELAY, Constants.TIMING.MAX_DELAY);
+        if (!state.isRunning) return;
+
         // ── Phase 2: scan following list + process queue ───────────────────────
-        let cursor  = null;
-        let hasMore = true;
+        let cursor            = null;
+        let hasMore           = true;
+        let consecutiveErrors = 0;
+        let totalScanned      = 0;
 
         while (state.isRunning) {
 
@@ -272,11 +280,21 @@ const IGRadarAutomation = (function() {
             // Fetch next page when queue is drained and pages remain
             if (state.unfollowQueue.length === 0 && hasMore) {
                 try {
-                    const scanResult = await scanPage(userId, cursor, followerSet, state, sendStatus);
+                    const scanResult = await scanPage(userId, cursor, followerSet, state, sendStatus, totalScanned);
                     if (scanResult) {
-                        cursor  = scanResult.nextCursor;
-                        hasMore = !!scanResult.nextCursor;
+                        consecutiveErrors  = 0;
+                        totalScanned      += scanResult.fetched;
+                        cursor             = scanResult.nextCursor;
+                        hasMore            = !!scanResult.nextCursor;
                     } else {
+                        consecutiveErrors++;
+                        console.warn(`[IGRadar] scanPage returned null (error ${consecutiveErrors}/3)`);
+                        if (consecutiveErrors >= 3) {
+                            console.error('[IGRadar] 3 consecutive scan failures — stopping');
+                            sendStatus(Constants.STATUS.ERROR, { message: 'api_error' });
+                            state.isRunning = false;
+                            return;
+                        }
                         await randomDelay(Constants.TIMING.MIN_DELAY, Constants.TIMING.MAX_DELAY);
                         continue;
                     }

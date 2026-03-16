@@ -420,7 +420,10 @@ const IGRadarUI = (function() {
                 if (data.phase === 'buildingFollowers') {
                     updateStatus('active', `🔍 ${I18n.t('status.buildingFollowers')} (${data.followerCount || 0})`);
                 } else {
-                    updateStatus('active', `🔍 ${I18n.t('status.scanning')}... (${data.queueSize || 0} ${I18n.t('aria.found')})`);
+                    const checked = data.totalScanned != null
+                        ? ` · ${data.totalScanned} ${I18n.t('status.checked')}`
+                        : '';
+                    updateStatus('active', `🔍 ${I18n.t('status.scanning')}... (${data.queueSize || 0} ${I18n.t('aria.found')}${checked})`);
                 }
                 break;
             case Constants.STATUS.UNFOLLOWED:
@@ -443,6 +446,14 @@ const IGRadarUI = (function() {
             case Constants.STATUS.READY:
             case Constants.STATUS.IDLE:
                 updateStatus('ready', `✓ ${I18n.t('status.ready')}`);
+                setRunning(false);
+                break;
+            case Constants.STATUS.RESUMED:
+                updateStatus('active', `🔄 ${I18n.t('status.processing')}...`);
+                setRunning(true);
+                break;
+            case Constants.STATUS.ERROR:
+                updateStatus('stopped', `⚠️ ${I18n.t('status.error')}`);
                 setRunning(false);
                 break;
             default:
