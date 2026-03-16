@@ -1,0 +1,121 @@
+---
+description: Instagram Unfollow Radar — proje mimarisi, modül sorumlulukları ve kodlama standartları
+alwaysApply: true
+---
+
+# Instagram Unfollow Radar — Proje Kuralları
+
+## Proje Özeti
+
+Chrome Manifest V3 uzantısı. Instagram'da sizi takip etmeyen hesapları tespit edip toplu unfollow yapar. **Build adımı yok** — tüm dosyalar tarayıcı tarafından doğrudan yüklenir.
+
+## Tech Stack
+
+- **Dil:** Vanilla JavaScript (ES2021) — TypeScript, React, Vue yok
+- **UI:** Saf HTML5 + CSS3
+- **Modül Sistemi:** IIFE namespace'leri (`window.IGRadarAPI`, `window.Constants` vb.) — bundler olmadığı için
+- **Grafik:** Chartist.js (vendor klasöründe, local)
+- **Depolama:** `chrome.storage.local`
+- **i18n:** `locales/tr.json` ve `locales/en.json` — `data-i18n` attribute'ları ile DOM'a uygulanır
+
+## Dizin Yapısı ve Modül Sorumlulukları
+
+```
+src/
+├── background/index.js     # Service worker — content→popup mesaj köprüsü (relay)
+├── content/
+│   ├── api.js              # IGRadarAPI — Instagram private API çağrıları, RateLimitError
+│   ├── storage.js          # IGRadarStorage — tüm chrome.storage.local işlemleri
+│   ├── filters.js          # IGRadarFilters — whitelist/keyword filtresi (stateless)
+│   ├── automation.js       # IGRadarAutomation — 2-fazlı tarama + unfollow motoru
+│   └── index.js            # IGUnfollowRadarContent — merkezi state + mesaj router
+├── popup/
+│   ├── popup.html          # 3-tab popup (Main / Filters / Statistics)
+│   ├── popup.css           # Popup stilleri, dark mode CSS variables
+│   ├── ui.js               # IGRadarUI — tüm DOM manipülasyonu burada
+│   ├── events.js           # IGRadarEvents — kullanıcı event handler'ları
+│   └── popup.js            # Init + background'dan gelen mesaj router
+└── shared/
+    ├── constants.js        # Constants — deepFreeze'li global sabitler
+    └── i18n.js             # I18n — çeviri yükleyici ve DOM'a uygulayıcı
+```
+
+## Mesajlaşma Mimarisi
+
+```
+POPUP ──chrome.tabs.sendMessage──▶ CONTENT (action komutları: START, STOP, UNDO_LAST…)
+POPUP ◀──chrome.runtime.onMessage── BACKGROUND (status relay: STATUS_UPDATE, USER_PROCESSED…)
+CONTENT ──chrome.runtime.sendMessage──▶ BACKGROUND (relay için)
+```
+
+Content script popup'a **doğrudan** mesaj gönderemez; her zaman background üzerinden geçer.
+
+## Kritik Kodlama Kuralları
+
+### Sabitler
+Tüm magic string/number'lar `src/shared/constants.js` içindeki `Constants` nesnesinden alınır.
+```js
+// ❌ YANLIŞ
+await new Promise(r => setTimeout(r, 5000));
+chrome.storage.local.get('dailyCount');
+
+// ✅ DOĞRU
+await new Promise(r => setTimeout(r, Constants.TIMING.MIN_UNFOLLOW_DELAY_MS));
+chrome.storage.local.get(Constants.STORAGE_KEYS.DAILY_COUNT);
+```
+
+### i18n
+Kullanıcıya gösterilen her metin `I18n.t('key')` ile alınır; HTML'de `data-i18n` attribute'u kullanılır.
+```js
+// ❌ YANLIŞ
+element.textContent = 'Tamamlandı';
+
+// ✅ DOĞRU
+element.textContent = I18n.t('status.completed');
+```
+
+### Namespace Modülleri
+Her dosya kendi IIFE namespace'ini `window`'a atar. Namespace adları mevcut isimlendirmeyle tutarlı olmalı.
+```js
+// Örnek pattern
+window.IGRadarXxx = (() => {
+    // private
+    function privateHelper() { ... }
+    // public API
+    return { publicMethod };
+})();
+```
+
+### Hata Yönetimi
+Rate limit (HTTP 429) → `RateLimitError` fırlat, `automation.js` bunu yakalar ve 15 dk bekler.
+```js
+if (response.status === 429) throw new RateLimitError();
+```
+
+## ESLint Standartları
+
+- `const`/`let` kullan, `var` yasak
+- `===` strict equality, `==` yasak
+- 4 boşluk girinti
+- Tek tırnak string (`'...'`)
+- Noktalı virgül zorunlu
+- Trailing whitespace yasak
+
+## Önemli Sınırlar (Constants'tan)
+
+| Sabit | Değer | Açıklama |
+|---|---|---|
+| `DAILY_UNFOLLOW_LIMIT` | 100 | 24 saatlik unfollow limiti |
+| `BATCH_PAUSE_LIMIT` | 50 | Her 50 unfollow'da kullanıcıdan onay |
+| `RATE_LIMIT_WAIT_MS` | 15 dk | 429 hatası sonrası bekleme |
+| `MIN/MAX_UNFOLLOW_DELAY_MS` | 5–10 sn | Unfollow arası rastgele gecikme |
+| `UNDO_QUEUE_SIZE` | 10 | Geri alınabilecek max unfollow sayısı |
+
+## Dosya Ekleme / Değiştirme Rehberi
+
+- **Yeni API endpoint** → `src/content/api.js` içine ekle (`IGRadarAPI`'ye method ekle)
+- **Yeni storage alanı** → önce `Constants.STORAGE_KEYS`'e key ekle, sonra `src/content/storage.js`'e method ekle
+- **Yeni filtre tipi** → `src/content/filters.js` içindeki `shouldSkipUser()` fonksiyonunu güncelle
+- **Yeni UI bileşeni** → `src/popup/ui.js`'e render metodu, `src/popup/events.js`'e handler ekle
+- **Yeni çeviri** → `locales/tr.json` ve `locales/en.json`'a aynı key ile ekle
+- **Yeni mesaj tipi** → `Constants.MESSAGE_TYPES`'a ekle, background relay'i ve content router'ı güncelle
