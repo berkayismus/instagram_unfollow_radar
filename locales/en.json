@@ -54,6 +54,7 @@
     },
     "userList": {
         "title": "Processed Users",
+        "empty": "No users processed yet",
         "undoBtn": "Undo",
         "addToWhitelist": "Add to Whitelist",
         "addedToWhitelist": "Added to Whitelist"

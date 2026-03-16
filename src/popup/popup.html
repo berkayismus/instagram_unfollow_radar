@@ -44,6 +44,9 @@
                 <div class="stat-item">
                     <span class="stat-label" data-i18n="stats.dailyLimit">24 Saatlik Limit</span>
                     <span class="stat-value" id="sessionCount" aria-live="polite">0/100</span>
+                    <div class="stat-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                        <div class="stat-progress-fill" id="sessionProgress"></div>
+                    </div>
                 </div>
                 <div class="stat-item">
                     <span class="stat-label" data-i18n="stats.totalUnfollowed">Toplam Çıkarılan</span>
@@ -52,8 +55,8 @@
             </div>
 
             <!-- Status Bar -->
-            <div class="status-bar" role="status" aria-live="polite">
-                <span class="status-indicator" id="statusIndicator" aria-hidden="true">●</span>
+            <div class="status-bar" id="statusBar" role="status" aria-live="polite">
+                <span class="status-indicator" id="statusIndicator" aria-hidden="true"></span>
                 <span id="statusText" data-i18n="status.ready">Hazır</span>
             </div>
 
@@ -83,12 +86,13 @@
             </div>
 
             <!-- Dry-run toggle -->
-            <div class="control-row">
-                <label class="checkbox-container">
+            <label class="toggle-row">
+                <span data-i18n="controls.dryRunMode">Dry Run Mode (Test)</span>
+                <span class="toggle-switch" aria-hidden="true">
                     <input type="checkbox" id="dryRunMode">
-                    <span data-i18n="controls.dryRunMode">Dry Run Mode (Test)</span>
-                </label>
-            </div>
+                    <span class="toggle-thumb"></span>
+                </span>
+            </label>
 
             <!-- Main controls -->
             <div class="controls" role="group" aria-label="Main controls">
@@ -113,6 +117,10 @@
             <!-- Processed user list -->
             <div class="user-list-container" aria-labelledby="userListTitle">
                 <h3 id="userListTitle" data-i18n="userList.title">İşlenen Kullanıcılar</h3>
+                <div class="user-list-empty" id="userListEmpty">
+                    <span class="empty-icon" aria-hidden="true">👥</span>
+                    <span data-i18n="userList.empty">No users processed yet</span>
+                </div>
                 <ul class="user-list" id="userList" role="list" aria-live="polite"></ul>
             </div>
 

@@ -54,6 +54,7 @@
     },
     "userList": {
         "title": "İşlenen Kullanıcılar",
+        "empty": "Henüz işlenen kullanıcı yok",
         "undoBtn": "Geri Al",
         "addToWhitelist": "Whitelist'e Ekle",
         "addedToWhitelist": "Whitelist'e eklendi"

@@ -57,6 +57,9 @@ const IGRadarUI = (function() {
         el.exportCsvBtn       = document.getElementById('exportCsvBtn');
         el.themeToggle        = document.getElementById('themeToggle');
         el.langToggle         = document.getElementById('langToggle');
+        el.statusBar          = document.getElementById('statusBar');
+        el.userListEmpty      = document.getElementById('userListEmpty');
+        el.sessionProgress    = document.getElementById('sessionProgress');
     }
 
     // ─── DOM HELPERS ──────────────────────────────────────────────────────────
@@ -138,6 +141,10 @@ const IGRadarUI = (function() {
         if (type === 'active')  el.statusIndicator.classList.add('active');
         if (type === 'stopped') el.statusIndicator.classList.add('stopped');
         if (type === 'ready')   el.statusIndicator.classList.add('ready');
+        el.statusBar.className = 'status-bar';
+        if (type === 'active')  el.statusBar.classList.add('active');
+        if (type === 'stopped') el.statusBar.classList.add('stopped');
+        if (type === 'ready')   el.statusBar.classList.add('ready');
     }
 
     /**
@@ -178,6 +185,10 @@ const IGRadarUI = (function() {
         el.sessionCount.textContent = `${sc}/${Constants.LIMITS.MAX_SESSION}`;
         el.totalCount.textContent   = tu;
         if (lr) el.lastRun.textContent = new Date(lr).toLocaleString();
+
+        const pct = Math.min((sc / Constants.LIMITS.MAX_SESSION) * 100, 100);
+        el.sessionProgress.style.width = `${pct}%`;
+        el.sessionProgress.parentElement.setAttribute('aria-valuenow', sc);
 
         if (sc >= Constants.LIMITS.MAX_SESSION) {
             const sessionStart = data[Constants.STORAGE_KEYS.SESSION_START] || Date.now();
@@ -370,6 +381,7 @@ const IGRadarUI = (function() {
         }
 
         li.appendChild(actionsDiv);
+        el.userListEmpty.style.display = 'none';
         el.userList.appendChild(li);
 
         if (el.userList.children.length > Constants.LIMITS.MAX_USER_LIST_DISPLAY) {
@@ -382,6 +394,7 @@ const IGRadarUI = (function() {
     function clearUserList() {
         el.userList.innerHTML = '';
         displayedUsers.clear();
+        el.userListEmpty.style.display = '';
     }
 
     // ─── MESSAGE-DRIVEN UI UPDATES ────────────────────────────────────────────
