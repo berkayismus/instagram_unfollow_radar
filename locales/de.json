@@ -1,0 +1,120 @@
+{
+    "app": {
+        "title": "Instagram Unfollow Radar",
+        "subtitle": "Finde und entfolge automatisch Nicht-Zurückfolger auf Instagram"
+    },
+    "tabs": {
+        "main": "Haupt",
+        "filters": "Filter",
+        "stats": "Statistiken"
+    },
+    "stats": {
+        "dailyLimit": "24-Stunden-Limit",
+        "totalUnfollowed": "Insgesamt entfolgt"
+    },
+    "status": {
+        "ready": "Bereit",
+        "scanning": "Scannen",
+        "buildingFollowers": "Follower-Liste wird geladen...",
+        "checked": "geprüft",
+        "error": "Scan fehlgeschlagen — bitte Instagram neu laden und erneut versuchen",
+        "processing": "Verarbeitung läuft",
+        "paused": "Pausiert",
+        "stopped": "Gestoppt",
+        "reset": "Zurückgesetzt",
+        "completed": "Abgeschlossen"
+    },
+    "alerts": {
+        "batchComplete": "Batch abgeschlossen",
+        "batchCompleteDesc": "50 Benutzer wurden entfolgt. Möchten Sie fortfahren?",
+        "rateLimit": "Rate Limit!",
+        "rateLimitDesc": "Instagram hat Sie wegen zu vieler Anfragen begrenzt. Bitte warten.",
+        "dailyLimitReached": "24-Stunden-Limit erreicht",
+        "dailyLimitDesc": "Sie haben in den letzten 24 Stunden 100 Benutzer entfolgt. Bitte warten Sie 24 Stunden für eine neue Sitzung."
+    },
+    "buttons": {
+        "start": "Start",
+        "stop": "Stopp",
+        "continue": "Weiter (50 mehr)",
+        "undo": "Rückgängig",
+        "reset": "Zurücksetzen",
+        "add": "Hinzufügen",
+        "exportCsv": "CSV exportieren"
+    },
+    "controls": {
+        "dryRunMode": "Dry-Run-Modus (Test)"
+    },
+    "filters": {
+        "keywordsTitle": "Schlüsselwörter",
+        "keywordsDesc": "Benutzer, deren Name oder Benutzername diese Wörter enthält, werden übersprungen",
+        "keywordsPlaceholder": "z. B. crypto, nft, bot",
+        "whitelistTitle": "Whitelist",
+        "whitelistDesc": "Diese Benutzer werden niemals entfolgt",
+        "whitelistPlaceholder": "@benutzername"
+    },
+    "statsTab": {
+        "last30Days": "Letzte 30 Tage"
+    },
+    "userList": {
+        "title": "Verarbeitete Benutzer",
+        "empty": "Noch keine Benutzer verarbeitet",
+        "undoBtn": "Rückgängig",
+        "addToWhitelist": "Zur Whitelist hinzufügen",
+        "addedToWhitelist": "Zur Whitelist hinzugefügt"
+    },
+    "info": {
+        "lastRun": "Letzte Ausführung"
+    },
+    "warning": {
+        "title": "Warnung:",
+        "item1": "Sie müssen auf instagram.com eingeloggt sein",
+        "item2": "Arbeitet mit 5–10 Sekunden Verzögerung",
+        "item3": "Hält nach den ersten 50 Nutzern an und fragt nach Bestätigung",
+        "item4": "Maximal 100 Nutzer pro 24 Stunden",
+        "item5": "Limit wird nach 24 Stunden automatisch zurückgesetzt"
+    },
+    "messages": {
+        "confirmReset": "Alle Statistiken werden zurückgesetzt. Sind Sie sicher?",
+        "confirmReload": "Erweiterung ist noch nicht geladen. Seite neu laden?",
+        "noUndoAction": "Keine Aktion zum Rückgängig machen",
+        "undoFailed": "Rückgängig machen fehlgeschlagen",
+        "undoFailedDetail": "Rückgängig machen fehlgeschlagen. Stellen Sie sicher, dass Sie auf instagram.com eingeloggt sind.",
+        "noHistory": "Noch kein Verlauf",
+        "undone": "Rückgängig gemacht",
+        "addedToWhitelist": "Zur Whitelist hinzugefügt",
+        "dryRunActive": "Dry-Run-Modus aktiv",
+        "normalMode": "Normaler Modus",
+        "notOnInstagram": "Sie sind nicht auf instagram.com",
+        "pageReloaded": "Seite neu geladen — bitte erneut versuchen",
+        "startFailed": "Konnte nicht gestartet werden — bitte Seite neu laden"
+    },
+    "theme": {
+        "toggle": "Theme wechseln"
+    },
+    "language": {
+        "toggle": "Sprache ändern",
+        "current": "DE"
+    },
+    "aria": {
+        "startButton": "Automatisches Entfolgen starten",
+        "stopButton": "Automatisches Entfolgen stoppen",
+        "continueButton": "Weitere 50 Benutzer entfolgen",
+        "resetButton": "Alle Statistiken zurücksetzen",
+        "undoButton": "{count} Aktionen können rückgängig gemacht werden",
+        "themeToggle": "Theme wechseln (hell/dunkel)",
+        "languageToggle": "Sprache ändern",
+        "exportCsvButton": "Statistiken als CSV-Datei exportieren",
+        "keywordInput": "Geben Sie ein zu überspringendes Schlüsselwort ein",
+        "whitelistInput": "Geben Sie einen zu schützenden Benutzernamen ein",
+        "addKeywordButton": "Schlüsselwort zur Übersprungsliste hinzufügen",
+        "addWhitelistButton": "Benutzer zur Schutzliste hinzufügen",
+        "removeKeyword": "Schlüsselwort {keyword} entfernen",
+        "removeWhitelist": "@{username} aus der Schutzliste entfernen",
+        "undoUser": "Entfolgen für @{username} rückgängig machen",
+        "whitelistUser": "@{username} zur Schutzliste hinzufügen",
+        "rateLimitCountdown": "bis automatisch fortgesetzt wird",
+        "found": "gefunden",
+        "chartDescription": "Diagramm mit der Anzahl der in den letzten 30 Tagen entfolgten Benutzer"
+    }
+}
+

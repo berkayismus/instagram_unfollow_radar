@@ -9,7 +9,7 @@ const I18n = (function () {
 
     let currentLocale = 'tr';
     let translations = {};
-    const supportedLocales = ['tr', 'en'];
+    const supportedLocales = ['tr', 'en', 'de'];
     const translationCache = {};
 
     async function loadTranslations(locale) {
@@ -55,10 +55,15 @@ const I18n = (function () {
             if (translation && translation !== key) element.setAttribute('aria-label', translation);
         });
 
-        const langToggle = document.getElementById('langToggle');
-        if (langToggle) {
-            langToggle.textContent = t('language.current');
-            langToggle.title = t('language.toggle');
+        const langSelect = document.getElementById('langSelect');
+        if (langSelect) {
+            langSelect.value = currentLocale;
+            langSelect.title = t('language.toggle');
+            langSelect.setAttribute('aria-label', t('aria.languageToggle'));
+        }
+
+        if (typeof document !== 'undefined' && document.documentElement) {
+            document.documentElement.lang = currentLocale;
         }
     }
 

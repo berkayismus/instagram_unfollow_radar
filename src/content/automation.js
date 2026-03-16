@@ -215,6 +215,9 @@ const IGRadarAutomation = (function() {
      */
     async function mainLoop(state, sendStatus) {
         await IGRadarStorage.loadState(state);
+        state.dailyLimit = state.isPremium
+            ? Constants.LIMITS.PREMIUM_DAILY_LIMIT
+            : Constants.LIMITS.FREE_DAILY_LIMIT;
         sendStatus(Constants.STATUS.STARTED);
 
         const userId = IGRadarAPI.getCurrentUserId();
@@ -262,7 +265,7 @@ const IGRadarAutomation = (function() {
             }
 
             // Session limit guard
-            if (state.sessionCount >= Constants.LIMITS.MAX_SESSION) {
+            if (state.sessionCount >= state.dailyLimit) {
                 state.isRunning = false;
                 sendStatus(Constants.STATUS.LIMIT_REACHED);
                 break;
@@ -311,7 +314,7 @@ const IGRadarAutomation = (function() {
 
             // Drain queue
             while (state.unfollowQueue.length > 0 && state.isRunning && !state.isPaused) {
-                if (state.sessionCount >= Constants.LIMITS.MAX_SESSION) break;
+                if (state.sessionCount >= state.dailyLimit) break;
                 if (state.testMode && !state.testComplete &&
                     state.sessionCount >= Constants.LIMITS.BATCH_SIZE) {
                     state.isPaused = true;

@@ -6,7 +6,8 @@
     "tabs": {
         "main": "Main",
         "filters": "Filters",
-        "stats": "Statistics"
+        "stats": "Statistics",
+        "premium": "Premium"
     },
     "stats": {
         "dailyLimit": "24 Hour Limit",
@@ -30,7 +31,8 @@
         "rateLimit": "Rate Limit!",
         "rateLimitDesc": "Instagram has rate-limited you. Please wait.",
         "dailyLimitReached": "24 Hour Limit Reached",
-        "dailyLimitDesc": "You've unfollowed 100 users in the last 24 hours. Please wait 24 hours for a new session."
+        "dailyLimitDesc": "You have reached your daily unfollow limit. Please wait 24 hours for a new session.",
+        "upgradeHint": "Upgrade to Premium for 500 unfollows/day"
     },
     "buttons": {
         "start": "Start",
@@ -70,7 +72,7 @@
         "item1": "Must be logged in at instagram.com",
         "item2": "Works with 5-10 second delays",
         "item3": "Pauses after first 50 users for confirmation",
-        "item4": "Maximum 100 users per 24 hours",
+        "item4": "Free: 50 — Premium: 500 users per day limit",
         "item5": "Limit resets automatically after 24 hours"
     },
     "messages": {
@@ -87,6 +89,29 @@
         "notOnInstagram": "You are not on instagram.com",
         "pageReloaded": "Page reloaded — try again",
         "startFailed": "Failed to start — reload the page"
+    },
+    "premium": {
+        "activeBadge": "⭐ Premium Active",
+        "freeBadge": "Free Plan",
+        "colFree": "Free",
+        "colPremium": "Premium",
+        "licenseLabel": "License Key",
+        "licensePlaceholder": "Enter your Gumroad license key",
+        "activateBtn": "Activate",
+        "deactivateBtn": "Remove License",
+        "confirmDeactivate": "Remove your Premium license? You will revert to the free plan (50/day).",
+        "featureDailyLimit": "Daily Limit",
+        "featureUndo": "Undo Actions",
+        "featureFilters": "Filters & Whitelist",
+        "featureStats": "Statistics",
+        "featureExportCsv": "CSV Export",
+        "featureSupport": "Priority Support",
+        "exportLockHint": "🔒 CSV export is a Premium feature — Upgrade to unlock",
+        "buyBtn": "Buy on Gumroad — $1/mo",
+        "buyHint": "After purchase, enter the license key from your confirmation email below",
+        "successMessage": "Premium activated! You can now unfollow up to 500 users per day.",
+        "errorInvalid": "Invalid license key. Please double-check and try again.",
+        "errorNetwork": "Verification failed — please check your internet connection."
     },
     "theme": {
         "toggle": "Toggle Theme"
