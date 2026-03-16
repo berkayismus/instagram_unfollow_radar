@@ -15,6 +15,7 @@
     "status": {
         "ready": "Hazır",
         "scanning": "Taranıyor",
+        "buildingFollowers": "Takipçi listesi yükleniyor...",
         "processing": "İşleniyor",
         "paused": "Duraklatıldı",
         "stopped": "Durduruldu",

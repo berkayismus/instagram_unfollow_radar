@@ -15,6 +15,7 @@
     "status": {
         "ready": "Ready",
         "scanning": "Scanning",
+        "buildingFollowers": "Loading follower list...",
         "processing": "Processing",
         "paused": "Paused",
         "stopped": "Stopped",

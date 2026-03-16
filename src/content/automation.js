@@ -133,7 +133,8 @@ const IGRadarAutomation = (function() {
             if (!state.isRunning) break;
 
             sendStatus(Constants.STATUS.SCANNING, {
-                message: `Takipçi listesi yükleniyor... (${followerSet.size})`
+                phase: 'buildingFollowers',
+                followerCount: followerSet.size
             });
 
             const result = await IGRadarAPI.fetchFollowersPage(userId, cursor, signal);

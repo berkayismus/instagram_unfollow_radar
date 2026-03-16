@@ -417,8 +417,8 @@ const IGRadarUI = (function() {
                 updateStatus('active', `🔄 ${I18n.t('status.processing')}...`);
                 break;
             case Constants.STATUS.SCANNING:
-                if (data.message) {
-                    updateStatus('active', `🔍 ${data.message}`);
+                if (data.phase === 'buildingFollowers') {
+                    updateStatus('active', `🔍 ${I18n.t('status.buildingFollowers')} (${data.followerCount || 0})`);
                 } else {
                     updateStatus('active', `🔍 ${I18n.t('status.scanning')}... (${data.queueSize || 0} ${I18n.t('aria.found')})`);
                 }
