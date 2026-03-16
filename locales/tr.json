@@ -6,7 +6,8 @@
     "tabs": {
         "main": "Ana",
         "filters": "Filtreler",
-        "stats": "İstatistikler"
+        "stats": "İstatistikler",
+        "premium": "Premium"
     },
     "stats": {
         "dailyLimit": "24 Saatlik Limit",
@@ -30,7 +31,8 @@
         "rateLimit": "Rate Limit!",
         "rateLimitDesc": "Instagram tarafından hız sınırına takıldınız. Lütfen bekleyin.",
         "dailyLimitReached": "24 Saatlik Limit Doldu",
-        "dailyLimitDesc": "Son 24 saatte 100 kişiden takipten çıktınız. Yeni oturum için 24 saat beklemeniz gerekiyor."
+        "dailyLimitDesc": "Günlük limitinizi doldurdunuz. Yeni oturum için 24 saat beklemeniz gerekiyor.",
+        "upgradeHint": "Daha fazlası için Premium'a geçin — 500 kişi/gün"
     },
     "buttons": {
         "start": "Başlat",
@@ -70,7 +72,7 @@
         "item1": "instagram.com'da oturum açık olmalı",
         "item2": "5-10 saniye gecikme ile çalışır",
         "item3": "İlk 50 kişide durup onay ister",
-        "item4": "24 saatte maksimum 100 kişi limiti",
+        "item4": "Ücretsiz: 50 — Premium: 500 kişi/gün limiti",
         "item5": "24 saat sonra limit otomatik sıfırlanır"
     },
     "messages": {
@@ -87,6 +89,19 @@
         "notOnInstagram": "instagram.com'da değilsiniz",
         "pageReloaded": "Sayfa yenilendi - Tekrar deneyin",
         "startFailed": "Başlatılamadı - Sayfayı yenileyin"
+    },
+    "premium": {
+        "activeBadge": "⭐ Premium",
+        "freeBadge": "Ücretsiz",
+        "licenseLabel": "Lisans Anahtarı",
+        "licensePlaceholder": "Gumroad lisans anahtarınızı girin",
+        "activateBtn": "Etkinleştir",
+        "deactivateBtn": "Lisansı Kaldır",
+        "confirmDeactivate": "Premium lisansınızı kaldırmak istiyor musunuz? Ücretsiz plana (50/gün) geçeceksiniz.",
+        "featureDailyLimit": "Günlük Limit",
+        "successMessage": "Premium aktif! Artık günlük 500 takipten çıkarabilirsiniz.",
+        "errorInvalid": "Geçersiz lisans anahtarı. Lütfen kontrol edip tekrar deneyin.",
+        "errorNetwork": "Doğrulama başarısız — internet bağlantınızı kontrol edin."
     },
     "theme": {
         "toggle": "Tema Değiştir"

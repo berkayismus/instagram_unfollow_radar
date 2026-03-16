@@ -56,10 +56,19 @@ const IGRadarUI = (function() {
         el.chartContainer     = document.getElementById('chart');
         el.exportCsvBtn       = document.getElementById('exportCsvBtn');
         el.themeToggle        = document.getElementById('themeToggle');
-        el.langToggle         = document.getElementById('langToggle');
+        el.langSelect         = document.getElementById('langSelect');
         el.statusBar          = document.getElementById('statusBar');
         el.userListEmpty      = document.getElementById('userListEmpty');
-        el.sessionProgress    = document.getElementById('sessionProgress');
+        el.sessionProgress      = document.getElementById('sessionProgress');
+        el.premiumBadge         = document.getElementById('premiumBadge');
+        el.premiumEmail         = document.getElementById('premiumEmail');
+        el.licenseInput         = document.getElementById('licenseInput');
+        el.activateLicenseBtn   = document.getElementById('activateLicenseBtn');
+        el.licenseStatus        = document.getElementById('licenseStatus');
+        el.deactivateWrapper    = document.getElementById('deactivateWrapper');
+        el.deactivateLicenseBtn = document.getElementById('deactivateLicenseBtn');
+        el.licenseForm          = document.getElementById('licenseForm');
+        el.limitUpgradeHint     = document.getElementById('limitUpgradeHint');
     }
 
     // ─── DOM HELPERS ──────────────────────────────────────────────────────────
@@ -176,25 +185,34 @@ const IGRadarUI = (function() {
             Constants.STORAGE_KEYS.SESSION_COUNT,
             Constants.STORAGE_KEYS.TOTAL_UNFOLLOWED,
             Constants.STORAGE_KEYS.LAST_RUN,
-            Constants.STORAGE_KEYS.SESSION_START
+            Constants.STORAGE_KEYS.SESSION_START,
+            Constants.STORAGE_KEYS.IS_PREMIUM
         ]);
-        const sc = data[Constants.STORAGE_KEYS.SESSION_COUNT]    || 0;
-        const tu = data[Constants.STORAGE_KEYS.TOTAL_UNFOLLOWED]  || 0;
-        const lr = data[Constants.STORAGE_KEYS.LAST_RUN];
+        const sc        = data[Constants.STORAGE_KEYS.SESSION_COUNT]    || 0;
+        const tu        = data[Constants.STORAGE_KEYS.TOTAL_UNFOLLOWED]  || 0;
+        const lr        = data[Constants.STORAGE_KEYS.LAST_RUN];
+        const isPremium = data[Constants.STORAGE_KEYS.IS_PREMIUM]        || false;
+        const limit     = isPremium
+            ? Constants.LIMITS.PREMIUM_DAILY_LIMIT
+            : Constants.LIMITS.FREE_DAILY_LIMIT;
 
-        el.sessionCount.textContent = `${sc}/${Constants.LIMITS.MAX_SESSION}`;
+        el.sessionCount.textContent = `${sc}/${limit}`;
         el.totalCount.textContent   = tu;
         if (lr) el.lastRun.textContent = new Date(lr).toLocaleString();
 
-        const pct = Math.min((sc / Constants.LIMITS.MAX_SESSION) * 100, 100);
+        el.sessionProgress.parentElement.setAttribute('aria-valuemax', limit);
+        const pct = Math.min((sc / limit) * 100, 100);
         el.sessionProgress.style.width = `${pct}%`;
         el.sessionProgress.parentElement.setAttribute('aria-valuenow', sc);
 
-        if (sc >= Constants.LIMITS.MAX_SESSION) {
+        if (sc >= limit) {
             const sessionStart = data[Constants.STORAGE_KEYS.SESSION_START] || Date.now();
             const timeLeft     = Constants.TIMING.SESSION_DURATION - (Date.now() - sessionStart);
             if (timeLeft > 0) {
                 el.limitReachedAlert.style.display = 'block';
+                if (el.limitUpgradeHint && !isPremium) {
+                    el.limitUpgradeHint.style.display = 'block';
+                }
                 el.startBtn.disabled = true;
             }
         }
@@ -406,7 +424,13 @@ const IGRadarUI = (function() {
      */
     function handleStatusUpdate(data) {
         if (data.sessionCount !== undefined) {
-            el.sessionCount.textContent = `${data.sessionCount}/${Constants.LIMITS.MAX_SESSION}`;
+            chrome.storage.local.get([Constants.STORAGE_KEYS.IS_PREMIUM]).then(d => {
+                const isPremium = d[Constants.STORAGE_KEYS.IS_PREMIUM] || false;
+                const limit     = isPremium
+                    ? Constants.LIMITS.PREMIUM_DAILY_LIMIT
+                    : Constants.LIMITS.FREE_DAILY_LIMIT;
+                el.sessionCount.textContent = `${data.sessionCount}/${limit}`;
+            });
         }
         if (data.totalUnfollowed !== undefined) {
             el.totalCount.textContent = data.totalUnfollowed;
@@ -489,6 +513,58 @@ const IGRadarUI = (function() {
         }, 1000);
     }
 
+    // ─── PREMIUM UI ───────────────────────────────────────────────────────────
+
+    /**
+     * Updates the premium tab to reflect the current license status.
+     * @param {boolean} isPremium
+     * @param {string|null} email - email from Gumroad purchase
+     */
+    function renderPremiumStatus(isPremium, email) {
+        if (!el.premiumBadge) return;
+
+        if (isPremium) {
+            el.premiumBadge.textContent = I18n.t('premium.activeBadge');
+            el.premiumBadge.className   = 'premium-badge premium-badge--active';
+            if (email) {
+                el.premiumEmail.textContent = email;
+                el.premiumEmail.style.display = 'block';
+            }
+            el.licenseForm.style.display       = 'none';
+            el.deactivateWrapper.style.display = 'block';
+        } else {
+            el.premiumBadge.textContent = I18n.t('premium.freeBadge');
+            el.premiumBadge.className   = 'premium-badge premium-badge--free';
+            el.premiumEmail.style.display      = 'none';
+            el.licenseForm.style.display       = 'block';
+            el.deactivateWrapper.style.display = 'none';
+        }
+    }
+
+    /**
+     * Enables or disables the activate button and shows a loading state.
+     * @param {boolean} loading
+     */
+    function setLicenseLoading(loading) {
+        if (!el.activateLicenseBtn) return;
+        el.activateLicenseBtn.disabled = loading;
+        el.activateLicenseBtn.textContent = loading
+            ? '⏳'
+            : I18n.t('premium.activateBtn');
+    }
+
+    /**
+     * Shows a success or error message below the license input.
+     * @param {boolean} success
+     * @param {string} messageKey - i18n key for the message text
+     */
+    function showLicenseResult(success, messageKey) {
+        if (!el.licenseStatus) return;
+        el.licenseStatus.textContent = I18n.t(messageKey);
+        el.licenseStatus.className   = `license-status license-status--${success ? 'success' : 'error'}`;
+        el.licenseStatus.style.display = 'block';
+    }
+
     return {
         cacheElements,
         el,
@@ -513,6 +589,9 @@ const IGRadarUI = (function() {
         handleExportCsv,
         addUserToList,
         handleStatusUpdate,
-        handleRateLimitMessage
+        handleRateLimitMessage,
+        renderPremiumStatus,
+        setLicenseLoading,
+        showLicenseResult
     };
 })();

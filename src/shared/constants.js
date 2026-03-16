@@ -46,7 +46,15 @@ const Constants = (function () {
             HISTORY_RETENTION_DAYS:  30,
             MAX_USER_LIST_DISPLAY:   50,
             SCAN_PAGE_SIZE:          50,
-            CHART_DAYS:              30
+            CHART_DAYS:              30,
+            FREE_DAILY_LIMIT:        50,
+            PREMIUM_DAILY_LIMIT:     500
+        },
+
+        // ─── GUMROAD ─────────────────────────────────────────────────────────
+        GUMROAD: {
+            PRODUCT_PERMALINK: 'YOUR_PERMALINK_HERE',
+            VERIFY_URL:        'https://api.gumroad.com/v2/licenses/verify'
         },
 
         // ─── INSTAGRAM API ────────────────────────────────────────────────────
@@ -79,7 +87,10 @@ const Constants = (function () {
             UNFOLLOW_STATS:   'igUnfollowStats',
             UNFOLLOW_HISTORY: 'igUnfollowHistory',
             THEME:            'igTheme',
-            LANGUAGE:         'igLanguage'
+            LANGUAGE:         'igLanguage',
+            IS_PREMIUM:       'igIsPremium',
+            LICENSE_KEY:      'igLicenseKey',
+            LICENSE_EMAIL:    'igLicenseEmail'
         },
 
         // ─── MESSAGE TYPES ────────────────────────────────────────────────────
@@ -100,7 +111,8 @@ const Constants = (function () {
             UPDATE_WHITELIST: 'UPDATE_WHITELIST',
             TOGGLE_DRY_RUN:   'TOGGLE_DRY_RUN',
             UNDO_LAST:        'UNDO_LAST',
-            UNDO_SINGLE:      'UNDO_SINGLE'
+            UNDO_SINGLE:      'UNDO_SINGLE',
+            UPDATE_LICENSE:   'UPDATE_LICENSE'
         },
 
         // ─── STATUS ──────────────────────────────────────────────────────────

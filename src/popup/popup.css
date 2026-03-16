@@ -654,3 +654,133 @@ h2, h3, h4, h5, h6 { color: var(--text-primary); }
     }
     .status-indicator { animation: none; }
 }
+
+/* ── Premium tab ──────────────────────────── */
+.tab-btn--premium { color: #f09433; }
+.tab-btn--premium.active { border-bottom-color: #f09433; color: #f09433; }
+
+.premium-section { padding: 4px 0; }
+
+.premium-status {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 16px;
+    background: var(--surface-bg);
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.premium-badge {
+    display: inline-block;
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.premium-badge--free {
+    background: var(--surface-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+}
+
+.premium-badge--active {
+    background: linear-gradient(135deg, #f09433, #bc1888);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(193,53,132,.35);
+}
+
+.premium-email {
+    font-size: 11px;
+    color: var(--text-secondary);
+    word-break: break-all;
+}
+
+.premium-features {
+    background: var(--surface-bg);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 16px;
+    overflow: hidden;
+}
+
+.feature-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.feature-row:last-child { border-bottom: none; }
+
+.feature-label { color: var(--text-primary); font-weight: 500; }
+
+.feature-free {
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-align: center;
+    min-width: 40px;
+}
+
+.feature-premium {
+    font-weight: 700;
+    color: var(--primary-color);
+    text-align: center;
+    min-width: 40px;
+}
+
+.license-form { margin-bottom: 12px; }
+
+.license-label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.license-status {
+    font-size: 12px;
+    margin-top: 8px;
+    padding: 6px 10px;
+    border-radius: 6px;
+}
+
+.license-status--success {
+    background: rgba(76,175,80,.12);
+    color: var(--success-color);
+    border-left: 3px solid var(--success-color);
+}
+
+.license-status--error {
+    background: rgba(229,57,53,.10);
+    color: var(--danger-color);
+    border-left: 3px solid var(--danger-color);
+}
+
+#deactivateWrapper {
+    text-align: center;
+    margin-top: 8px;
+}
+
+.btn--small {
+    flex: 0 0 auto;
+    padding: 7px 16px;
+    font-size: 12px;
+    width: auto;
+}
+
+.upgrade-hint {
+    font-size: 12px;
+    color: var(--primary-color);
+    font-weight: 500;
+    margin-top: 4px;
+}

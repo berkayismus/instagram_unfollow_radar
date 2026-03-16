@@ -75,11 +75,16 @@ const IGRadarEvents = (function() {
             [Constants.STORAGE_KEYS.TEST_COMPLETE]:    false,
             [Constants.STORAGE_KEYS.UNDO_QUEUE]:       []
         });
-        IGRadarUI.el.sessionCount.textContent       = `0/${Constants.LIMITS.MAX_SESSION}`;
-        IGRadarUI.el.totalCount.textContent         = '0';
-        IGRadarUI.el.lastRun.textContent            = '-';
+        const d         = await chrome.storage.local.get([Constants.STORAGE_KEYS.IS_PREMIUM]);
+        const isPremium = d[Constants.STORAGE_KEYS.IS_PREMIUM] || false;
+        const limit     = isPremium
+            ? Constants.LIMITS.PREMIUM_DAILY_LIMIT
+            : Constants.LIMITS.FREE_DAILY_LIMIT;
+        IGRadarUI.el.sessionCount.textContent        = `0/${limit}`;
+        IGRadarUI.el.totalCount.textContent          = '0';
+        IGRadarUI.el.lastRun.textContent             = '-';
         IGRadarUI.el.limitReachedAlert.style.display = 'none';
-        IGRadarUI.el.startBtn.disabled              = false;
+        IGRadarUI.el.startBtn.disabled               = false;
         IGRadarUI.clearUserList();
         IGRadarUI.updateUndoButton(0);
         IGRadarUI.updateStatus('ready', `✓ ${I18n.t('status.reset')}`);
@@ -159,6 +164,83 @@ const IGRadarEvents = (function() {
         IGRadarUI.renderWhitelistList(whitelist);
     }
 
+    // ─── LICENSE / PREMIUM ────────────────────────────────────────────────────
+
+    /**
+     * Validates the entered license key against the Gumroad API.
+     * On success, persists premium status and notifies the content script.
+     */
+    async function handleLicenseActivate() {
+        const key = IGRadarUI.el.licenseInput.value.trim();
+        if (!key) return;
+
+        IGRadarUI.setLicenseLoading(true);
+        IGRadarUI.el.licenseStatus.style.display = 'none';
+
+        try {
+            const body = new URLSearchParams({
+                product_permalink:      Constants.GUMROAD.PRODUCT_PERMALINK,
+                license_key:            key,
+                increment_uses_count:   'false'
+            });
+            const response = await fetch(Constants.GUMROAD.VERIFY_URL, {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body
+            });
+            const json = await response.json();
+
+            if (json.success === true) {
+                const email = json.purchase && json.purchase.email ? json.purchase.email : null;
+                await chrome.storage.local.set({
+                    [Constants.STORAGE_KEYS.IS_PREMIUM]:    true,
+                    [Constants.STORAGE_KEYS.LICENSE_KEY]:   key,
+                    [Constants.STORAGE_KEYS.LICENSE_EMAIL]: email
+                });
+                try {
+                    await sendToContent({
+                        action:       Constants.ACTIONS.UPDATE_LICENSE,
+                        isPremium:    true,
+                        licenseKey:   key,
+                        licenseEmail: email
+                    });
+                } catch (_) {}
+                IGRadarUI.renderPremiumStatus(true, email);
+                IGRadarUI.showLicenseResult(true, 'premium.successMessage');
+                await IGRadarUI.loadStats();
+            } else {
+                IGRadarUI.showLicenseResult(false, 'premium.errorInvalid');
+            }
+        } catch (err) {
+            console.error('[IGRadar] License verification failed:', err);
+            IGRadarUI.showLicenseResult(false, 'premium.errorNetwork');
+        } finally {
+            IGRadarUI.setLicenseLoading(false);
+        }
+    }
+
+    /**
+     * Removes the stored license and reverts the user to free tier.
+     */
+    async function handleDeactivateLicense() {
+        if (!confirm(I18n.t('premium.confirmDeactivate'))) return;
+        await chrome.storage.local.set({
+            [Constants.STORAGE_KEYS.IS_PREMIUM]:    false,
+            [Constants.STORAGE_KEYS.LICENSE_KEY]:   null,
+            [Constants.STORAGE_KEYS.LICENSE_EMAIL]: null
+        });
+        try {
+            await sendToContent({
+                action:    Constants.ACTIONS.UPDATE_LICENSE,
+                isPremium: false,
+                licenseKey:   null,
+                licenseEmail: null
+            });
+        } catch (_) {}
+        IGRadarUI.renderPremiumStatus(false, null);
+        await IGRadarUI.loadStats();
+    }
+
     // ─── THEME & LANGUAGE ─────────────────────────────────────────────────────
 
     async function handleThemeToggle() {
@@ -168,8 +250,9 @@ const IGRadarEvents = (function() {
         IGRadarUI.applyTheme(theme);
     }
 
-    async function handleLanguageToggle() {
-        await I18n.toggleLocale();
+    async function handleLanguageChange(e) {
+        const locale = e.target.value;
+        await I18n.setLocale(locale);
     }
 
     // ─── PER-USER LIST ACTIONS ────────────────────────────────────────────────
@@ -245,7 +328,13 @@ const IGRadarEvents = (function() {
 
         IGRadarUI.el.exportCsvBtn.addEventListener('click', IGRadarUI.handleExportCsv);
         IGRadarUI.el.themeToggle.addEventListener('click',  handleThemeToggle);
-        IGRadarUI.el.langToggle.addEventListener('click',   handleLanguageToggle);
+        IGRadarUI.el.langSelect.addEventListener('change',  handleLanguageChange);
+
+        IGRadarUI.el.activateLicenseBtn.addEventListener('click', handleLicenseActivate);
+        IGRadarUI.el.licenseInput.addEventListener('keypress', e => {
+            if (e.key === 'Enter') handleLicenseActivate();
+        });
+        IGRadarUI.el.deactivateLicenseBtn.addEventListener('click', handleDeactivateLicense);
     }
 
     return {

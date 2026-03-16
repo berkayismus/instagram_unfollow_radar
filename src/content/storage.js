@@ -24,7 +24,8 @@ const IGRadarStorage = (function() {
             SK.LAST_RUN,      SK.TEST_MODE,      SK.TEST_COMPLETE,
             SK.KEYWORDS,      SK.WHITELIST,      SK.DRY_RUN_MODE,
             SK.UNDO_QUEUE,    SK.RATE_LIMIT_UNTIL,
-            SK.UNFOLLOW_STATS, SK.UNFOLLOW_HISTORY
+            SK.UNFOLLOW_STATS, SK.UNFOLLOW_HISTORY,
+            SK.IS_PREMIUM,    SK.LICENSE_KEY,    SK.LICENSE_EMAIL
         ];
 
         const data = await chrome.storage.local.get(keys);
@@ -49,6 +50,9 @@ const IGRadarStorage = (function() {
         state.dryRunMode      = data[SK.DRY_RUN_MODE]     || false;
         state.undoQueue       = data[SK.UNDO_QUEUE]       || [];
         state.rateLimitUntil  = data[SK.RATE_LIMIT_UNTIL] || null;
+        state.isPremium       = data[SK.IS_PREMIUM]       || false;
+        state.licenseKey      = data[SK.LICENSE_KEY]      || null;
+        state.licenseEmail    = data[SK.LICENSE_EMAIL]    || null;
 
         // Initialise missing records so downstream reads never see undefined
         if (!data[SK.SESSION_START]) {
@@ -122,12 +126,27 @@ const IGRadarStorage = (function() {
         await chrome.storage.local.set({ [SK.RATE_LIMIT_UNTIL]: null });
     }
 
+    /**
+     * Persists Gumroad premium license information.
+     * @param {boolean} isPremium
+     * @param {string|null} licenseKey
+     * @param {string|null} email - email from Gumroad purchase record
+     */
+    async function saveLicenseState(isPremium, licenseKey, email) {
+        await chrome.storage.local.set({
+            [SK.IS_PREMIUM]:    isPremium,
+            [SK.LICENSE_KEY]:   licenseKey,
+            [SK.LICENSE_EMAIL]: email
+        });
+    }
+
     return {
         loadState,
         saveSessionProgress,
         updateDailyStats,
         addToHistory,
         setRateLimitUntil,
-        clearRateLimit
+        clearRateLimit,
+        saveLicenseState
     };
 })();

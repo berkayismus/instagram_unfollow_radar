@@ -17,8 +17,11 @@
             <div class="header-content">
                 <h1>📸 <span data-i18n="app.title">Instagram Unfollow Radar</span></h1>
                 <div class="header-buttons">
-                    <button id="langToggle" class="lang-toggle" type="button" role="button"
-                        aria-label="Change language" title="Change Language">TR</button>
+                    <select id="langSelect" class="lang-toggle" aria-label="Change language">
+                        <option value="tr">TR</option>
+                        <option value="en">EN</option>
+                        <option value="de">DE</option>
+                    </select>
                     <button id="themeToggle" class="theme-toggle" type="button" role="button"
                         aria-label="Toggle theme" aria-pressed="false" title="Dark Mode">🌙</button>
                 </div>
@@ -34,6 +37,8 @@
                 aria-selected="false" aria-controls="filters-tab" tabindex="-1">Filtreler</button>
             <button class="tab-btn" data-tab="stats" data-i18n="tabs.stats" role="tab" id="tab-stats"
                 aria-selected="false" aria-controls="stats-tab" tabindex="-1">İstatistikler</button>
+            <button class="tab-btn tab-btn--premium" data-tab="premium" data-i18n="tabs.premium" role="tab" id="tab-premium"
+                aria-selected="false" aria-controls="premium-tab" tabindex="-1">Premium</button>
         </div>
 
         <!-- Main Tab -->
@@ -82,7 +87,10 @@
             <div id="limitReachedAlert" class="alert alert-info" style="display: none;" role="alert"
                 aria-live="assertive">
                 <p><strong>✋ <span data-i18n="alerts.dailyLimitReached">24 Saatlik Limit Doldu</span></strong></p>
-                <p data-i18n="alerts.dailyLimitDesc">Son 24 saatte 100 kişiden takipten çıktınız.</p>
+                <p id="limitReachedDesc" data-i18n="alerts.dailyLimitDesc">Son 24 saatte limitinizi doldurdunuz.</p>
+                <p id="limitUpgradeHint" class="upgrade-hint" style="display: none;">
+                    ⭐ <span data-i18n="alerts.upgradeHint">Daha fazlası için Premium'a geçin</span>
+                </p>
             </div>
 
             <!-- Dry-run toggle -->
@@ -172,6 +180,48 @@
             </section>
         </div>
 
+        <!-- Premium Tab -->
+        <div class="tab-content" id="premium-tab" role="tabpanel" aria-labelledby="tab-premium" hidden>
+            <section class="premium-section" aria-labelledby="premiumTitle">
+
+                <!-- Status badge -->
+                <div class="premium-status" id="premiumStatus">
+                    <span class="premium-badge premium-badge--free" id="premiumBadge"
+                        data-i18n="premium.freeBadge">Ücretsiz</span>
+                    <p class="premium-email" id="premiumEmail" style="display: none;"></p>
+                </div>
+
+                <!-- Feature comparison -->
+                <div class="premium-features">
+                    <div class="feature-row">
+                        <span class="feature-label" data-i18n="premium.featureDailyLimit">Günlük Limit</span>
+                        <span class="feature-free">50</span>
+                        <span class="feature-premium">500</span>
+                    </div>
+                </div>
+
+                <!-- License activation form -->
+                <div class="license-form" id="licenseForm">
+                    <label class="license-label" for="licenseInput" data-i18n="premium.licenseLabel">Lisans Anahtarı</label>
+                    <div class="input-group" role="group">
+                        <input type="text" id="licenseInput" autocomplete="off" spellcheck="false"
+                            data-i18n-placeholder="premium.licensePlaceholder"
+                            placeholder="XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX">
+                        <button id="activateLicenseBtn" class="btn btn-primary" type="button"
+                            data-i18n="premium.activateBtn">Etkinleştir</button>
+                    </div>
+                    <p class="license-status" id="licenseStatus" aria-live="polite" style="display: none;"></p>
+                </div>
+
+                <!-- Deactivate (shown when premium is active) -->
+                <div id="deactivateWrapper" style="display: none;">
+                    <button id="deactivateLicenseBtn" class="btn btn-secondary btn--small" type="button"
+                        data-i18n="premium.deactivateBtn">Lisansı Kaldır</button>
+                </div>
+
+            </section>
+        </div>
+
         <!-- Warning footer -->
         <aside class="warning" role="note">
             <p><strong>⚠️ <span data-i18n="warning.title">Uyarı:</span></strong></p>
@@ -179,7 +229,7 @@
                 <li data-i18n="warning.item1">instagram.com'da oturum açık olmalı</li>
                 <li data-i18n="warning.item2">5-10 saniye gecikme ile çalışır</li>
                 <li data-i18n="warning.item3">İlk 50 kişide durup onay ister</li>
-                <li data-i18n="warning.item4">24 saatte maksimum 100 kişi limiti</li>
+                <li id="warningLimitItem" data-i18n="warning.item4">24 saatte maksimum 50/500 kişi limiti</li>
                 <li data-i18n="warning.item5">24 saat sonra limit otomatik sıfırlanır</li>
             </ul>
         </aside>

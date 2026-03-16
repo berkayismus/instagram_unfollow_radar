@@ -26,7 +26,11 @@ const IGUnfollowRadarContent = (function() {
         dryRunMode:      false,
         undoQueue:       [],
         rateLimitUntil:  null,
-        abortController: null
+        abortController: null,
+        isPremium:       false,
+        licenseKey:      null,
+        licenseEmail:    null,
+        dailyLimit:      Constants.LIMITS.FREE_DAILY_LIMIT
     };
 
     // ─── STATUS BROADCAST ─────────────────────────────────────────────────────
@@ -120,6 +124,17 @@ const IGUnfollowRadarContent = (function() {
                     }
                     break;
 
+                case Constants.ACTIONS.UPDATE_LICENSE: {
+                    state.isPremium    = message.isPremium;
+                    state.licenseKey   = message.licenseKey   || null;
+                    state.licenseEmail = message.licenseEmail || null;
+                    state.dailyLimit   = state.isPremium
+                        ? Constants.LIMITS.PREMIUM_DAILY_LIMIT
+                        : Constants.LIMITS.FREE_DAILY_LIMIT;
+                    sendResponse({ success: true });
+                    break;
+                }
+
                 case Constants.ACTIONS.UNDO_SINGLE: {
                     const { username } = message;
                     const idx  = state.undoQueue.findIndex(u => u.username === username);
@@ -148,7 +163,12 @@ const IGUnfollowRadarContent = (function() {
         setupMessageListener();
         const userId = IGRadarAPI.getCurrentUserId();
         if (userId) {
-            IGRadarStorage.loadState(state).then(() => sendStatus(Constants.STATUS.READY));
+            IGRadarStorage.loadState(state).then(() => {
+            state.dailyLimit = state.isPremium
+                ? Constants.LIMITS.PREMIUM_DAILY_LIMIT
+                : Constants.LIMITS.FREE_DAILY_LIMIT;
+            sendStatus(Constants.STATUS.READY);
+        });
         } else {
             console.warn('[IGRadar] User not logged in');
         }

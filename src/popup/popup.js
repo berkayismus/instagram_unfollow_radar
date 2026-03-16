@@ -41,6 +41,21 @@
         }
     }
 
+    // ─── PREMIUM LOADER ───────────────────────────────────────────────────────
+
+    /**
+     * Reads premium status from storage and renders the premium tab badge.
+     */
+    async function loadPremiumStatus() {
+        const data      = await chrome.storage.local.get([
+            Constants.STORAGE_KEYS.IS_PREMIUM,
+            Constants.STORAGE_KEYS.LICENSE_EMAIL
+        ]);
+        const isPremium = data[Constants.STORAGE_KEYS.IS_PREMIUM]    || false;
+        const email     = data[Constants.STORAGE_KEYS.LICENSE_EMAIL]  || null;
+        IGRadarUI.renderPremiumStatus(isPremium, email);
+    }
+
     // ─── INIT ─────────────────────────────────────────────────────────────────
 
     async function init() {
@@ -63,7 +78,8 @@
             IGRadarUI.loadKeywords(),
             IGRadarUI.loadWhitelist(),
             IGRadarUI.loadDryRunMode(),
-            IGRadarUI.loadUndoQueue()
+            IGRadarUI.loadUndoQueue(),
+            loadPremiumStatus()
         ]);
 
         IGRadarEvents.setup();
