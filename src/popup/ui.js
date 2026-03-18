@@ -545,6 +545,7 @@ const IGRadarUI = (function() {
         if (isPremium) {
             el.premiumBadge.textContent = I18n.t('premium.activeBadge');
             el.premiumBadge.className   = 'premium-badge premium-badge--active';
+            el.premiumBadge.setAttribute('data-i18n', 'premium.activeBadge');
             if (email) {
                 el.premiumEmail.textContent   = email;
                 el.premiumEmail.style.display = 'block';
@@ -561,6 +562,7 @@ const IGRadarUI = (function() {
         } else {
             el.premiumBadge.textContent = I18n.t('premium.freeBadge');
             el.premiumBadge.className   = 'premium-badge premium-badge--free';
+            el.premiumBadge.setAttribute('data-i18n', 'premium.freeBadge');
             el.premiumEmail.style.display      = 'none';
             el.licenseForm.style.display       = 'block';
             el.deactivateWrapper.style.display = 'none';
