@@ -60,8 +60,8 @@
     },
     "watch": {
         "title": "İzleme listesi",
-        "disclaimer": "Yalnızca kendi hesabınız ve Instagram kuralları çerçevesinde kullanın. Gizli hesapların takip listesi genelde görünmez.",
-        "partialNote": "Çok sayıda takip için liste kısmi taranır (hız sınırı); tam liste için birden fazla kez yenileyin. Yeni takipler, profildeki takip sayısı artınca listelenir (API gürültüsü filtrelenir).",
+        "disclaimer": "İstediğiniz hesabı ekleyin; yeni kimin takip edildiğini buradan takip edebilirsiniz. Gizli hesaplarda liste genelde görünmez. Instagram kurallarına uyun.",
+        "partialNote": "Listeyi güncellemek için Yenile’ye basın. Yeni takipler, o kişinin profilindeki takip sayısı artınca burada görünür. Çok fazla kişi takip ediliyorsa tam liste için birkaç kez yenilemeniz gerekebilir.",
         "usernamePlaceholder": "@kullaniciadi",
         "addBtn": "Ekle",
         "refreshAll": "Tümünü yenile",
@@ -69,15 +69,15 @@
         "remove": "Kaldır",
         "empty": "Henüz izlenen kullanıcı yok",
         "followingCount": "Takip: {count}",
-        "newLast24": "Eklemeden sonraki 24 saatte yeni: {count}",
-        "partialBadge": "kısmi",
+        "newLast24": "Listeye ekledikten sonraki 24 saatte yeni: {count}",
+        "partialBadge": "tam liste yüklenmedi",
         "lastCheck": "Son kontrol",
-        "noNewFollows": "İzleme penceresinde (eklemeden sonraki 24 saat) yeni takip tespit edilmedi",
-        "addedOk": "Kullanıcı listeye eklendi. Takip değişikliklerini görmek için Yenile kullanın.",
+        "noNewFollows": "Bu 24 saatlik süre içinde yeni takip görünmüyor",
+        "addedOk": "Eklendi. Değişiklikleri görmek için Yenile’ye basın.",
         "refreshedOk": "Güncellendi.",
         "refreshedAllOk": "Tüm hesaplar güncellendi.",
-        "errorNoInstagramTab": "instagram.com sekmesi açık değil veya eklenti yüklenmedi — bir Instagram sekmesi açıp sayfayı yenileyin.",
-        "errorContentScript": "İstek başarısız. instagram.com sekmesinde sayfayı yenileyip tekrar deneyin.",
+        "errorNoInstagramTab": "Önce Instagram’ı tarayıcıda açın; gerekirse sayfayı yenileyin.",
+        "errorContentScript": "İşlem tamamlanamadı. Instagram sekmesini yenileyip tekrar deneyin.",
         "refreshOneAria": "@{username} için takip listesini yenile",
         "removeAria": "@{username} izlemeden kaldır",
         "error": {
@@ -87,10 +87,10 @@
             "not_found": "Kullanıcı bulunamadı veya profil alınamadı",
             "profile_failed": "Profil yüklenemedi (gizli hesap olabilir)",
             "not_in_list": "Kullanıcı listede yok",
-            "rate_limit": "Instagram hız sınırı — bir süre sonra tekrar deneyin",
-            "unknown": "Bilinmeyen hata",
-            "unknownAction": "Eklenti güncellendi — instagram.com sekmesini yenileyin (F5), ardından tekrar deneyin.",
-            "network": "Ağ veya Instagram yanıtı beklenmedik. Sayfayı yenileyip tekrar deneyin."
+            "rate_limit": "Şu an çok sık istek yapıldı — bir süre bekleyip tekrar deneyin",
+            "unknown": "Bir hata oluştu",
+            "unknownAction": "Eklenti yenilendi — Instagram sekmesini yenileyip tekrar deneyin.",
+            "network": "Bağlantı sorunu olabilir. Instagram sayfasını yenileyip tekrar deneyin."
         }
     },
     "userList": {
@@ -104,12 +104,12 @@
         "lastRun": "Son çalıştırma"
     },
     "warning": {
-        "title": "Uyarı:",
-        "item1": "instagram.com'da oturum açık olmalı",
-        "item2": "5-10 saniye gecikme ile çalışır",
-        "item3": "İlk 50 kişide durup onay ister",
-        "item4": "Ücretsiz: 50 — Premium: 500 kişi/gün limiti",
-        "item5": "24 saat sonra limit otomatik sıfırlanır"
+        "title": "Bilmeniz gerekenler",
+        "item1": "Instagram’da oturumunuz açık olmalı",
+        "item2": "Her işlem arasında birkaç saniye beklenir",
+        "item3": "50 kişiden sonra devam etmek için onay sorulur",
+        "item4": "Günlük limit: ücretsiz 50, Premium 500 kişi",
+        "item5": "Limit her 24 saatte bir sıfırlanır"
     },
     "messages": {
         "confirmReset": "Tüm istatistikler sıfırlanacak. Emin misiniz?",

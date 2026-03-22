@@ -60,8 +60,8 @@
     },
     "watch": {
         "title": "Beobachtungsliste",
-        "disclaimer": "Nur im Einklang mit den Instagram-Regeln nutzen. Follow-Listen privater Konten sind meist nicht sichtbar.",
-        "partialNote": "Große Follow-Listen werden in Teilen gescannt (Rate-Limits); für mehr Abdeckung mehrfach aktualisieren. Neue Follows erscheinen, wenn die Profil-Follower-Zahl steigt (API-Rauschen wird gefiltert).",
+        "disclaimer": "Fügen Sie ein Konto hinzu, um zu sehen, wen die Person neu folgt. Bei privaten Konten fehlt die Liste meist. Bitte die Instagram-Regeln beachten.",
+        "partialNote": "Tippen Sie auf Aktualisieren. Neue Follows erscheinen, wenn die Anzahl „Gefolgt“ im Profil steigt. Folgt jemand sehr vielen Konten, kann es mehrere Aktualisierungen brauchen, bis die Liste vollständig ist.",
         "usernamePlaceholder": "@benutzername",
         "addBtn": "Hinzufügen",
         "refreshAll": "Alle aktualisieren",
@@ -69,15 +69,15 @@
         "remove": "Entfernen",
         "empty": "Noch keine beobachteten Nutzer",
         "followingCount": "Folgt: {count}",
-        "newLast24": "Neu seit Hinzufügen (24h): {count}",
-        "partialBadge": "teilweise",
+        "newLast24": "Neu in den 24 Stunden nach dem Hinzufügen: {count}",
+        "partialBadge": "Liste unvollständig",
         "lastCheck": "Letzte Prüfung",
-        "noNewFollows": "Keine neuen Follows im Beobachtungsfenster (24h nach dem Hinzufügen)",
-        "addedOk": "Nutzer hinzugefügt. Zum Erkennen von Änderungen „Aktualisieren“ nutzen.",
+        "noNewFollows": "In diesem 24-Stunden-Zeitraum keine neuen Follows",
+        "addedOk": "Hinzugefügt. Tippen Sie auf Aktualisieren für den Stand.",
         "refreshedOk": "Aktualisiert.",
         "refreshedAllOk": "Alle Konten aktualisiert.",
-        "errorNoInstagramTab": "Kein instagram.com-Tab offen oder Erweiterung nicht geladen — Instagram öffnen und Seite neu laden.",
-        "errorContentScript": "Anfrage fehlgeschlagen. instagram.com neu laden und erneut versuchen.",
+        "errorNoInstagramTab": "Öffnen Sie zuerst Instagram im Browser, dann erneut versuchen.",
+        "errorContentScript": "Das hat nicht geklappt. Instagram neu laden und erneut versuchen.",
         "refreshOneAria": "Follow-Liste für @{username} aktualisieren",
         "removeAria": "@{username} von der Beobachtungsliste entfernen",
         "error": {
@@ -87,10 +87,10 @@
             "not_found": "Nutzer nicht gefunden oder Profil nicht verfügbar",
             "profile_failed": "Profil konnte nicht geladen werden (evtl. privat)",
             "not_in_list": "Nutzer steht nicht auf der Liste",
-            "rate_limit": "Instagram Rate-Limit — später erneut versuchen",
-            "unknown": "Unbekannter Fehler",
-            "unknownAction": "Erweiterung aktualisiert — instagram.com-Tab neu laden (F5), dann erneut versuchen.",
-            "network": "Netzwerk oder unerwartete Instagram-Antwort. Seite neu laden und erneut versuchen."
+            "rate_limit": "Gerade zu viele Anfragen — kurz warten und erneut versuchen",
+            "unknown": "Etwas ist schiefgelaufen",
+            "unknownAction": "Erweiterung wurde aktualisiert — Instagram-Tab neu laden und erneut versuchen.",
+            "network": "Verbindungsproblem. Instagram neu laden und erneut versuchen."
         }
     },
     "userList": {
@@ -104,12 +104,12 @@
         "lastRun": "Letzte Ausführung"
     },
     "warning": {
-        "title": "Warnung:",
-        "item1": "Sie müssen auf instagram.com eingeloggt sein",
-        "item2": "Arbeitet mit 5–10 Sekunden Verzögerung",
-        "item3": "Hält nach den ersten 50 Nutzern an und fragt nach Bestätigung",
-        "item4": "Kostenlos: 50 — Premium: 500 Benutzer pro Tag",
-        "item5": "Limit wird nach 24 Stunden automatisch zurückgesetzt"
+        "title": "Gut zu wissen",
+        "item1": "Sie müssen bei Instagram angemeldet sein",
+        "item2": "Zwischen den Schritten gibt es kurze Pausen",
+        "item3": "Nach 50 Entfolgen werden Sie gefragt, ob Sie weitermachen möchten",
+        "item4": "Tageslimit: 50 im Gratis-Tarif, 500 mit Premium",
+        "item5": "Das Tageslimit setzt sich alle 24 Stunden zurück"
     },
     "messages": {
         "confirmReset": "Alle Statistiken werden zurückgesetzt. Sind Sie sicher?",
