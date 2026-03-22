@@ -1,0 +1,2 @@
+# Yerel paket çıktıları (yeniden: zip -r dist/... manifest.json src ...)
+dist/
