@@ -11,13 +11,28 @@ const IGRadarWatchlist = (function() {
     const WL = Constants.WATCH_LIST;
 
     /**
+     * Keeps events inside the watch window: [watchStartedAt, watchStartedAt + 24h].
+     * Legacy entries (no watchStartedAt) use rolling last-24h from now.
+     *
+     * @param {Object} entry
+     * @param {number} detectedAt - ms
+     * @returns {boolean}
+     */
+    function isDetectionInWatchWindow(entry, detectedAt) {
+        if (entry.watchStartedAt != null) {
+            const end = entry.watchStartedAt + WL.NEW_FOLLOW_RETENTION_MS;
+            return detectedAt >= entry.watchStartedAt && detectedAt <= end;
+        }
+        return detectedAt > Date.now() - WL.NEW_FOLLOW_RETENTION_MS;
+    }
+
+    /**
      * @param {Array<Object>} entries
      */
     async function pruneRecentNewFollows(entries) {
-        const cutoff = Date.now() - WL.NEW_FOLLOW_RETENTION_MS;
         for (const e of entries) {
             if (!e.recentNewFollows) e.recentNewFollows = [];
-            e.recentNewFollows = e.recentNewFollows.filter(x => x.detectedAt > cutoff);
+            e.recentNewFollows = e.recentNewFollows.filter(x => isDetectionInWatchWindow(e, x.detectedAt));
         }
         return entries;
     }
@@ -57,11 +72,14 @@ const IGRadarWatchlist = (function() {
             }
             if (!profile || !profile.userId) return { success: false, error: 'not_found' };
 
+            const started = Date.now();
             list.push({
                 username,
                 userId:             profile.userId,
                 followingCount:     profile.followingCount,
                 followersCount:     profile.followersCount,
+                watchStartedAt:     started,
+                watchSchema:        WL.ENTRY_SCHEMA,
                 lastFollowingIds:   [],
                 lastCheckedAt:      null,
                 recentNewFollows:   [],
@@ -88,6 +106,11 @@ const IGRadarWatchlist = (function() {
         if (idx === -1) return { success: false, error: 'not_in_list' };
 
         const entry = { ...list[idx] };
+
+        if ((entry.watchSchema ?? 1) < WL.ENTRY_SCHEMA) {
+            entry.recentNewFollows = [];
+            entry.watchSchema      = WL.ENTRY_SCHEMA;
+        }
 
         try {
             const profile = await IGRadarAPI.fetchWebProfileInfo(entry.username, signal);
@@ -122,30 +145,54 @@ const IGRadarWatchlist = (function() {
             }
             if (cursor) partial = true;
 
-            const prevSet    = new Set(entry.lastFollowingIds || []);
-            const isBaseline = prevSet.size === 0;
-            const now        = Date.now();
+            const prevSet     = new Set(entry.lastFollowingIds || []);
+            const isBaseline  = prevSet.size === 0;
+            const now         = Date.now();
+            const prevPartial = entry.partialSnapshot === true;
 
-            if (!isBaseline) {
+            /**
+             * Incomplete fetch: do not change baseline (avoids false "new" on next full scan).
+             */
+            if (partial && !isBaseline) {
+                entry.lastCheckedAt = now;
+                entry.error         = null;
+                list[idx]           = entry;
+                await IGRadarStorage.saveWatchList(list);
+                return { success: true, list: await getList() };
+            }
+
+            if (isBaseline) {
+                entry.lastFollowingIds = Array.from(idSet);
+                entry.partialSnapshot  = partial;
+            } else if (prevPartial) {
+                // Earlier baseline was partial; full list now — replace baseline, do not diff.
+                entry.lastFollowingIds = Array.from(idSet);
+                entry.partialSnapshot  = false;
+                entry.recentNewFollows = [];
+            } else {
                 const existing = entry.recentNewFollows ? [...entry.recentNewFollows] : [];
-                for (const id of idSet) {
-                    if (!prevSet.has(id)) {
-                        existing.push({
-                            username:   idToUsername[id] || id,
-                            detectedAt: now
-                        });
+                const inWindow = isDetectionInWatchWindow(entry, now);
+                if (inWindow) {
+                    for (const id of idSet) {
+                        if (!prevSet.has(id)) {
+                            existing.push({
+                                username:   idToUsername[id] || id,
+                                detectedAt: now
+                            });
+                        }
                     }
                 }
                 entry.recentNewFollows = existing;
+                entry.lastFollowingIds = Array.from(idSet);
+                entry.partialSnapshot  = false;
             }
 
-            entry.lastFollowingIds = Array.from(idSet);
-            entry.lastCheckedAt    = now;
-            entry.partialSnapshot  = partial;
-            entry.error            = null;
+            entry.lastCheckedAt = now;
+            entry.error         = null;
 
-            const cutoff = now - WL.NEW_FOLLOW_RETENTION_MS;
-            entry.recentNewFollows = (entry.recentNewFollows || []).filter(x => x.detectedAt > cutoff);
+            entry.recentNewFollows = (entry.recentNewFollows || []).filter(x =>
+                isDetectionInWatchWindow(entry, x.detectedAt)
+            );
 
             list[idx] = entry;
             await IGRadarStorage.saveWatchList(list);

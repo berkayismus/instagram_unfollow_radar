@@ -610,15 +610,21 @@ const IGRadarUI = (function() {
     // ─── WATCH LIST ───────────────────────────────────────────────────────────
 
     /**
-     * Drops new-follow events older than the configured retention window.
+     * Keeps new-follow events inside [watchStartedAt, watchStartedAt+24h] or rolling 24h (legacy).
      * @param {Array<Object>} list
      * @returns {Array<Object>}
      */
     function pruneWatchListEntries(list) {
-        const cutoff = Date.now() - Constants.WATCH_LIST.NEW_FOLLOW_RETENTION_MS;
+        const WL = Constants.WATCH_LIST;
         return list.map(entry => ({
             ...entry,
-            recentNewFollows: (entry.recentNewFollows || []).filter(x => x.detectedAt > cutoff)
+            recentNewFollows: (entry.recentNewFollows || []).filter(x => {
+                if (entry.watchStartedAt != null) {
+                    const end = entry.watchStartedAt + WL.NEW_FOLLOW_RETENTION_MS;
+                    return x.detectedAt >= entry.watchStartedAt && x.detectedAt <= end;
+                }
+                return x.detectedAt > Date.now() - WL.NEW_FOLLOW_RETENTION_MS;
+            })
         }));
     }
 

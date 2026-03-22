@@ -55,7 +55,9 @@ const Constants = (function () {
         WATCH_LIST: {
             MAX_ENTRIES:               20,
             MAX_PAGES_PER_REFRESH:     10,
-            NEW_FOLLOW_RETENTION_MS:   24 * 60 * 60 * 1000
+            NEW_FOLLOW_RETENTION_MS:   24 * 60 * 60 * 1000,
+            /** Bump to reset stored watch entries once (logic / false-positive fix). */
+            ENTRY_SCHEMA:              2
         },
 
         // ─── GUMROAD ─────────────────────────────────────────────────────────
