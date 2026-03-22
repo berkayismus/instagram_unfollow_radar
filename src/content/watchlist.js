@@ -1,0 +1,181 @@
+/**
+ * @fileoverview Instagram Unfollow Radar - Watch list (follow activity)
+ * @description Snapshot + diff of following lists for watched usernames.
+ *   Runs only in the instagram.com content-script context.
+ * @version 1.0.0
+ */
+
+const IGRadarWatchlist = (function() {
+    'use strict';
+
+    const WL = Constants.WATCH_LIST;
+
+    /**
+     * @param {Array<Object>} entries
+     */
+    async function pruneRecentNewFollows(entries) {
+        const cutoff = Date.now() - WL.NEW_FOLLOW_RETENTION_MS;
+        for (const e of entries) {
+            if (!e.recentNewFollows) e.recentNewFollows = [];
+            e.recentNewFollows = e.recentNewFollows.filter(x => x.detectedAt > cutoff);
+        }
+        return entries;
+    }
+
+    /**
+     * @returns {Promise<Array>}
+     */
+    async function getList() {
+        const list = await IGRadarStorage.getWatchList();
+        return pruneRecentNewFollows([...list]);
+    }
+
+    function normalizeUsername(u) {
+        return String(u || '').trim().replace(/^@/, '').toLowerCase();
+    }
+
+    /**
+     * @param {string} rawUsername
+     * @returns {Promise<{success: boolean, list?: Array, error?: string}>}
+     */
+    async function addUser(rawUsername) {
+        const username = normalizeUsername(rawUsername);
+        if (!username) return { success: false, error: 'empty' };
+
+        let list = await IGRadarStorage.getWatchList();
+        if (list.length >= WL.MAX_ENTRIES) return { success: false, error: 'max_entries' };
+        if (list.some(x => x.username === username)) return { success: false, error: 'duplicate' };
+
+        let profile;
+        try {
+            profile = await IGRadarAPI.fetchWebProfileInfo(username);
+        } catch (err) {
+            if (err && err.name === 'RateLimitError') return { success: false, error: 'rate_limit' };
+            throw err;
+        }
+        if (!profile || !profile.userId) return { success: false, error: 'not_found' };
+
+        list.push({
+            username,
+            userId:             profile.userId,
+            followingCount:     profile.followingCount,
+            followersCount:     profile.followersCount,
+            lastFollowingIds:   [],
+            lastCheckedAt:      null,
+            recentNewFollows:   [],
+            partialSnapshot:    false,
+            error:              null
+        });
+        await IGRadarStorage.saveWatchList(list);
+        return { success: true, list: await getList() };
+    }
+
+    /**
+     * @param {string} rawUsername
+     * @param {AbortSignal} [signal]
+     * @returns {Promise<{success: boolean, list?: Array, error?: string}>}
+     */
+    async function refreshUser(rawUsername, signal) {
+        const username = normalizeUsername(rawUsername);
+        let list       = await IGRadarStorage.getWatchList();
+        const idx      = list.findIndex(x => x.username === username);
+        if (idx === -1) return { success: false, error: 'not_in_list' };
+
+        const entry = { ...list[idx] };
+
+        try {
+            const profile = await IGRadarAPI.fetchWebProfileInfo(entry.username, signal);
+            if (!profile || !profile.userId) {
+                entry.error = 'profile_failed';
+                list[idx]   = entry;
+                await IGRadarStorage.saveWatchList(list);
+                return { success: false, error: 'profile_failed', list: await getList() };
+            }
+
+            entry.userId         = profile.userId;
+            entry.followingCount = profile.followingCount;
+            entry.followersCount = profile.followersCount;
+
+            const idToUsername = {};
+            const idSet        = new Set();
+            let cursor         = null;
+            let pages          = 0;
+            let partial        = false;
+
+            while (pages < WL.MAX_PAGES_PER_REFRESH) {
+                const result = await IGRadarAPI.fetchFollowingPage(entry.userId, cursor, signal);
+                if (!result) break;
+                for (const u of result.users) {
+                    const id = String(u.pk != null ? u.pk : u.id);
+                    idSet.add(id);
+                    idToUsername[id] = u.username || id;
+                }
+                cursor = result.nextCursor;
+                pages++;
+                if (!cursor) break;
+            }
+            if (cursor) partial = true;
+
+            const prevSet    = new Set(entry.lastFollowingIds || []);
+            const isBaseline = prevSet.size === 0;
+            const now        = Date.now();
+
+            if (!isBaseline) {
+                const existing = entry.recentNewFollows ? [...entry.recentNewFollows] : [];
+                for (const id of idSet) {
+                    if (!prevSet.has(id)) {
+                        existing.push({
+                            username:   idToUsername[id] || id,
+                            detectedAt: now
+                        });
+                    }
+                }
+                entry.recentNewFollows = existing;
+            }
+
+            entry.lastFollowingIds = Array.from(idSet);
+            entry.lastCheckedAt    = now;
+            entry.partialSnapshot  = partial;
+            entry.error            = null;
+
+            const cutoff = now - WL.NEW_FOLLOW_RETENTION_MS;
+            entry.recentNewFollows = (entry.recentNewFollows || []).filter(x => x.detectedAt > cutoff);
+
+            list[idx] = entry;
+            await IGRadarStorage.saveWatchList(list);
+            return { success: true, list: await getList() };
+        } catch (err) {
+            if (err && err.name === 'RateLimitError') {
+                return { success: false, error: 'rate_limit', list: await getList() };
+            }
+            console.error('[IGRadar] watchlist refreshUser:', err);
+            entry.error = 'unknown';
+            list[idx]   = entry;
+            await IGRadarStorage.saveWatchList(list);
+            return { success: false, error: 'unknown', list: await getList() };
+        }
+    }
+
+    /**
+     * @param {AbortSignal} [signal]
+     * @returns {Promise<{success: boolean, list?: Array, error?: string}>}
+     */
+    async function refreshAll(signal) {
+        const list = await IGRadarStorage.getWatchList();
+        if (!list.length) return { success: true, list: await getList() };
+
+        for (const e of list) {
+            const res = await refreshUser(e.username, signal);
+            if (!res.success && res.error === 'rate_limit') return res;
+        }
+        return { success: true, list: await getList() };
+    }
+
+    return {
+        getList,
+        addUser,
+        refreshUser,
+        refreshAll,
+        normalizeUsername
+    };
+})();

@@ -7,6 +7,7 @@
         "main": "Main",
         "filters": "Filters",
         "stats": "Statistics",
+        "watch": "Watch",
         "premium": "Premium"
     },
     "stats": {
@@ -56,6 +57,39 @@
     },
     "statsTab": {
         "last30Days": "Last 30 Days"
+    },
+    "watch": {
+        "title": "Watch list",
+        "disclaimer": "Use only in line with Instagram's rules and your own account. Private accounts you do not follow usually cannot be scanned.",
+        "partialNote": "Large follow lists are scanned in chunks (rate limits); refresh multiple times for fuller coverage.",
+        "usernamePlaceholder": "@username",
+        "addBtn": "Add",
+        "refreshAll": "Refresh all",
+        "refreshOne": "Refresh",
+        "remove": "Remove",
+        "empty": "No watched users yet",
+        "followingCount": "Following: {count}",
+        "newLast24": "New (24h): {count}",
+        "partialBadge": "partial",
+        "lastCheck": "Last check",
+        "noNewFollows": "No new follows detected in the last 24 hours",
+        "addedOk": "User added. Use Refresh to detect follow changes.",
+        "refreshedOk": "Updated.",
+        "refreshedAllOk": "All accounts updated.",
+        "errorNoInstagramTab": "No instagram.com tab open or extension not loaded — open Instagram and reload the page.",
+        "errorContentScript": "Request failed. Reload instagram.com and try again.",
+        "refreshOneAria": "Refresh following list for @{username}",
+        "removeAria": "Remove @{username} from watch list",
+        "error": {
+            "empty": "Enter a username",
+            "max_entries": "You can add up to 20 users",
+            "duplicate": "This user is already on the list",
+            "not_found": "User not found or profile unavailable",
+            "profile_failed": "Could not load profile (account may be private)",
+            "not_in_list": "User is not on the list",
+            "rate_limit": "Instagram rate limit — try again later",
+            "unknown": "Unknown error"
+        }
     },
     "userList": {
         "title": "Processed Users",

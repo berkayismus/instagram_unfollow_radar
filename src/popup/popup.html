@@ -40,6 +40,8 @@
                 aria-selected="false" aria-controls="filters-tab" tabindex="-1">Filtreler</button>
             <button class="tab-btn" data-tab="stats" data-i18n="tabs.stats" role="tab" id="tab-stats"
                 aria-selected="false" aria-controls="stats-tab" tabindex="-1">İstatistikler</button>
+            <button class="tab-btn" data-tab="watch" data-i18n="tabs.watch" role="tab" id="tab-watch"
+                aria-selected="false" aria-controls="watch-tab" tabindex="-1">İzleme</button>
             <button class="tab-btn tab-btn--premium" data-tab="premium" data-i18n="tabs.premium" role="tab" id="tab-premium"
                 aria-selected="false" aria-controls="premium-tab" tabindex="-1">Premium</button>
         </div>
@@ -181,6 +183,29 @@
                     <span data-i18n="buttons.exportCsv">CSV İndir</span>
                 </button>
                 <p id="exportCsvLock" class="export-lock-hint" style="display: none;" data-i18n="premium.exportLockHint">🔒 CSV indirme Premium özelliğidir</p>
+            </section>
+        </div>
+
+        <!-- Watch list tab -->
+        <div class="tab-content" id="watch-tab" role="tabpanel" aria-labelledby="tab-watch" hidden>
+            <section class="watch-section" aria-labelledby="watchTitle">
+                <h3 id="watchTitle">👁 <span data-i18n="watch.title">İzleme listesi</span></h3>
+                <p class="watch-disclaimer filter-desc" data-i18n="watch.disclaimer"></p>
+                <p class="watch-partial-note filter-desc" data-i18n="watch.partialNote"></p>
+                <div class="input-group" role="group">
+                    <input type="text" id="watchUsernameInput" autocomplete="off" spellcheck="false"
+                        data-i18n-placeholder="watch.usernamePlaceholder"
+                        placeholder="@kullaniciadi">
+                    <button id="watchAddBtn" class="btn btn-primary" type="button"
+                        data-i18n="watch.addBtn">Ekle</button>
+                </div>
+                <div class="watch-toolbar">
+                    <button id="watchRefreshAllBtn" class="btn btn-secondary btn--small" type="button"
+                        data-i18n="watch.refreshAll">Tümünü yenile</button>
+                </div>
+                <p id="watchMessage" class="watch-message" role="status" aria-live="polite" style="display: none;"></p>
+                <p id="watchListEmpty" class="watch-empty" data-i18n="watch.empty" style="display: none;"></p>
+                <ul class="watch-list" id="watchList" role="list"></ul>
             </section>
         </div>
 

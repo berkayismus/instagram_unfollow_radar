@@ -7,6 +7,7 @@
         "main": "Haupt",
         "filters": "Filter",
         "stats": "Statistiken",
+        "watch": "Beobachten",
         "premium": "Premium"
     },
     "stats": {
@@ -56,6 +57,39 @@
     },
     "statsTab": {
         "last30Days": "Letzte 30 Tage"
+    },
+    "watch": {
+        "title": "Beobachtungsliste",
+        "disclaimer": "Nur im Einklang mit den Instagram-Regeln nutzen. Follow-Listen privater Konten sind meist nicht sichtbar.",
+        "partialNote": "Große Follow-Listen werden in Teilen gescannt (Rate-Limits); für mehr Abdeckung mehrfach aktualisieren.",
+        "usernamePlaceholder": "@benutzername",
+        "addBtn": "Hinzufügen",
+        "refreshAll": "Alle aktualisieren",
+        "refreshOne": "Aktualisieren",
+        "remove": "Entfernen",
+        "empty": "Noch keine beobachteten Nutzer",
+        "followingCount": "Folgt: {count}",
+        "newLast24": "Neu (24h): {count}",
+        "partialBadge": "teilweise",
+        "lastCheck": "Letzte Prüfung",
+        "noNewFollows": "In den letzten 24 Stunden keine neuen Follows erkannt",
+        "addedOk": "Nutzer hinzugefügt. Zum Erkennen von Änderungen „Aktualisieren“ nutzen.",
+        "refreshedOk": "Aktualisiert.",
+        "refreshedAllOk": "Alle Konten aktualisiert.",
+        "errorNoInstagramTab": "Kein instagram.com-Tab offen oder Erweiterung nicht geladen — Instagram öffnen und Seite neu laden.",
+        "errorContentScript": "Anfrage fehlgeschlagen. instagram.com neu laden und erneut versuchen.",
+        "refreshOneAria": "Follow-Liste für @{username} aktualisieren",
+        "removeAria": "@{username} von der Beobachtungsliste entfernen",
+        "error": {
+            "empty": "Benutzername eingeben",
+            "max_entries": "Maximal 20 Nutzer möglich",
+            "duplicate": "Dieser Nutzer steht bereits auf der Liste",
+            "not_found": "Nutzer nicht gefunden oder Profil nicht verfügbar",
+            "profile_failed": "Profil konnte nicht geladen werden (evtl. privat)",
+            "not_in_list": "Nutzer steht nicht auf der Liste",
+            "rate_limit": "Instagram Rate-Limit — später erneut versuchen",
+            "unknown": "Unbekannter Fehler"
+        }
     },
     "userList": {
         "title": "Verarbeitete Benutzer",

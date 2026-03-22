@@ -37,6 +37,7 @@
         "src/content/storage.js",
         "src/content/filters.js",
         "src/content/automation.js",
+        "src/content/watchlist.js",
         "src/content/index.js"
       ],
       "run_at": "document_idle"

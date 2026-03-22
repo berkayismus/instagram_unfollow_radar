@@ -130,6 +130,34 @@ const IGRadarAPI = (function() {
     }
 
     /**
+     * Resolves a public username to profile metadata (requires instagram.com session).
+     * @param {string} username - without @
+     * @param {AbortSignal} [signal]
+     * @returns {Promise<{userId: string, username: string, followingCount: number, followersCount: number}|null>}
+     */
+    async function fetchWebProfileInfo(username, signal) {
+        const data = await getJSON(Constants.API.WEB_PROFILE_INFO(username), signal);
+        if (!data || !data.data || !data.data.user) return null;
+        const u = data.data.user;
+        const userId = String(u.id || u.pk || '');
+        if (!userId) return null;
+        const edgeFollow   = u.edge_follow;
+        const edgeFollowed = u.edge_followed_by;
+        const followingCount = edgeFollow && typeof edgeFollow.count === 'number'
+            ? edgeFollow.count
+            : 0;
+        const followersCount = edgeFollowed && typeof edgeFollowed.count === 'number'
+            ? edgeFollowed.count
+            : 0;
+        return {
+            userId,
+            username: u.username || username,
+            followingCount,
+            followersCount
+        };
+    }
+
+    /**
      * Sends an unfollow request for the given user ID.
      * @param {string} userId
      * @param {AbortSignal} [signal]
@@ -155,6 +183,7 @@ const IGRadarAPI = (function() {
         getCurrentUserId,
         fetchFollowingPage,
         fetchFollowersPage,
+        fetchWebProfileInfo,
         unfollowUser,
         refollowUser
     };

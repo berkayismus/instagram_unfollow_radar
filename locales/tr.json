@@ -7,6 +7,7 @@
         "main": "Ana",
         "filters": "Filtreler",
         "stats": "İstatistikler",
+        "watch": "İzleme",
         "premium": "Premium"
     },
     "stats": {
@@ -56,6 +57,39 @@
     },
     "statsTab": {
         "last30Days": "Son 30 Gün"
+    },
+    "watch": {
+        "title": "İzleme listesi",
+        "disclaimer": "Yalnızca kendi hesabınız ve Instagram kuralları çerçevesinde kullanın. Gizli hesapların takip listesi genelde görünmez.",
+        "partialNote": "Çok sayıda takip için liste kısmi taranır (hız sınırı); tam liste için birden fazla kez yenileyin.",
+        "usernamePlaceholder": "@kullaniciadi",
+        "addBtn": "Ekle",
+        "refreshAll": "Tümünü yenile",
+        "refreshOne": "Yenile",
+        "remove": "Kaldır",
+        "empty": "Henüz izlenen kullanıcı yok",
+        "followingCount": "Takip: {count}",
+        "newLast24": "Yeni (24s): {count}",
+        "partialBadge": "kısmi",
+        "lastCheck": "Son kontrol",
+        "noNewFollows": "Son 24 saatte yeni takip tespit edilmedi",
+        "addedOk": "Kullanıcı listeye eklendi. Takip değişikliklerini görmek için Yenile kullanın.",
+        "refreshedOk": "Güncellendi.",
+        "refreshedAllOk": "Tüm hesaplar güncellendi.",
+        "errorNoInstagramTab": "instagram.com sekmesi açık değil veya eklenti yüklenmedi — bir Instagram sekmesi açıp sayfayı yenileyin.",
+        "errorContentScript": "İstek başarısız. instagram.com sekmesinde sayfayı yenileyip tekrar deneyin.",
+        "refreshOneAria": "@{username} için takip listesini yenile",
+        "removeAria": "@{username} izlemeden kaldır",
+        "error": {
+            "empty": "Kullanıcı adı girin",
+            "max_entries": "En fazla 20 kullanıcı ekleyebilirsiniz",
+            "duplicate": "Bu kullanıcı zaten listede",
+            "not_found": "Kullanıcı bulunamadı veya profil alınamadı",
+            "profile_failed": "Profil yüklenemedi (gizli hesap olabilir)",
+            "not_in_list": "Kullanıcı listede yok",
+            "rate_limit": "Instagram hız sınırı — bir süre sonra tekrar deneyin",
+            "unknown": "Bilinmeyen hata"
+        }
     },
     "userList": {
         "title": "İşlenen Kullanıcılar",
