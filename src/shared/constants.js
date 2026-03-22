@@ -82,7 +82,9 @@ const Constants = (function () {
 
         // ─── UI ──────────────────────────────────────────────────────────────
         UI: {
-            HUMAN_PAUSE_PROBABILITY: 0.1
+            HUMAN_PAUSE_PROBABILITY: 0.1,
+            /** Valid `data-tab` values for popup tab persistence */
+            POPUP_TAB_IDS: ['main', 'filters', 'stats', 'watch', 'premium']
         },
 
         // ─── STORAGE KEYS ────────────────────────────────────────────────────
@@ -105,7 +107,8 @@ const Constants = (function () {
             IS_PREMIUM:       'igIsPremium',
             LICENSE_KEY:      'igLicenseKey',
             LICENSE_EMAIL:    'igLicenseEmail',
-            WATCH_LIST:       'igWatchList'
+            WATCH_LIST:       'igWatchList',
+            POPUP_ACTIVE_TAB: 'igPopupActiveTab'
         },
 
         // ─── MESSAGE TYPES ────────────────────────────────────────────────────

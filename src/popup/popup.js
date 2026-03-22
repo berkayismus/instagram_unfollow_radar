@@ -82,6 +82,12 @@
             loadPremiumStatus()
         ]);
 
+        const savedTab = await chrome.storage.local.get([Constants.STORAGE_KEYS.POPUP_ACTIVE_TAB]);
+        const lastTab  = savedTab[Constants.STORAGE_KEYS.POPUP_ACTIVE_TAB];
+        if (lastTab && Constants.UI.POPUP_TAB_IDS.includes(lastTab)) {
+            IGRadarUI.switchTab(lastTab);
+        }
+
         IGRadarEvents.setup();
         chrome.runtime.onMessage.addListener(handleMessage);
 

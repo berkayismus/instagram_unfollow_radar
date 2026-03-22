@@ -129,6 +129,10 @@ const IGRadarUI = (function() {
         });
         if (tabName === 'stats') renderChart();
         if (tabName === 'watch') loadWatchList();
+
+        if (Constants.UI.POPUP_TAB_IDS.includes(tabName)) {
+            chrome.storage.local.set({ [Constants.STORAGE_KEYS.POPUP_ACTIVE_TAB]: tabName });
+        }
     }
 
     /**
