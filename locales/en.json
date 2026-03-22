@@ -88,7 +88,9 @@
             "profile_failed": "Could not load profile (account may be private)",
             "not_in_list": "User is not on the list",
             "rate_limit": "Instagram rate limit — try again later",
-            "unknown": "Unknown error"
+            "unknown": "Unknown error",
+            "unknownAction": "Extension updated — reload the instagram.com tab (F5), then try again.",
+            "network": "Network or unexpected Instagram response. Reload the page and try again."
         }
     },
     "userList": {

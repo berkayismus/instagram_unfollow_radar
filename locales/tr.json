@@ -88,7 +88,9 @@
             "profile_failed": "Profil yüklenemedi (gizli hesap olabilir)",
             "not_in_list": "Kullanıcı listede yok",
             "rate_limit": "Instagram hız sınırı — bir süre sonra tekrar deneyin",
-            "unknown": "Bilinmeyen hata"
+            "unknown": "Bilinmeyen hata",
+            "unknownAction": "Eklenti güncellendi — instagram.com sekmesini yenileyin (F5), ardından tekrar deneyin.",
+            "network": "Ağ veya Instagram yanıtı beklenmedik. Sayfayı yenileyip tekrar deneyin."
         }
     },
     "userList": {

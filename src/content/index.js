@@ -181,7 +181,11 @@ const IGUnfollowRadarContent = (function() {
                 }
 
                 default:
-                    sendResponse({ success: false, message: 'Unknown action' });
+                    sendResponse({
+                        success: false,
+                        error:   'unknown_action',
+                        message: 'Unknown action'
+                    });
             }
             return true; // keep the message channel open for async sendResponse
         });

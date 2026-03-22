@@ -88,7 +88,9 @@
             "profile_failed": "Profil konnte nicht geladen werden (evtl. privat)",
             "not_in_list": "Nutzer steht nicht auf der Liste",
             "rate_limit": "Instagram Rate-Limit — später erneut versuchen",
-            "unknown": "Unbekannter Fehler"
+            "unknown": "Unbekannter Fehler",
+            "unknownAction": "Erweiterung aktualisiert — instagram.com-Tab neu laden (F5), dann erneut versuchen.",
+            "network": "Netzwerk oder unerwartete Instagram-Antwort. Seite neu laden und erneut versuchen."
         }
     },
     "userList": {

@@ -32,14 +32,16 @@ const IGRadarEvents = (function() {
     /** @param {string} code */
     function watchErrorKey(code) {
         const map = {
-            empty:          'watch.error.empty',
-            max_entries:    'watch.error.max_entries',
-            duplicate:      'watch.error.duplicate',
-            not_found:      'watch.error.not_found',
-            profile_failed: 'watch.error.profile_failed',
-            not_in_list:    'watch.error.not_in_list',
-            rate_limit:     'watch.error.rate_limit',
-            unknown:        'watch.error.unknown'
+            empty:           'watch.error.empty',
+            max_entries:     'watch.error.max_entries',
+            duplicate:       'watch.error.duplicate',
+            not_found:       'watch.error.not_found',
+            profile_failed:  'watch.error.profile_failed',
+            not_in_list:     'watch.error.not_in_list',
+            rate_limit:      'watch.error.rate_limit',
+            unknown:         'watch.error.unknown',
+            unknown_action:  'watch.error.unknownAction',
+            network:         'watch.error.network'
         };
         return map[code] || 'watch.error.unknown';
     }
@@ -313,6 +315,8 @@ const IGRadarEvents = (function() {
                 IGRadarUI.showWatchMessage('watch.addedOk', false);
             } else if (res && res.error) {
                 IGRadarUI.showWatchMessage(watchErrorKey(res.error), true);
+            } else if (res && res.message === 'Unknown action') {
+                IGRadarUI.showWatchMessage('watch.error.unknownAction', true);
             } else {
                 IGRadarUI.showWatchMessage('watch.error.unknown', true);
             }
@@ -353,6 +357,8 @@ const IGRadarEvents = (function() {
                 IGRadarUI.showWatchMessage('watch.refreshedOk', false);
             } else if (res && res.error) {
                 IGRadarUI.showWatchMessage(watchErrorKey(res.error), true);
+            } else if (res && res.message === 'Unknown action') {
+                IGRadarUI.showWatchMessage('watch.error.unknownAction', true);
             } else {
                 IGRadarUI.showWatchMessage('watch.error.unknown', true);
             }
@@ -381,6 +387,8 @@ const IGRadarEvents = (function() {
                 IGRadarUI.showWatchMessage('watch.refreshedAllOk', false);
             } else if (res && res.error) {
                 IGRadarUI.showWatchMessage(watchErrorKey(res.error), true);
+            } else if (res && res.message === 'Unknown action') {
+                IGRadarUI.showWatchMessage('watch.error.unknownAction', true);
             } else {
                 IGRadarUI.showWatchMessage('watch.error.unknown', true);
             }

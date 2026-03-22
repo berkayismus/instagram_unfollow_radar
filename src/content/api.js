@@ -43,10 +43,12 @@ const IGRadarAPI = (function() {
     /** @returns {Object} Headers required by all Instagram API calls */
     function getApiHeaders() {
         return {
-            'X-IG-App-ID':      Constants.API.APP_ID,
-            'X-CSRFToken':      getCookie('csrftoken') || '',
+            'X-IG-App-ID':       Constants.API.APP_ID,
+            'X-CSRFToken':       getCookie('csrftoken') || '',
             'X-Requested-With': 'XMLHttpRequest',
-            'Accept':           '*/*'
+            'X-Instagram-AJAX':  '1',
+            'Accept':            '*/*',
+            'Referer':           'https://www.instagram.com/'
         };
     }
 
@@ -63,13 +65,24 @@ const IGRadarAPI = (function() {
      * @returns {Promise<Object|null>}
      */
     async function getJSON(url, signal) {
-        const response = await fetch(url, { headers: getApiHeaders(), signal });
+        const response = await fetch(url, {
+            headers:   getApiHeaders(),
+            signal,
+            credentials: 'include'
+        });
         if (response.status === 429) throw new RateLimitError();
         if (!response.ok) {
             console.error('[IGRadar] GET failed:', response.status, url);
             return null;
         }
-        return response.json();
+        const text = await response.text();
+        if (!text) return null;
+        try {
+            return JSON.parse(text);
+        } catch (parseErr) {
+            console.error('[IGRadar] GET JSON parse failed:', url, parseErr);
+            return null;
+        }
     }
 
     /**
@@ -84,17 +97,25 @@ const IGRadarAPI = (function() {
      */
     async function postJSON(url, body = '', signal) {
         const response = await fetch(url, {
-            method:  'POST',
-            headers: { ...getApiHeaders(), 'Content-Type': 'application/x-www-form-urlencoded' },
+            method:      'POST',
+            headers:     { ...getApiHeaders(), 'Content-Type': 'application/x-www-form-urlencoded' },
             body,
-            signal
+            signal,
+            credentials: 'include'
         });
         if (response.status === 429) throw new RateLimitError();
         if (!response.ok) {
             console.error('[IGRadar] POST failed:', response.status, url);
             return null;
         }
-        return response.json();
+        const text = await response.text();
+        if (!text) return null;
+        try {
+            return JSON.parse(text);
+        } catch (parseErr) {
+            console.error('[IGRadar] POST JSON parse failed:', url, parseErr);
+            return null;
+        }
     }
 
     // ─── INSTAGRAM ENDPOINTS ──────────────────────────────────────────────────
@@ -137,10 +158,16 @@ const IGRadarAPI = (function() {
      */
     async function fetchWebProfileInfo(username, signal) {
         const data = await getJSON(Constants.API.WEB_PROFILE_INFO(username), signal);
-        if (!data || !data.data || !data.data.user) return null;
-        const u = data.data.user;
-        const userId = String(u.id || u.pk || '');
-        if (!userId) return null;
+        if (!data) return null;
+        if (data.status === 'fail') {
+            console.warn('[IGRadar] web_profile_info:', data.message || data.feedback_message || 'fail');
+            return null;
+        }
+        const u = data.data && data.data.user;
+        if (!u) return null;
+        const rawId = u.pk != null && u.pk !== '' ? u.pk : u.id;
+        const userId = rawId != null && rawId !== '' ? String(rawId) : '';
+        if (!userId || userId === 'undefined') return null;
         const edgeFollow   = u.edge_follow;
         const edgeFollowed = u.edge_followed_by;
         const followingCount = edgeFollow && typeof edgeFollow.count === 'number'

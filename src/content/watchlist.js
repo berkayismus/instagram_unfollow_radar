@@ -42,32 +42,38 @@ const IGRadarWatchlist = (function() {
         const username = normalizeUsername(rawUsername);
         if (!username) return { success: false, error: 'empty' };
 
-        let list = await IGRadarStorage.getWatchList();
-        if (list.length >= WL.MAX_ENTRIES) return { success: false, error: 'max_entries' };
-        if (list.some(x => x.username === username)) return { success: false, error: 'duplicate' };
-
-        let profile;
         try {
-            profile = await IGRadarAPI.fetchWebProfileInfo(username);
-        } catch (err) {
-            if (err && err.name === 'RateLimitError') return { success: false, error: 'rate_limit' };
-            throw err;
-        }
-        if (!profile || !profile.userId) return { success: false, error: 'not_found' };
+            let list = await IGRadarStorage.getWatchList();
+            if (list.length >= WL.MAX_ENTRIES) return { success: false, error: 'max_entries' };
+            if (list.some(x => x.username === username)) return { success: false, error: 'duplicate' };
 
-        list.push({
-            username,
-            userId:             profile.userId,
-            followingCount:     profile.followingCount,
-            followersCount:     profile.followersCount,
-            lastFollowingIds:   [],
-            lastCheckedAt:      null,
-            recentNewFollows:   [],
-            partialSnapshot:    false,
-            error:              null
-        });
-        await IGRadarStorage.saveWatchList(list);
-        return { success: true, list: await getList() };
+            let profile;
+            try {
+                profile = await IGRadarAPI.fetchWebProfileInfo(username);
+            } catch (err) {
+                if (err && err.name === 'RateLimitError') return { success: false, error: 'rate_limit' };
+                console.error('[IGRadar] watchlist addUser fetchWebProfileInfo:', err);
+                return { success: false, error: 'network' };
+            }
+            if (!profile || !profile.userId) return { success: false, error: 'not_found' };
+
+            list.push({
+                username,
+                userId:             profile.userId,
+                followingCount:     profile.followingCount,
+                followersCount:     profile.followersCount,
+                lastFollowingIds:   [],
+                lastCheckedAt:      null,
+                recentNewFollows:   [],
+                partialSnapshot:    false,
+                error:              null
+            });
+            await IGRadarStorage.saveWatchList(list);
+            return { success: true, list: await getList() };
+        } catch (err) {
+            console.error('[IGRadar] watchlist addUser:', err);
+            return { success: false, error: 'unknown' };
+        }
     }
 
     /**
