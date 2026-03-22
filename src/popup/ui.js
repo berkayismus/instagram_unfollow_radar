@@ -728,7 +728,7 @@ const IGRadarUI = (function() {
             }, I18n.t('watch.refreshOne')));
             actions.appendChild(createElement('button', {
                 type:            'button',
-                className:       'btn btn-secondary btn--small watch-list__remove',
+                className:       'btn btn-danger btn--small',
                 dataset:         { watchRemove: entry.username },
                 'aria-label':    I18n.t('watch.removeAria', { username: entry.username })
             }, I18n.t('watch.remove')));

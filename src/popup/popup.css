@@ -1027,7 +1027,10 @@ h2, h3, h4, h5, h6 { color: var(--text-primary); }
     margin-top: 8px;
 }
 
-.watch-list__remove {
-    color: var(--danger-color);
-    border-color: var(--danger-color);
+.watch-list__actions .btn-danger {
+    flex: 0 0 auto;
+}
+
+.watch-list__actions .btn-secondary {
+    flex: 0 0 auto;
 }
