@@ -61,7 +61,7 @@
     "watch": {
         "title": "Beobachtungsliste",
         "disclaimer": "Nur im Einklang mit den Instagram-Regeln nutzen. Follow-Listen privater Konten sind meist nicht sichtbar.",
-        "partialNote": "Große Follow-Listen werden in Teilen gescannt (Rate-Limits); für mehr Abdeckung mehrfach aktualisieren.",
+        "partialNote": "Große Follow-Listen werden in Teilen gescannt (Rate-Limits); für mehr Abdeckung mehrfach aktualisieren. Neue Follows erscheinen, wenn die Profil-Follower-Zahl steigt (API-Rauschen wird gefiltert).",
         "usernamePlaceholder": "@benutzername",
         "addBtn": "Hinzufügen",
         "refreshAll": "Alle aktualisieren",

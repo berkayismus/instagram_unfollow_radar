@@ -61,7 +61,7 @@
     "watch": {
         "title": "Watch list",
         "disclaimer": "Use only in line with Instagram's rules and your own account. Private accounts you do not follow usually cannot be scanned.",
-        "partialNote": "Large follow lists are scanned in chunks (rate limits); refresh multiple times for fuller coverage.",
+        "partialNote": "Large follow lists are scanned in chunks (rate limits); refresh multiple times for fuller coverage. New follows appear once the profile following count increases (API churn is filtered).",
         "usernamePlaceholder": "@username",
         "addBtn": "Add",
         "refreshAll": "Refresh all",

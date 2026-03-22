@@ -56,8 +56,10 @@ const Constants = (function () {
             MAX_ENTRIES:               20,
             MAX_PAGES_PER_REFRESH:     10,
             NEW_FOLLOW_RETENTION_MS:   24 * 60 * 60 * 1000,
+            /** Max extra "new" ids vs profile Δ before treating scan as unstable. */
+            FOLLOW_COUNT_SLACK:        1,
             /** Bump to reset stored watch entries once (logic / false-positive fix). */
-            ENTRY_SCHEMA:              2
+            ENTRY_SCHEMA:              3
         },
 
         // ─── GUMROAD ─────────────────────────────────────────────────────────

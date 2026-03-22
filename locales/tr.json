@@ -61,7 +61,7 @@
     "watch": {
         "title": "İzleme listesi",
         "disclaimer": "Yalnızca kendi hesabınız ve Instagram kuralları çerçevesinde kullanın. Gizli hesapların takip listesi genelde görünmez.",
-        "partialNote": "Çok sayıda takip için liste kısmi taranır (hız sınırı); tam liste için birden fazla kez yenileyin.",
+        "partialNote": "Çok sayıda takip için liste kısmi taranır (hız sınırı); tam liste için birden fazla kez yenileyin. Yeni takipler, profildeki takip sayısı artınca listelenir (API gürültüsü filtrelenir).",
         "usernamePlaceholder": "@kullaniciadi",
         "addBtn": "Ekle",
         "refreshAll": "Tümünü yenile",

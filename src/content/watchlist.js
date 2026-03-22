@@ -75,16 +75,17 @@ const IGRadarWatchlist = (function() {
             const started = Date.now();
             list.push({
                 username,
-                userId:             profile.userId,
-                followingCount:     profile.followingCount,
-                followersCount:     profile.followersCount,
-                watchStartedAt:     started,
-                watchSchema:        WL.ENTRY_SCHEMA,
-                lastFollowingIds:   [],
-                lastCheckedAt:      null,
-                recentNewFollows:   [],
-                partialSnapshot:    false,
-                error:              null
+                userId:                   profile.userId,
+                followingCount:           profile.followingCount,
+                followersCount:           profile.followersCount,
+                lastProfileFollowingCount: profile.followingCount,
+                watchStartedAt:           started,
+                watchSchema:              WL.ENTRY_SCHEMA,
+                lastFollowingIds:         [],
+                lastCheckedAt:            null,
+                recentNewFollows:         [],
+                partialSnapshot:          false,
+                error:                    null
             });
             await IGRadarStorage.saveWatchList(list);
             return { success: true, list: await getList() };
@@ -122,8 +123,10 @@ const IGRadarWatchlist = (function() {
             }
 
             entry.userId         = profile.userId;
-            entry.followingCount = profile.followingCount;
-            entry.followersCount = profile.followersCount;
+            const storedFollowingCount = entry.followingCount;
+            const storedLastProf       = entry.lastProfileFollowingCount;
+            entry.followingCount       = profile.followingCount;
+            entry.followersCount       = profile.followersCount;
 
             const idToUsername = {};
             const idSet        = new Set();
@@ -170,25 +173,51 @@ const IGRadarWatchlist = (function() {
                 entry.partialSnapshot  = false;
                 entry.recentNewFollows = [];
             } else {
-                const existing = entry.recentNewFollows ? [...entry.recentNewFollows] : [];
-                const inWindow = isDetectionInWatchWindow(entry, now);
-                if (inWindow) {
-                    for (const id of idSet) {
-                        if (!prevSet.has(id)) {
-                            existing.push({
-                                username:   idToUsername[id] || id,
-                                detectedAt: now
-                            });
+                const existing  = entry.recentNewFollows ? [...entry.recentNewFollows] : [];
+                const inWindow  = isDetectionInWatchWindow(entry, now);
+                const lastProf  = storedLastProf != null
+                    ? storedLastProf
+                    : (storedFollowingCount != null ? storedFollowingCount : profile.followingCount);
+                const profDelta = profile.followingCount - lastProf;
+
+                const newIdsList = [...idSet].filter(id => !prevSet.has(id));
+
+                let idsToRecord = [];
+                if (inWindow && newIdsList.length > 0) {
+                    if (profDelta === 0) {
+                        console.warn(
+                            '[IGRadar] watchlist: following count unchanged; ignoring set diff (API churn)'
+                        );
+                    } else if (profDelta < 0) {
+                        // Net unfollows — do not add "new follow" rows
+                    } else {
+                        const maxNew = profDelta + WL.FOLLOW_COUNT_SLACK;
+                        if (newIdsList.length <= maxNew) {
+                            idsToRecord = newIdsList;
+                        } else {
+                            console.warn(
+                                '[IGRadar] watchlist: too many new ids vs profile delta',
+                                newIdsList.length,
+                                profDelta
+                            );
                         }
                     }
+                }
+
+                for (const id of idsToRecord) {
+                    existing.push({
+                        username:   idToUsername[id] || id,
+                        detectedAt: now
+                    });
                 }
                 entry.recentNewFollows = existing;
                 entry.lastFollowingIds = Array.from(idSet);
                 entry.partialSnapshot  = false;
             }
 
-            entry.lastCheckedAt = now;
-            entry.error         = null;
+            entry.lastProfileFollowingCount = profile.followingCount;
+            entry.lastCheckedAt             = now;
+            entry.error                     = null;
 
             entry.recentNewFollows = (entry.recentNewFollows || []).filter(x =>
                 isDetectionInWatchWindow(entry, x.detectedAt)
