@@ -10,6 +10,9 @@ const IGRadarWatchlist = (function() {
 
     const WL = Constants.WATCH_LIST;
 
+    /** Serialises `addUser` so two parallel adds cannot overwrite storage with stale lists. */
+    let addUserQueue = Promise.resolve();
+
     /**
      * Keeps events inside the watch window: [watchStartedAt, watchStartedAt + 24h].
      * Legacy entries (no watchStartedAt) use rolling last-24h from now.
@@ -51,48 +54,67 @@ const IGRadarWatchlist = (function() {
 
     /**
      * @param {string} rawUsername
+     * @param {boolean} isPremium
      * @returns {Promise<{success: boolean, list?: Array, error?: string}>}
      */
-    async function addUser(rawUsername) {
+    function addUser(rawUsername, isPremium) {
         const username = normalizeUsername(rawUsername);
-        if (!username) return { success: false, error: 'empty' };
+        if (!username) return Promise.resolve({ success: false, error: 'empty' });
 
-        try {
-            let list = await IGRadarStorage.getWatchList();
-            if (list.length >= WL.MAX_ENTRIES) return { success: false, error: 'max_entries' };
-            if (list.some(x => x.username === username)) return { success: false, error: 'duplicate' };
+        const cap = IGRadarWatchlistLimits.maxEntries(!!isPremium);
 
-            let profile;
+        const run = async () => {
             try {
-                profile = await IGRadarAPI.fetchWebProfileInfo(username);
-            } catch (err) {
-                if (err && err.name === 'RateLimitError') return { success: false, error: 'rate_limit' };
-                console.error('[IGRadar] watchlist addUser fetchWebProfileInfo:', err);
-                return { success: false, error: 'network' };
-            }
-            if (!profile || !profile.userId) return { success: false, error: 'not_found' };
+                let list = await IGRadarStorage.getWatchList();
+                if (list.length >= cap) return { success: false, error: 'max_entries' };
+                if (list.some(x => x.username === username)) return { success: false, error: 'duplicate' };
 
-            const started = Date.now();
-            list.push({
-                username,
-                userId:                   profile.userId,
-                followingCount:           profile.followingCount,
-                followersCount:           profile.followersCount,
-                lastProfileFollowingCount: profile.followingCount,
-                watchStartedAt:           started,
-                watchSchema:              WL.ENTRY_SCHEMA,
-                lastFollowingIds:         [],
-                lastCheckedAt:            null,
-                recentNewFollows:         [],
-                partialSnapshot:          false,
-                error:                    null
-            });
-            await IGRadarStorage.saveWatchList(list);
-            return { success: true, list: await getList() };
-        } catch (err) {
-            console.error('[IGRadar] watchlist addUser:', err);
-            return { success: false, error: 'unknown' };
-        }
+                let profile;
+                try {
+                    profile = await IGRadarAPI.fetchWebProfileInfo(username);
+                } catch (err) {
+                    if (err && err.name === 'RateLimitError') return { success: false, error: 'rate_limit' };
+                    console.error('[IGRadar] watchlist addUser fetchWebProfileInfo:', err);
+                    return { success: false, error: 'network' };
+                }
+                if (!profile || !profile.userId) return { success: false, error: 'not_found' };
+
+                /**
+                 * Re-read storage after the slow profile fetch (still inside the serial queue).
+                 */
+                const latest = await IGRadarStorage.getWatchList();
+                if (latest.length >= cap) return { success: false, error: 'max_entries' };
+                if (latest.some(x => x.username === username)) return { success: false, error: 'duplicate' };
+
+                const started = Date.now();
+                latest.push({
+                    username,
+                    userId:                   profile.userId,
+                    followingCount:           profile.followingCount,
+                    followersCount:           profile.followersCount,
+                    lastProfileFollowingCount: profile.followingCount,
+                    watchStartedAt:           started,
+                    watchSchema:              WL.ENTRY_SCHEMA,
+                    lastFollowingIds:         [],
+                    lastCheckedAt:            null,
+                    recentNewFollows:         [],
+                    partialSnapshot:          false,
+                    error:                    null
+                });
+                await IGRadarStorage.saveWatchList(latest);
+                return { success: true, list: await getList() };
+            } catch (err) {
+                console.error('[IGRadar] watchlist addUser:', err);
+                return { success: false, error: 'unknown' };
+            }
+        };
+
+        const done = addUserQueue.then(run, run);
+        addUserQueue = done.then(
+            () => undefined,
+            () => undefined
+        );
+        return done;
     }
 
     /**

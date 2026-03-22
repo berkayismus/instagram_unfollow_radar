@@ -131,8 +131,13 @@ const IGUnfollowRadarContent = (function() {
                     state.dailyLimit   = state.isPremium
                         ? Constants.LIMITS.PREMIUM_DAILY_LIMIT
                         : Constants.LIMITS.FREE_DAILY_LIMIT;
-                    sendResponse({ success: true });
-                    break;
+                    IGRadarWatchlistLimits.enforceStorageLimit()
+                        .then(() => sendResponse({ success: true }))
+                        .catch(err => {
+                            console.error('[IGRadar] enforceStorageLimit', err);
+                            sendResponse({ success: true });
+                        });
+                    return true;
                 }
 
                 case Constants.ACTIONS.UNDO_SINGLE: {
@@ -159,7 +164,7 @@ const IGUnfollowRadarContent = (function() {
                     return true;
 
                 case Constants.ACTIONS.WATCH_LIST_ADD:
-                    IGRadarWatchlist.addUser(message.username)
+                    IGRadarWatchlist.addUser(message.username, state.isPremium)
                         .then(sendResponse)
                         .catch(err => {
                             console.error('[IGRadar] WATCH_LIST_ADD', err);
@@ -198,12 +203,17 @@ const IGUnfollowRadarContent = (function() {
         setupMessageListener();
         const userId = IGRadarAPI.getCurrentUserId();
         if (userId) {
-            IGRadarStorage.loadState(state).then(() => {
-            state.dailyLimit = state.isPremium
-                ? Constants.LIMITS.PREMIUM_DAILY_LIMIT
-                : Constants.LIMITS.FREE_DAILY_LIMIT;
-            sendStatus(Constants.STATUS.READY);
-        });
+            IGRadarStorage.loadState(state).then(async () => {
+                state.dailyLimit = state.isPremium
+                    ? Constants.LIMITS.PREMIUM_DAILY_LIMIT
+                    : Constants.LIMITS.FREE_DAILY_LIMIT;
+                try {
+                    await IGRadarWatchlistLimits.enforceStorageLimit();
+                } catch (err) {
+                    console.error('[IGRadar] enforceStorageLimit on init', err);
+                }
+                sendStatus(Constants.STATUS.READY);
+            });
         } else {
             console.warn('[IGRadar] User not logged in');
         }

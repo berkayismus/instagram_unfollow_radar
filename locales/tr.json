@@ -61,6 +61,7 @@
     "watch": {
         "title": "İzleme listesi",
         "disclaimer": "İstediğiniz hesabı ekleyin; yeni kimin takip edildiğini buradan takip edebilirsiniz. Gizli hesaplarda liste genelde görünmez. Instagram kurallarına uyun.",
+        "slotLimitHint": "Ücretsiz planda en fazla {freeMax} hesap, Premium ile {premiumMax} hesaba kadar izleyebilirsiniz.",
         "partialNote": "Listeyi güncellemek için Yenile’ye basın. Yeni takipler, o kişinin profilindeki takip sayısı artınca burada görünür. Çok fazla kişi takip ediliyorsa tam liste için birkaç kez yenilemeniz gerekebilir.",
         "usernamePlaceholder": "@kullaniciadi",
         "addBtn": "Ekle",
@@ -82,7 +83,7 @@
         "removeAria": "@{username} izlemeden kaldır",
         "error": {
             "empty": "Kullanıcı adı girin",
-            "max_entries": "En fazla 20 kullanıcı ekleyebilirsiniz",
+            "max_entries": "İzleme listesi dolu. Ücretsiz: en fazla {freeMax} hesap. Premium: {premiumMax} hesaba kadar.",
             "duplicate": "Bu kullanıcı zaten listede",
             "not_found": "Kullanıcı bulunamadı veya profil alınamadı",
             "profile_failed": "Profil yüklenemedi (gizli hesap olabilir)",
@@ -108,7 +109,7 @@
         "item1": "Instagram’da oturumunuz açık olmalı",
         "item2": "Her işlem arasında birkaç saniye beklenir",
         "item3": "50 kişiden sonra devam etmek için onay sorulur",
-        "item4": "Günlük limit: ücretsiz 50, Premium 500 kişi",
+        "item4": "Günlük limit: ücretsiz 10, Premium 500 kişi",
         "item5": "Limit her 24 saatte bir sıfırlanır"
     },
     "messages": {
@@ -135,11 +136,12 @@
         "licensePlaceholder": "Gumroad lisans anahtarınızı girin",
         "activateBtn": "Etkinleştir",
         "deactivateBtn": "Lisansı Kaldır",
-        "confirmDeactivate": "Premium lisansınızı kaldırmak istiyor musunuz? Ücretsiz plana (50/gün) geçeceksiniz.",
+        "confirmDeactivate": "Premium lisansınızı kaldırmak istiyor musunuz? Ücretsiz plana (10/gün) geçeceksiniz.",
         "featureDailyLimit": "Günlük Limit",
         "featureUndo": "Geri Alma (Undo)",
         "featureFilters": "Filtreler & Whitelist",
         "featureStats": "İstatistikler",
+        "featureWatchSlots": "İzleme listesi (hesap)",
         "featureExportCsv": "CSV Dışa Aktarma",
         "featureSupport": "Öncelikli Destek",
         "exportLockHint": "🔒 CSV indirme Premium özelliğidir — Premium'a geç",

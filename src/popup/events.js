@@ -262,6 +262,11 @@ const IGRadarEvents = (function() {
             [Constants.STORAGE_KEYS.LICENSE_EMAIL]: null
         });
         try {
+            await IGRadarWatchlistLimits.enforceStorageLimit();
+        } catch (err) {
+            console.error('[IGRadar] enforceStorageLimit on deactivate', err);
+        }
+        try {
             await sendToContent({
                 action:    Constants.ACTIONS.UPDATE_LICENSE,
                 isPremium: false,
@@ -271,6 +276,10 @@ const IGRadarEvents = (function() {
         } catch (_) {}
         IGRadarUI.renderPremiumStatus(false, null);
         await IGRadarUI.loadStats();
+        const watchTab = document.getElementById('watch-tab');
+        if (watchTab && watchTab.classList.contains('active')) {
+            await IGRadarUI.loadWatchList();
+        }
     }
 
     // ─── THEME & LANGUAGE ─────────────────────────────────────────────────────
@@ -297,6 +306,26 @@ const IGRadarEvents = (function() {
             IGRadarUI.showWatchMessage('watch.error.empty', true);
             return;
         }
+
+        const pre = await chrome.storage.local.get([
+            Constants.STORAGE_KEYS.WATCH_LIST,
+            Constants.STORAGE_KEYS.IS_PREMIUM
+        ]);
+        const isPremiumPre = pre[Constants.STORAGE_KEYS.IS_PREMIUM] || false;
+        const listPre      = pre[Constants.STORAGE_KEYS.WATCH_LIST] || [];
+        const maxSlots     = IGRadarWatchlistLimits.maxEntries(isPremiumPre);
+        if (listPre.length >= maxSlots) {
+            IGRadarUI.showWatchMessage('watch.error.max_entries', true, {
+                freeMax:    Constants.WATCH_LIST.MAX_ENTRIES_FREE,
+                premiumMax: Constants.WATCH_LIST.MAX_ENTRIES_PREMIUM
+            });
+            return;
+        }
+        if (listPre.some(x => String(x.username || '').toLowerCase() === user)) {
+            IGRadarUI.showWatchMessage('watch.error.duplicate', true);
+            return;
+        }
+
         IGRadarUI.setWatchListLoading(true);
         IGRadarUI.hideWatchMessage();
         try {
@@ -313,6 +342,11 @@ const IGRadarEvents = (function() {
                 IGRadarUI.el.watchUsernameInput.value = '';
                 IGRadarUI.renderWatchList(res.list);
                 IGRadarUI.showWatchMessage('watch.addedOk', false);
+            } else if (res && res.error === 'max_entries') {
+                IGRadarUI.showWatchMessage('watch.error.max_entries', true, {
+                    freeMax:    Constants.WATCH_LIST.MAX_ENTRIES_FREE,
+                    premiumMax: Constants.WATCH_LIST.MAX_ENTRIES_PREMIUM
+                });
             } else if (res && res.error) {
                 IGRadarUI.showWatchMessage(watchErrorKey(res.error), true);
             } else if (res && res.message === 'Unknown action') {

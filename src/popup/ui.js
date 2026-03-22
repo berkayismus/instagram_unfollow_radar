@@ -79,6 +79,7 @@ const IGRadarUI = (function() {
         el.watchList            = document.getElementById('watchList');
         el.watchMessage         = document.getElementById('watchMessage');
         el.watchListEmpty       = document.getElementById('watchListEmpty');
+        el.watchSlotLimitHint   = document.getElementById('watchSlotLimitHint');
     }
 
     // ─── DOM HELPERS ──────────────────────────────────────────────────────────
@@ -637,11 +638,22 @@ const IGRadarUI = (function() {
      */
     async function loadWatchList() {
         if (!el.watchList) return;
+        try {
+            await IGRadarWatchlistLimits.enforceStorageLimit();
+        } catch (err) {
+            console.error('[IGRadar] enforceStorageLimit in popup', err);
+        }
         const data = await chrome.storage.local.get([Constants.STORAGE_KEYS.WATCH_LIST]);
         let list   = data[Constants.STORAGE_KEYS.WATCH_LIST] || [];
         list       = pruneWatchListEntries(list);
         await chrome.storage.local.set({ [Constants.STORAGE_KEYS.WATCH_LIST]: list });
         renderWatchList(list);
+        if (el.watchSlotLimitHint) {
+            el.watchSlotLimitHint.textContent = I18n.t('watch.slotLimitHint', {
+                freeMax:    Constants.WATCH_LIST.MAX_ENTRIES_FREE,
+                premiumMax: Constants.WATCH_LIST.MAX_ENTRIES_PREMIUM
+            });
+        }
     }
 
     /**
@@ -748,9 +760,11 @@ const IGRadarUI = (function() {
      * @param {string} messageKey - i18n key or literal fallback
      * @param {boolean} isError
      */
-    function showWatchMessage(messageKey, isError) {
+    function showWatchMessage(messageKey, isError, replacements = {}) {
         if (!el.watchMessage) return;
-        const text = messageKey.includes('.') ? I18n.t(messageKey) : messageKey;
+        const text = messageKey.includes('.')
+            ? I18n.t(messageKey, replacements)
+            : messageKey;
         el.watchMessage.textContent       = text;
         el.watchMessage.className         = `watch-message${isError ? ' watch-message--error' : ''}`;
         el.watchMessage.style.display     = 'block';

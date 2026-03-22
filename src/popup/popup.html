@@ -38,10 +38,10 @@
                 aria-selected="true" aria-controls="main-tab" tabindex="0">Ana</button>
             <button class="tab-btn" data-tab="filters" data-i18n="tabs.filters" role="tab" id="tab-filters"
                 aria-selected="false" aria-controls="filters-tab" tabindex="-1">Filtreler</button>
-            <button class="tab-btn" data-tab="stats" data-i18n="tabs.stats" role="tab" id="tab-stats"
-                aria-selected="false" aria-controls="stats-tab" tabindex="-1">İstatistikler</button>
             <button class="tab-btn" data-tab="watch" data-i18n="tabs.watch" role="tab" id="tab-watch"
                 aria-selected="false" aria-controls="watch-tab" tabindex="-1">İzleme</button>
+            <button class="tab-btn" data-tab="stats" data-i18n="tabs.stats" role="tab" id="tab-stats"
+                aria-selected="false" aria-controls="stats-tab" tabindex="-1">İstatistikler</button>
             <button class="tab-btn tab-btn--premium" data-tab="premium" data-i18n="tabs.premium" role="tab" id="tab-premium"
                 aria-selected="false" aria-controls="premium-tab" tabindex="-1">Premium</button>
         </div>
@@ -174,24 +174,13 @@
             </section>
         </div>
 
-        <!-- Stats Tab -->
-        <div class="tab-content" id="stats-tab" role="tabpanel" aria-labelledby="tab-stats" hidden>
-            <section class="stats-section" aria-labelledby="statsTitle">
-                <h3 id="statsTitle">📊 <span data-i18n="statsTab.last30Days">Son 30 Gün</span></h3>
-                <div class="ct-chart" id="chart" role="img" aria-label="Unfollow statistics chart"></div>
-                <button id="exportCsvBtn" class="btn btn-primary" type="button">📥
-                    <span data-i18n="buttons.exportCsv">CSV İndir</span>
-                </button>
-                <p id="exportCsvLock" class="export-lock-hint" style="display: none;" data-i18n="premium.exportLockHint">🔒 CSV indirme Premium özelliğidir</p>
-            </section>
-        </div>
-
         <!-- Watch list tab -->
         <div class="tab-content" id="watch-tab" role="tabpanel" aria-labelledby="tab-watch" hidden>
             <section class="watch-section" aria-labelledby="watchTitle">
                 <h3 id="watchTitle">👁 <span data-i18n="watch.title">İzleme listesi</span></h3>
                 <p class="watch-disclaimer filter-desc" data-i18n="watch.disclaimer"></p>
                 <p class="watch-partial-note filter-desc" data-i18n="watch.partialNote"></p>
+                <p id="watchSlotLimitHint" class="watch-slot-hint filter-desc" aria-live="polite"></p>
                 <div class="input-group" role="group">
                     <input type="text" id="watchUsernameInput" autocomplete="off" spellcheck="false"
                         data-i18n-placeholder="watch.usernamePlaceholder"
@@ -206,6 +195,18 @@
                 <p id="watchMessage" class="watch-message" role="status" aria-live="polite" style="display: none;"></p>
                 <p id="watchListEmpty" class="watch-empty" data-i18n="watch.empty" style="display: none;"></p>
                 <ul class="watch-list" id="watchList" role="list"></ul>
+            </section>
+        </div>
+
+        <!-- Stats Tab -->
+        <div class="tab-content" id="stats-tab" role="tabpanel" aria-labelledby="tab-stats" hidden>
+            <section class="stats-section" aria-labelledby="statsTitle">
+                <h3 id="statsTitle">📊 <span data-i18n="statsTab.last30Days">Son 30 Gün</span></h3>
+                <div class="ct-chart" id="chart" role="img" aria-label="Unfollow statistics chart"></div>
+                <button id="exportCsvBtn" class="btn btn-primary" type="button">📥
+                    <span data-i18n="buttons.exportCsv">CSV İndir</span>
+                </button>
+                <p id="exportCsvLock" class="export-lock-hint" style="display: none;" data-i18n="premium.exportLockHint">🔒 CSV indirme Premium özelliğidir</p>
             </section>
         </div>
 
@@ -229,8 +230,13 @@
                     </div>
                     <div class="feature-row">
                         <span class="feature-label" data-i18n="premium.featureDailyLimit">Günlük Limit</span>
-                        <span class="feature-free">50</span>
+                        <span class="feature-free">10</span>
                         <span class="feature-premium">500</span>
+                    </div>
+                    <div class="feature-row">
+                        <span class="feature-label" data-i18n="premium.featureWatchSlots">İzleme listesi</span>
+                        <span class="feature-free">1</span>
+                        <span class="feature-premium">10</span>
                     </div>
                     <div class="feature-row">
                         <span class="feature-label" data-i18n="premium.featureUndo">Geri Alma</span>
@@ -302,7 +308,7 @@
                 <li data-i18n="warning.item1">Instagram’da oturumunuz açık olmalı</li>
                 <li data-i18n="warning.item2">Her işlem arasında birkaç saniye beklenir</li>
                 <li data-i18n="warning.item3">50 kişiden sonra devam etmek için onay sorulur</li>
-                <li id="warningLimitItem" data-i18n="warning.item4">Günlük limit: ücretsiz 50, Premium 500 kişi</li>
+                <li id="warningLimitItem" data-i18n="warning.item4">Günlük limit: ücretsiz 10, Premium 500 kişi</li>
                 <li data-i18n="warning.item5">Limit her 24 saatte bir sıfırlanır</li>
             </ul>
         </aside>
@@ -311,6 +317,7 @@
 
     <script src="../../vendor/chartist.min.js"></script>
     <script src="../shared/constants.js"></script>
+    <script src="../shared/watchlistLimits.js"></script>
     <script src="../shared/i18n.js"></script>
     <script src="ui.js"></script>
     <script src="events.js"></script>

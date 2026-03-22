@@ -26,6 +26,7 @@
 13. [Rate Limiting & Safety](#13-rate-limiting--safety)
 14. [Internationalization (i18n)](#14-internationalization-i18n)
 15. [Configuration Reference](#15-configuration-reference)
+16. [Premium & licensing](./PREMIUM.md) _(separate document)_
 
 ---
 
@@ -421,7 +422,7 @@ loop:
 |---|---|---|
 | Inter-request delay | 5 – 10 s | Random delay between every API call |
 | Human pause probability | 10 % | Chance of an additional 5 – 15 s pause |
-| Session limit | 100 unfollows / 24 h | Hard cap; resets after `SESSION_DURATION` |
+| Daily unfollow cap | 10 (Free) / 500 (Premium) per 24 h | `state.dailyLimit`; counter resets after `SESSION_DURATION` |
 | Batch milestone | 50 | User must confirm to continue past the first 50 |
 | Rate limit cool-down | 15 min | Automatic pause + resume on HTTP 429 |
 | AbortController | On every fetch | Instant clean cancellation when Stop is pressed |
@@ -465,13 +466,23 @@ All values can be found in `src/shared/constants.js`. The object is deep-frozen.
 
 | Key | Default | Description |
 |---|---|---|
-| `MAX_SESSION` | 100 | Maximum unfollows per session |
+| `FREE_DAILY_LIMIT` | 10 | Max unfollows per 24 h (free tier) |
+| `PREMIUM_DAILY_LIMIT` | 500 | Max unfollows per 24 h (Premium) |
 | `BATCH_SIZE` | 50 | Milestone after which a confirmation is required |
 | `MAX_UNDO_QUEUE` | 10 | Maximum entries in the undo queue |
 | `HISTORY_RETENTION_DAYS` | 30 | Days of unfollow history to retain |
 | `MAX_USER_LIST_DISPLAY` | 50 | Maximum rows shown in the popup user list |
 | `SCAN_PAGE_SIZE` | 50 | Items requested per API page |
 | `CHART_DAYS` | 30 | Days shown in the activity chart |
+
+### WATCH_LIST
+
+| Key | Default | Description |
+|---|---|---|
+| `MAX_ENTRIES_FREE` | 1 | Max watched accounts (free tier) |
+| `MAX_ENTRIES_PREMIUM` | 10 | Max watched accounts (Premium) |
+
+Tier enforcement: `src/shared/watchlistLimits.js` (`enforceStorageLimit`), `src/content/watchlist.js` (`addUser`).
 
 ---
 
@@ -498,6 +509,7 @@ All values can be found in `src/shared/constants.js`. The object is deep-frozen.
 13. [Hız Sınırı ve Güvenlik](#13-hız-sınırı-ve-güvenlik)
 14. [Çoklu Dil Desteği (i18n)](#14-çoklu-dil-desteği-i18n)
 15. [Yapılandırma Referansı](#15-yapılandırma-referansı)
+16. [Premium ve lisanslama](./PREMIUM.md) _(ayrı belge)_
 
 ---
 
@@ -893,7 +905,7 @@ döngü:
 |---|---|---|
 | İstekler arası gecikme | 5 – 10 sn | Her API çağrısı arasında rastgele gecikme |
 | İnsan simülasyonu olasılığı | %10 | Ek 5 – 15 sn duraklama ihtimali |
-| Oturum limiti | 100 takipten çıkarma / 24 saat | Sabit üst sınır; `SESSION_DURATION` sonrası sıfırlanır |
+| Günlük takipten çıkarma kotası | Ücretsiz 10 / Premium 500 (24 saat) | `state.dailyLimit`; sayaç `SESSION_DURATION` sonrası sıfırlanır |
 | Batch kilometre taşı | 50 | Kullanıcı devam için onay vermeli |
 | Hız limiti soğuma | 15 dk | HTTP 429'da otomatik duraklama + devam |
 | AbortController | Her fetch'te | Durdur'a basıldığında anında temiz iptal |
@@ -937,10 +949,20 @@ Tüm değerler `src/shared/constants.js` içinde bulunur. Nesne derin-dondurulmu
 
 | Anahtar | Varsayılan | Açıklama |
 |---|---|---|
-| `MAX_SESSION` | 100 | Oturum başına maksimum takipten çıkarma |
+| `FREE_DAILY_LIMIT` | 10 | 24 saatte ücretsiz plan üst sınırı |
+| `PREMIUM_DAILY_LIMIT` | 500 | 24 saatte Premium üst sınırı |
 | `BATCH_SIZE` | 50 | Onay gerektiren kilometre taşı |
 | `MAX_UNDO_QUEUE` | 10 | Undo kuyruğundaki maksimum öğe sayısı |
 | `HISTORY_RETENTION_DAYS` | 30 | Saklanan takipten çıkarma geçmişinin günü |
 | `MAX_USER_LIST_DISPLAY` | 50 | Popup kullanıcı listesinde gösterilen maksimum satır |
 | `SCAN_PAGE_SIZE` | 50 | API sayfa başına istenen öğe sayısı |
 | `CHART_DAYS` | 30 | Aktivite grafiğinde gösterilen gün sayısı |
+
+### WATCH_LIST
+
+| Anahtar | Varsayılan | Açıklama |
+|---|---|---|
+| `MAX_ENTRIES_FREE` | 1 | Ücretsiz planda izlenen hesap üst sınırı |
+| `MAX_ENTRIES_PREMIUM` | 10 | Premium’da izlenen hesap üst sınırı |
+
+Kota: `src/shared/watchlistLimits.js` (`enforceStorageLimit`), `src/content/watchlist.js` (`addUser`).

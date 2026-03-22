@@ -1,0 +1,68 @@
+---
+description: Mağaza ve dokümantasyon ekran görüntüleri — assets/screenshots/ kuralları
+globs: assets/screenshots/**/*
+alwaysApply: false
+---
+
+# Screenshot Assets (`assets/screenshots/`)
+
+## Amaç
+
+- **Chrome Web Store** detay sayfası görselleri
+- İsteğe bağlı **README / docs** referansları
+
+Bu klasördeki dosyalar ürünün **gerçek popup arayüzünü** temsil etmeli; kod veya metin değişince güncellenmeleri gerekir.
+
+## Dosya adlandırma
+
+Sıra numarası + sekme / ekran adı (küçük harf, alt çizgi):
+
+| Dosya | Sekme / içerik |
+|-------|----------------|
+| `screenshot_01_main.png` | Ana |
+| `screenshot_02_filters.png` | Filtreler |
+| `screenshot_03_stats.png` | İstatistikler |
+| `screenshot_04_watch.png` | İzleme (Watch) |
+
+Yeni sekme veya önemli ekran eklendiğinde sıradaki numarayı kullan (örn. `screenshot_05_premium.png`).
+
+## Chrome Web Store — sabit boyut (zorunlu)
+
+Tüm `assets/screenshots/*.png` dosyaları mağazaya yüklemeden önce **tam olarak 1280×800 piksel** olmalı (büyük screenshot formatı).
+
+- **Oran:** Tuval her zaman **1280×800**; popup dikey veya dar yakalandıysa **en-boy oranı korunur**, boş alanlar uzantı temasıyla uyumlu **turuncu → mor dikey gradient** (`#F58529` → `#833AB4`, `icon-assets.mdc` ile uyumlu) ile doldurulur; görüntü **yatayda ortalanır**.
+- **Küçük screenshot:** Google ayrıca **640×400** kabul eder; bu projede tutarlılık için önce **1280×800** üretilir; gerekirse mağaza panelinde veya `sips -z 400 640` ile türetilir.
+- **Normalizasyon script’i:** Ham PNG’yi Store boyutuna getirmek için:
+
+```bash
+python3 scripts/normalize_chrome_store_screenshot.py assets/screenshots/screenshot_XX_ornek.png
+```
+
+Çıktı aynı dosyaya yazılır; farklı dosya için ikinci argüman: `…/giris.png …/cikis.png`. Görüntü zaten 1280×800 ise yeniden ölçeklemeden kaydedilir.
+
+## Teknik öneriler
+
+- **Biçim:** PNG (net UI metinleri için tercih)
+- **İçerik:** Gerçek uzantı popup’ı; mümkünse **hassas kullanıcı adı / DM / kişisel veri** gösterme veya maskele
+- **Dil / tema:** Store listesi için tutarlı dil (TR veya EN) ve tema (açık veya koyu) seç; karışık set kullanma
+
+## Kurallar
+
+```
+# ✅ DOĞRU
+- Ham yakalamayı `normalize_chrome_store_screenshot.py` ile **1280×800** yap
+- Zaten 1280×800 export alındıysa script değişiklik yapmaz
+- Sekme sırasıyla uyumlu numaralandırma (FEATURES / popup.html ile hizalı)
+- Limit, Premium tablosu veya yeni sekme değişince görseli yenile
+
+# ❌ YANLIŞ
+- Mağaza için **1280×800 dışı** çözünürlük (oran bozularak uzatılmış / kırpılmamış ham dikey capture)
+- Rastgele dosya adı (örn. `IMG_1234.png`) — depoda aranamaz
+- Eski UI’lı ekran görüntüsünü güncellemeden bırakmak
+- Başka uygulama veya mockup’u uzantı ekranı gibi sunmak
+```
+
+## İlgili kurallar
+
+- İkonlar ve store ikonu: `.cursor/rules/icon-assets.mdc`
+- Özellik metinleri (ekranla uyum): `docs/FEATURES.md`, `docs/STORE_DESCRIPTION.md`

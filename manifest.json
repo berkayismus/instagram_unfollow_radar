@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Instagram Unfollow Radar",
-  "version": "1.2.0",
+  "version": "1.2.2",
   "description": "Automatically detect and unfollow users who don't follow you back on Instagram",
   "permissions": [
     "storage"
@@ -33,6 +33,7 @@
       ],
       "js": [
         "src/shared/constants.js",
+        "src/shared/watchlistLimits.js",
         "src/content/api.js",
         "src/content/storage.js",
         "src/content/filters.js",

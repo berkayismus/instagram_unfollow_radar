@@ -47,13 +47,14 @@ const Constants = (function () {
             MAX_USER_LIST_DISPLAY:   50,
             SCAN_PAGE_SIZE:          50,
             CHART_DAYS:              30,
-            FREE_DAILY_LIMIT:        50,
+            FREE_DAILY_LIMIT:        10,
             PREMIUM_DAILY_LIMIT:     500
         },
 
         // ─── WATCH LIST (follow activity) ────────────────────────────────────
         WATCH_LIST: {
-            MAX_ENTRIES:               20,
+            MAX_ENTRIES_FREE:          1,
+            MAX_ENTRIES_PREMIUM:       10,
             MAX_PAGES_PER_REFRESH:     10,
             NEW_FOLLOW_RETENTION_MS:   24 * 60 * 60 * 1000,
             /** Max extra "new" ids vs profile Δ before treating scan as unstable. */
@@ -84,7 +85,7 @@ const Constants = (function () {
         UI: {
             HUMAN_PAUSE_PROBABILITY: 0.1,
             /** Valid `data-tab` values for popup tab persistence */
-            POPUP_TAB_IDS: ['main', 'filters', 'stats', 'watch', 'premium']
+            POPUP_TAB_IDS: ['main', 'filters', 'watch', 'stats', 'premium']
         },
 
         // ─── STORAGE KEYS ────────────────────────────────────────────────────
