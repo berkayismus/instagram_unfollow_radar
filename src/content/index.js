@@ -149,8 +149,43 @@ const IGUnfollowRadarContent = (function() {
                     break;
                 }
 
+                case Constants.ACTIONS.WATCH_LIST_GET:
+                    IGRadarWatchlist.getList()
+                        .then(list => sendResponse({ success: true, list }))
+                        .catch(err => {
+                            console.error('[IGRadar] WATCH_LIST_GET', err);
+                            sendResponse({ success: false, error: 'unknown' });
+                        });
+                    return true;
+
+                case Constants.ACTIONS.WATCH_LIST_ADD:
+                    IGRadarWatchlist.addUser(message.username)
+                        .then(sendResponse)
+                        .catch(err => {
+                            console.error('[IGRadar] WATCH_LIST_ADD', err);
+                            sendResponse({ success: false, error: 'unknown' });
+                        });
+                    return true;
+
+                case Constants.ACTIONS.WATCH_LIST_REFRESH: {
+                    const run = message.username
+                        ? () => IGRadarWatchlist.refreshUser(message.username)
+                        : () => IGRadarWatchlist.refreshAll();
+                    run()
+                        .then(sendResponse)
+                        .catch(err => {
+                            console.error('[IGRadar] WATCH_LIST_REFRESH', err);
+                            sendResponse({ success: false, error: 'unknown' });
+                        });
+                    return true;
+                }
+
                 default:
-                    sendResponse({ success: false, message: 'Unknown action' });
+                    sendResponse({
+                        success: false,
+                        error:   'unknown_action',
+                        message: 'Unknown action'
+                    });
             }
             return true; // keep the message channel open for async sendResponse
         });

@@ -51,6 +51,17 @@ const Constants = (function () {
             PREMIUM_DAILY_LIMIT:     500
         },
 
+        // ─── WATCH LIST (follow activity) ────────────────────────────────────
+        WATCH_LIST: {
+            MAX_ENTRIES:               20,
+            MAX_PAGES_PER_REFRESH:     10,
+            NEW_FOLLOW_RETENTION_MS:   24 * 60 * 60 * 1000,
+            /** Max extra "new" ids vs profile Δ before treating scan as unstable. */
+            FOLLOW_COUNT_SLACK:        1,
+            /** Bump to reset stored watch entries once (logic / false-positive fix). */
+            ENTRY_SCHEMA:              3
+        },
+
         // ─── GUMROAD ─────────────────────────────────────────────────────────
         GUMROAD: {
             PRODUCT_PERMALINK: 'vnzrgn',
@@ -64,7 +75,9 @@ const Constants = (function () {
             FOLLOWING: (userId) => `https://www.instagram.com/api/v1/friendships/${userId}/following/`,
             FOLLOWERS: (userId) => `https://www.instagram.com/api/v1/friendships/${userId}/followers/`,
             DESTROY:   (userId) => `https://www.instagram.com/api/v1/friendships/destroy/${userId}/`,
-            CREATE:    (userId) => `https://www.instagram.com/api/v1/friendships/create/${userId}/`
+            CREATE:    (userId) => `https://www.instagram.com/api/v1/friendships/create/${userId}/`,
+            WEB_PROFILE_INFO: (username) =>
+                `https://www.instagram.com/api/v1/users/web_profile_info/?username=${encodeURIComponent(username)}`
         },
 
         // ─── UI ──────────────────────────────────────────────────────────────
@@ -91,7 +104,8 @@ const Constants = (function () {
             LANGUAGE:         'igLanguage',
             IS_PREMIUM:       'igIsPremium',
             LICENSE_KEY:      'igLicenseKey',
-            LICENSE_EMAIL:    'igLicenseEmail'
+            LICENSE_EMAIL:    'igLicenseEmail',
+            WATCH_LIST:       'igWatchList'
         },
 
         // ─── MESSAGE TYPES ────────────────────────────────────────────────────
@@ -113,7 +127,11 @@ const Constants = (function () {
             TOGGLE_DRY_RUN:   'TOGGLE_DRY_RUN',
             UNDO_LAST:        'UNDO_LAST',
             UNDO_SINGLE:      'UNDO_SINGLE',
-            UPDATE_LICENSE:   'UPDATE_LICENSE'
+            UPDATE_LICENSE:   'UPDATE_LICENSE',
+            WATCH_LIST_GET:     'WATCH_LIST_GET',
+            WATCH_LIST_ADD:     'WATCH_LIST_ADD',
+            WATCH_LIST_REMOVE:  'WATCH_LIST_REMOVE',
+            WATCH_LIST_REFRESH: 'WATCH_LIST_REFRESH'
         },
 
         // ─── STATUS ──────────────────────────────────────────────────────────

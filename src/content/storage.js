@@ -140,6 +140,21 @@ const IGRadarStorage = (function() {
         });
     }
 
+    /**
+     * @returns {Promise<Array>} watch-list entries (may be empty)
+     */
+    async function getWatchList() {
+        const data = await chrome.storage.local.get([SK.WATCH_LIST]);
+        return data[SK.WATCH_LIST] || [];
+    }
+
+    /**
+     * @param {Array} list - serialisable watch-list entry objects
+     */
+    async function saveWatchList(list) {
+        await chrome.storage.local.set({ [SK.WATCH_LIST]: list });
+    }
+
     return {
         loadState,
         saveSessionProgress,
@@ -147,6 +162,8 @@ const IGRadarStorage = (function() {
         addToHistory,
         setRateLimitUntil,
         clearRateLimit,
-        saveLicenseState
+        saveLicenseState,
+        getWatchList,
+        saveWatchList
     };
 })();

@@ -896,3 +896,141 @@ h2, h3, h4, h5, h6 { color: var(--text-primary); }
     font-weight: 500;
     margin-top: 4px;
 }
+
+/* ── Watch list tab ─────────────────────────────────────────────────────── */
+.watch-section h3 {
+    margin-bottom: 8px;
+    font-size: 15px;
+}
+
+.watch-disclaimer,
+.watch-partial-note {
+    margin-bottom: 8px;
+}
+
+.watch-toolbar {
+    margin: 10px 0;
+}
+
+.watch-message {
+    font-size: 12px;
+    margin: 8px 0;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: var(--surface-bg);
+    color: var(--text-primary);
+}
+
+.watch-message--error {
+    background: rgba(229, 57, 53, 0.1);
+    color: var(--danger-color);
+}
+
+.watch-empty {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin: 8px 0;
+}
+
+.watch-list {
+    list-style: none;
+    margin-top: 10px;
+    max-height: 280px;
+    overflow-y: auto;
+}
+
+.watch-list__item {
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    padding: 8px 10px;
+    background: var(--surface-bg);
+}
+
+.watch-list__header {
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 0;
+    color: inherit;
+    font: inherit;
+}
+
+.watch-list__header:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+.watch-list__title-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 10px;
+    font-weight: 600;
+}
+
+.watch-list__username {
+    color: var(--text-primary);
+}
+
+.watch-list__meta {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.watch-list__partial {
+    color: var(--warning-color);
+    font-weight: 600;
+}
+
+.watch-list__sub {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+.watch-list__detail {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color);
+}
+
+.watch-list__detail[hidden] {
+    display: none !important;
+}
+
+.watch-list__new-list {
+    list-style: disc;
+    padding-left: 18px;
+    font-size: 12px;
+    margin: 0;
+}
+
+.watch-list__new-list li {
+    margin: 2px 0;
+}
+
+.watch-list__no-new {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.watch-list__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.watch-list__actions .btn-danger {
+    flex: 0 0 auto;
+}
+
+.watch-list__actions .btn-secondary {
+    flex: 0 0 auto;
+}

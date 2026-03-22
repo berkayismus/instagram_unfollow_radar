@@ -73,6 +73,12 @@ const IGRadarUI = (function() {
         el.buyOnGumroadBtn      = document.getElementById('buyOnGumroadBtn');
         el.manageSubscriptionLink = document.getElementById('manageSubscriptionLink');
         el.exportCsvLock        = document.getElementById('exportCsvLock');
+        el.watchUsernameInput   = document.getElementById('watchUsernameInput');
+        el.watchAddBtn          = document.getElementById('watchAddBtn');
+        el.watchRefreshAllBtn   = document.getElementById('watchRefreshAllBtn');
+        el.watchList            = document.getElementById('watchList');
+        el.watchMessage         = document.getElementById('watchMessage');
+        el.watchListEmpty       = document.getElementById('watchListEmpty');
     }
 
     // ─── DOM HELPERS ──────────────────────────────────────────────────────────
@@ -122,6 +128,7 @@ const IGRadarUI = (function() {
             else content.setAttribute('hidden', '');
         });
         if (tabName === 'stats') renderChart();
+        if (tabName === 'watch') loadWatchList();
     }
 
     /**
@@ -600,6 +607,168 @@ const IGRadarUI = (function() {
         el.licenseStatus.style.display = 'block';
     }
 
+    // ─── WATCH LIST ───────────────────────────────────────────────────────────
+
+    /**
+     * Keeps new-follow events inside [watchStartedAt, watchStartedAt+24h] or rolling 24h (legacy).
+     * @param {Array<Object>} list
+     * @returns {Array<Object>}
+     */
+    function pruneWatchListEntries(list) {
+        const WL = Constants.WATCH_LIST;
+        return list.map(entry => ({
+            ...entry,
+            recentNewFollows: (entry.recentNewFollows || []).filter(x => {
+                if (entry.watchStartedAt != null) {
+                    const end = entry.watchStartedAt + WL.NEW_FOLLOW_RETENTION_MS;
+                    return x.detectedAt >= entry.watchStartedAt && x.detectedAt <= end;
+                }
+                return x.detectedAt > Date.now() - WL.NEW_FOLLOW_RETENTION_MS;
+            })
+        }));
+    }
+
+    /**
+     * Reads watch list from storage, prunes stale events, persists, and renders.
+     */
+    async function loadWatchList() {
+        if (!el.watchList) return;
+        const data = await chrome.storage.local.get([Constants.STORAGE_KEYS.WATCH_LIST]);
+        let list   = data[Constants.STORAGE_KEYS.WATCH_LIST] || [];
+        list       = pruneWatchListEntries(list);
+        await chrome.storage.local.set({ [Constants.STORAGE_KEYS.WATCH_LIST]: list });
+        renderWatchList(list);
+    }
+
+    /**
+     * @param {Array<Object>} list
+     */
+    function renderWatchList(list) {
+        if (!el.watchList || !el.watchListEmpty) return;
+        el.watchList.innerHTML = '';
+        if (!list.length) {
+            el.watchListEmpty.style.display = 'block';
+            return;
+        }
+        el.watchListEmpty.style.display = 'none';
+
+        for (const entry of list) {
+            const newCount = (entry.recentNewFollows || []).length;
+            const following  = entry.followingCount != null
+                ? entry.followingCount
+                : (entry.lastFollowingIds || []).length;
+            const lastCheck  = entry.lastCheckedAt
+                ? new Date(entry.lastCheckedAt).toLocaleString()
+                : '—';
+
+            const li = createElement('li', {
+                className: 'watch-list__item',
+                dataset:   { username: entry.username }
+            });
+
+            const header = createElement('div', {
+                className:   'watch-list__header',
+                role:        'button',
+                tabIndex:    '0',
+                'aria-expanded': 'false'
+            });
+            const titleRow = createElement('div', { className: 'watch-list__title-row' });
+            titleRow.appendChild(createElement('span', {
+                className: 'watch-list__username'
+            }, `@${entry.username}`));
+            const meta = createElement('span', { className: 'watch-list__meta' });
+            meta.appendChild(document.createTextNode(
+                I18n.t('watch.followingCount', { count: following })
+            ));
+            meta.appendChild(document.createTextNode(' · '));
+            meta.appendChild(document.createTextNode(
+                I18n.t('watch.newLast24', { count: newCount })
+            ));
+            if (entry.partialSnapshot) {
+                meta.appendChild(document.createTextNode(' · '));
+                const partial = createElement('span', { className: 'watch-list__partial' });
+                partial.textContent = I18n.t('watch.partialBadge');
+                meta.appendChild(partial);
+            }
+            titleRow.appendChild(meta);
+            header.appendChild(titleRow);
+            const sub = createElement('div', { className: 'watch-list__sub' },
+                `${I18n.t('watch.lastCheck')}: ${lastCheck}`);
+            header.appendChild(sub);
+
+            const detail = createElement('div', {
+                className: 'watch-list__detail',
+                hidden:    ''
+            });
+            const uniq = [];
+            const seen = new Set();
+            for (const ev of entry.recentNewFollows || []) {
+                if (seen.has(ev.username)) continue;
+                seen.add(ev.username);
+                uniq.push(ev.username);
+            }
+            if (uniq.length) {
+                const ul = createElement('ul', { className: 'watch-list__new-list' });
+                for (const u of uniq) {
+                    ul.appendChild(createElement('li', {}, `@${u}`));
+                }
+                detail.appendChild(ul);
+            } else {
+                detail.appendChild(createElement('p', {
+                    className: 'watch-list__no-new'
+                }, I18n.t('watch.noNewFollows')));
+            }
+
+            const actions = createElement('div', { className: 'watch-list__actions' });
+            actions.appendChild(createElement('button', {
+                type:            'button',
+                className:       'btn btn-secondary btn--small',
+                dataset:         { watchRefresh: entry.username },
+                'aria-label':    I18n.t('watch.refreshOneAria', { username: entry.username })
+            }, I18n.t('watch.refreshOne')));
+            actions.appendChild(createElement('button', {
+                type:            'button',
+                className:       'btn btn-danger btn--small',
+                dataset:         { watchRemove: entry.username },
+                'aria-label':    I18n.t('watch.removeAria', { username: entry.username })
+            }, I18n.t('watch.remove')));
+
+            li.appendChild(header);
+            li.appendChild(detail);
+            li.appendChild(actions);
+            el.watchList.appendChild(li);
+        }
+    }
+
+    /**
+     * @param {string} messageKey - i18n key or literal fallback
+     * @param {boolean} isError
+     */
+    function showWatchMessage(messageKey, isError) {
+        if (!el.watchMessage) return;
+        const text = messageKey.includes('.') ? I18n.t(messageKey) : messageKey;
+        el.watchMessage.textContent       = text;
+        el.watchMessage.className         = `watch-message${isError ? ' watch-message--error' : ''}`;
+        el.watchMessage.style.display     = 'block';
+    }
+
+    function hideWatchMessage() {
+        if (el.watchMessage) el.watchMessage.style.display = 'none';
+    }
+
+    /**
+     * @param {boolean} loading
+     */
+    function setWatchListLoading(loading) {
+        if (el.watchAddBtn) el.watchAddBtn.disabled = loading;
+        if (el.watchRefreshAllBtn) el.watchRefreshAllBtn.disabled = loading;
+        if (el.watchList) {
+            el.watchList.querySelectorAll('[data-watch-refresh]').forEach(btn => {
+                btn.disabled = loading;
+            });
+        }
+    }
+
     return {
         cacheElements,
         el,
@@ -627,6 +796,12 @@ const IGRadarUI = (function() {
         handleRateLimitMessage,
         renderPremiumStatus,
         setLicenseLoading,
-        showLicenseResult
+        showLicenseResult,
+        loadWatchList,
+        renderWatchList,
+        pruneWatchListEntries,
+        showWatchMessage,
+        hideWatchMessage,
+        setWatchListLoading
     };
 })();

@@ -15,6 +15,38 @@ const IGRadarEvents = (function() {
     function setCurrentTab(tab) { _currentTab = tab; }
 
     /**
+     * Tab ID for instagram.com (active window first, else any matching tab).
+     * @returns {Promise<number|null>}
+     */
+    async function getInstagramTabId() {
+        const [active] = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (active && active.url && active.url.includes('instagram.com')) return active.id;
+        const tabs = await chrome.tabs.query({ url: ['https://www.instagram.com/*'] });
+        return tabs[0] ? tabs[0].id : null;
+    }
+
+    function normalizeWatchUsername(u) {
+        return String(u || '').trim().replace(/^@/, '').toLowerCase();
+    }
+
+    /** @param {string} code */
+    function watchErrorKey(code) {
+        const map = {
+            empty:           'watch.error.empty',
+            max_entries:     'watch.error.max_entries',
+            duplicate:       'watch.error.duplicate',
+            not_found:       'watch.error.not_found',
+            profile_failed:  'watch.error.profile_failed',
+            not_in_list:     'watch.error.not_in_list',
+            rate_limit:      'watch.error.rate_limit',
+            unknown:         'watch.error.unknown',
+            unknown_action:  'watch.error.unknownAction',
+            network:         'watch.error.network'
+        };
+        return map[code] || 'watch.error.unknown';
+    }
+
+    /**
      * Safely sends a message to the Instagram content script on the active tab.
      * @param {Object} message
      * @returns {Promise<Object>}
@@ -253,6 +285,155 @@ const IGRadarEvents = (function() {
     async function handleLanguageChange(e) {
         const locale = e.target.value;
         await I18n.setLocale(locale);
+        const watchTab = document.getElementById('watch-tab');
+        if (watchTab && watchTab.classList.contains('active')) await IGRadarUI.loadWatchList();
+    }
+
+    // ─── WATCH LIST ───────────────────────────────────────────────────────────
+
+    async function handleWatchAdd() {
+        const user = normalizeWatchUsername(IGRadarUI.el.watchUsernameInput.value);
+        if (!user) {
+            IGRadarUI.showWatchMessage('watch.error.empty', true);
+            return;
+        }
+        IGRadarUI.setWatchListLoading(true);
+        IGRadarUI.hideWatchMessage();
+        try {
+            const tabId = await getInstagramTabId();
+            if (tabId == null) {
+                IGRadarUI.showWatchMessage('watch.errorNoInstagramTab', true);
+                return;
+            }
+            const res = await chrome.tabs.sendMessage(tabId, {
+                action:   Constants.ACTIONS.WATCH_LIST_ADD,
+                username: user
+            });
+            if (res && res.success && res.list) {
+                IGRadarUI.el.watchUsernameInput.value = '';
+                IGRadarUI.renderWatchList(res.list);
+                IGRadarUI.showWatchMessage('watch.addedOk', false);
+            } else if (res && res.error) {
+                IGRadarUI.showWatchMessage(watchErrorKey(res.error), true);
+            } else if (res && res.message === 'Unknown action') {
+                IGRadarUI.showWatchMessage('watch.error.unknownAction', true);
+            } else {
+                IGRadarUI.showWatchMessage('watch.error.unknown', true);
+            }
+        } catch (err) {
+            console.error('[IGRadar] watch add:', err);
+            IGRadarUI.showWatchMessage('watch.errorContentScript', true);
+        } finally {
+            IGRadarUI.setWatchListLoading(false);
+        }
+    }
+
+    async function handleWatchRemove(username) {
+        const data = await chrome.storage.local.get([Constants.STORAGE_KEYS.WATCH_LIST]);
+        const list = (data[Constants.STORAGE_KEYS.WATCH_LIST] || []).filter(
+            x => x.username !== username
+        );
+        const pruned = IGRadarUI.pruneWatchListEntries(list);
+        await chrome.storage.local.set({ [Constants.STORAGE_KEYS.WATCH_LIST]: pruned });
+        IGRadarUI.renderWatchList(pruned);
+        IGRadarUI.hideWatchMessage();
+    }
+
+    async function handleWatchRefreshOne(username) {
+        IGRadarUI.setWatchListLoading(true);
+        IGRadarUI.hideWatchMessage();
+        try {
+            const tabId = await getInstagramTabId();
+            if (tabId == null) {
+                IGRadarUI.showWatchMessage('watch.errorNoInstagramTab', true);
+                return;
+            }
+            const res = await chrome.tabs.sendMessage(tabId, {
+                action:   Constants.ACTIONS.WATCH_LIST_REFRESH,
+                username
+            });
+            if (res && res.success && res.list) {
+                IGRadarUI.renderWatchList(res.list);
+                IGRadarUI.showWatchMessage('watch.refreshedOk', false);
+            } else if (res && res.error) {
+                IGRadarUI.showWatchMessage(watchErrorKey(res.error), true);
+            } else if (res && res.message === 'Unknown action') {
+                IGRadarUI.showWatchMessage('watch.error.unknownAction', true);
+            } else {
+                IGRadarUI.showWatchMessage('watch.error.unknown', true);
+            }
+        } catch (err) {
+            console.error('[IGRadar] watch refresh one:', err);
+            IGRadarUI.showWatchMessage('watch.errorContentScript', true);
+        } finally {
+            IGRadarUI.setWatchListLoading(false);
+        }
+    }
+
+    async function handleWatchRefreshAll() {
+        IGRadarUI.setWatchListLoading(true);
+        IGRadarUI.hideWatchMessage();
+        try {
+            const tabId = await getInstagramTabId();
+            if (tabId == null) {
+                IGRadarUI.showWatchMessage('watch.errorNoInstagramTab', true);
+                return;
+            }
+            const res = await chrome.tabs.sendMessage(tabId, {
+                action: Constants.ACTIONS.WATCH_LIST_REFRESH
+            });
+            if (res && res.success && res.list) {
+                IGRadarUI.renderWatchList(res.list);
+                IGRadarUI.showWatchMessage('watch.refreshedAllOk', false);
+            } else if (res && res.error) {
+                IGRadarUI.showWatchMessage(watchErrorKey(res.error), true);
+            } else if (res && res.message === 'Unknown action') {
+                IGRadarUI.showWatchMessage('watch.error.unknownAction', true);
+            } else {
+                IGRadarUI.showWatchMessage('watch.error.unknown', true);
+            }
+        } catch (err) {
+            console.error('[IGRadar] watch refresh all:', err);
+            IGRadarUI.showWatchMessage('watch.errorContentScript', true);
+        } finally {
+            IGRadarUI.setWatchListLoading(false);
+        }
+    }
+
+    /**
+     * @param {MouseEvent} e
+     */
+    function handleWatchListClick(e) {
+        const refreshBtn = e.target.closest('[data-watch-refresh]');
+        if (refreshBtn) {
+            handleWatchRefreshOne(refreshBtn.getAttribute('data-watch-refresh'));
+            return;
+        }
+        const removeBtn = e.target.closest('[data-watch-remove]');
+        if (removeBtn) {
+            handleWatchRemove(removeBtn.getAttribute('data-watch-remove'));
+            return;
+        }
+        const header = e.target.closest('.watch-list__header');
+        if (header && !e.target.closest('.watch-list__actions')) {
+            const item   = header.closest('.watch-list__item');
+            const detail = item && item.querySelector('.watch-list__detail');
+            if (!detail) return;
+            const expanded = header.getAttribute('aria-expanded') === 'true';
+            header.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+            detail.hidden = expanded;
+        }
+    }
+
+    /**
+     * @param {KeyboardEvent} e
+     */
+    function handleWatchListKeydown(e) {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        const header = e.target.closest('.watch-list__header');
+        if (!header) return;
+        e.preventDefault();
+        header.click();
     }
 
     // ─── PER-USER LIST ACTIONS ────────────────────────────────────────────────
@@ -338,6 +519,22 @@ const IGRadarEvents = (function() {
 
         if (IGRadarUI.el.exportCsvLock) {
             IGRadarUI.el.exportCsvLock.addEventListener('click', () => IGRadarUI.switchTab('premium'));
+        }
+
+        if (IGRadarUI.el.watchAddBtn) {
+            IGRadarUI.el.watchAddBtn.addEventListener('click', handleWatchAdd);
+        }
+        if (IGRadarUI.el.watchUsernameInput) {
+            IGRadarUI.el.watchUsernameInput.addEventListener('keypress', e => {
+                if (e.key === 'Enter') handleWatchAdd();
+            });
+        }
+        if (IGRadarUI.el.watchRefreshAllBtn) {
+            IGRadarUI.el.watchRefreshAllBtn.addEventListener('click', handleWatchRefreshAll);
+        }
+        if (IGRadarUI.el.watchList) {
+            IGRadarUI.el.watchList.addEventListener('click', handleWatchListClick);
+            IGRadarUI.el.watchList.addEventListener('keydown', handleWatchListKeydown);
         }
     }
 
