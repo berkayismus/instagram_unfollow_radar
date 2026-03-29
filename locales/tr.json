@@ -127,16 +127,20 @@
         "pageReloaded": "Sayfa yenilendi - Tekrar deneyin",
         "startFailed": "Başlatılamadı - Sayfayı yenileyin"
     },
+    "auth": {
+        "signIn": "Google ile Giriş Yap",
+        "signOut": "Çıkış",
+        "signingIn": "Giriş yapılıyor...",
+        "signedInAs": "Giriş yapıldı:",
+        "confirmSignOut": "Çıkış yapmak istediğinizden emin misiniz? Premium erişiminiz duracak.",
+        "premiumBadge": "⭐ Premium",
+        "error": "Google ile giriş başarısız oldu. Lütfen tekrar deneyin."
+    },
     "premium": {
         "activeBadge": "⭐ Premium Aktif",
         "freeBadge": "Ücretsiz Plan",
         "colFree": "Ücretsiz",
         "colPremium": "Premium",
-        "licenseLabel": "Lisans Anahtarı",
-        "licensePlaceholder": "Gumroad lisans anahtarınızı girin",
-        "activateBtn": "Etkinleştir",
-        "deactivateBtn": "Lisansı Kaldır",
-        "confirmDeactivate": "Premium lisansınızı kaldırmak istiyor musunuz? Ücretsiz plana (10/gün) geçeceksiniz.",
         "featureDailyLimit": "Günlük Limit",
         "featureUndo": "Geri Alma (Undo)",
         "featureFilters": "Filtreler & Whitelist",
@@ -145,13 +149,11 @@
         "featureExportCsv": "CSV Dışa Aktarma",
         "featureSupport": "Öncelikli Destek",
         "exportLockHint": "🔒 CSV indirme Premium özelliğidir — Premium'a geç",
-        "buyBtn": "Gumroad'dan Satın Al — $1/ay",
-        "buyHint": "Satın aldıktan sonra e-posta ile gelen lisans anahtarını aşağıya girin",
-        "manageSubscriptionLink": "Aboneliği Yönet",
-        "manageSubscriptionHint": " linkiyle Gumroad aboneliğini iptal edebilirsiniz.",
-        "successMessage": "Premium aktif! Artık günlük 500 takipten çıkarabilirsiniz.",
-        "errorInvalid": "Geçersiz lisans anahtarı. Lütfen kontrol edip tekrar deneyin.",
-        "errorNetwork": "Doğrulama başarısız — internet bağlantınızı kontrol edin."
+        "notSignedIn": "Premium özelliklerini kullanmak için Google hesabınızla giriş yapın.",
+        "upgradeBtn": "Premium'a Geç — $4.99/ay",
+        "upgradeHint": "Paddle güvenli ödeme ile — anında aktif",
+        "managePlan": "Aboneliği Yönet",
+        "renewsAt": "Yenileme tarihi:"
     },
     "theme": {
         "toggle": "Tema Değiştir"

@@ -30,6 +30,26 @@
                 </div>
             </div>
             <p class="subtitle" data-i18n="app.subtitle">Seni takip etmeyenleri otomatik bul ve takipten çık</p>
+
+            <!-- Auth bar -->
+            <div class="auth-bar" id="authBar">
+                <!-- Signed-out state -->
+                <div id="authSignedOut" class="auth-signed-out" style="display: none;">
+                    <button id="signInBtn" class="btn btn-google" type="button">
+                        <span class="google-icon" aria-hidden="true">G</span>
+                        <span data-i18n="auth.signIn">Google ile Giriş Yap</span>
+                    </button>
+                </div>
+                <!-- Signed-in state -->
+                <div id="authSignedIn" class="auth-signed-in" style="display: none;">
+                    <img id="userAvatar" class="user-avatar" src="" alt="" width="24" height="24">
+                    <span id="userName" class="user-name-label"></span>
+                    <span id="userPremiumBadge" class="auth-premium-badge" style="display: none;"
+                        data-i18n="auth.premiumBadge">⭐ Premium</span>
+                    <button id="signOutBtn" class="btn-link auth-signout" type="button"
+                        data-i18n="auth.signOut">Çıkış</button>
+                </div>
+            </div>
         </header>
 
         <!-- Tabs -->
@@ -219,6 +239,16 @@
                     <span class="premium-badge premium-badge--free" id="premiumBadge"
                         data-i18n="premium.freeBadge">Ücretsiz</span>
                     <p class="premium-email" id="premiumEmail" style="display: none;"></p>
+                    <p class="premium-renews" id="premiumRenews" style="display: none;"></p>
+                </div>
+
+                <!-- Sign-in required notice (shown when not signed in) -->
+                <div id="premiumSignInRequired" class="premium-signin-notice" style="display: none;">
+                    <p data-i18n="premium.notSignedIn">Premium özelliklerini kullanmak için Google hesabınızla giriş yapın.</p>
+                    <button id="premiumSignInBtn" class="btn btn-google" type="button">
+                        <span class="google-icon" aria-hidden="true">G</span>
+                        <span data-i18n="auth.signIn">Google ile Giriş Yap</span>
+                    </button>
                 </div>
 
                 <!-- Feature comparison table (free vs premium) -->
@@ -265,37 +295,18 @@
                     </div>
                 </div>
 
-                <!-- Buy on Gumroad CTA (shown when free) -->
-                <div id="buyWrapper">
-                    <a id="buyOnGumroadBtn" class="btn btn-primary btn-gumroad" href="#" target="_blank"
-                        rel="noopener noreferrer">
-                        ⭐ <span data-i18n="premium.buyBtn">Gumroad'dan Satın Al — $1/ay</span>
-                    </a>
-                    <p class="buy-hint" data-i18n="premium.buyHint">Satın aldıktan sonra e-posta ile gelen lisans anahtarını aşağıya girin</p>
+                <!-- Upgrade CTA (shown when signed in but not premium) -->
+                <div id="upgradeWrapper" style="display: none;">
+                    <button id="upgradeBtn" class="btn btn-primary btn-upgrade" type="button">
+                        ⭐ <span data-i18n="premium.upgradeBtn">Premium'a Geç — $4.99/ay</span>
+                    </button>
+                    <p class="buy-hint" data-i18n="premium.upgradeHint">Paddle güvenli ödeme ile — anında aktif</p>
                 </div>
 
-                <!-- License activation form -->
-                <div class="license-form" id="licenseForm">
-                    <label class="license-label" for="licenseInput" data-i18n="premium.licenseLabel">Lisans Anahtarı</label>
-                    <div class="input-group" role="group">
-                        <input type="text" id="licenseInput" autocomplete="off" spellcheck="false"
-                            data-i18n-placeholder="premium.licensePlaceholder"
-                            placeholder="XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX">
-                        <button id="activateLicenseBtn" class="btn btn-primary" type="button"
-                            data-i18n="premium.activateBtn">Etkinleştir</button>
-                    </div>
-                    <p class="license-status" id="licenseStatus" aria-live="polite" style="display: none;"></p>
-                </div>
-
-                <!-- Deactivate (shown when premium is active) -->
-                <div id="deactivateWrapper" style="display: none;">
-                    <button id="deactivateLicenseBtn" class="btn btn-secondary btn--small" type="button"
-                        data-i18n="premium.deactivateBtn">Lisansı Kaldır</button>
-                    <p class="subscription-manage-note">
-                        <a id="manageSubscriptionLink" href="#" target="_blank" rel="noopener noreferrer"
-                            data-i18n="premium.manageSubscriptionLink">Aboneliği Yönet</a>
-                        <span data-i18n="premium.manageSubscriptionHint"> linkiyle Gumroad aboneliğini iptal edebilirsiniz.</span>
-                    </p>
+                <!-- Active subscription management (shown when premium) -->
+                <div id="manageWrapper" style="display: none;">
+                    <button id="managePlanBtn" class="btn btn-secondary btn--small" type="button"
+                        data-i18n="premium.managePlan">Aboneliği Yönet</button>
                 </div>
 
             </section>
@@ -319,6 +330,7 @@
     <script src="../shared/constants.js"></script>
     <script src="../shared/watchlistLimits.js"></script>
     <script src="../shared/i18n.js"></script>
+    <script src="auth.js"></script>
     <script src="ui.js"></script>
     <script src="events.js"></script>
     <script src="popup.js"></script>

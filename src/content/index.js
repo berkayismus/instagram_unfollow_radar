@@ -28,8 +28,6 @@ const IGUnfollowRadarContent = (function() {
         rateLimitUntil:  null,
         abortController: null,
         isPremium:       false,
-        licenseKey:      null,
-        licenseEmail:    null,
         dailyLimit:      Constants.LIMITS.FREE_DAILY_LIMIT
     };
 
@@ -125,10 +123,8 @@ const IGUnfollowRadarContent = (function() {
                     break;
 
                 case Constants.ACTIONS.UPDATE_LICENSE: {
-                    state.isPremium    = message.isPremium;
-                    state.licenseKey   = message.licenseKey   || null;
-                    state.licenseEmail = message.licenseEmail || null;
-                    state.dailyLimit   = state.isPremium
+                    state.isPremium  = message.isPremium;
+                    state.dailyLimit = state.isPremium
                         ? Constants.LIMITS.PREMIUM_DAILY_LIMIT
                         : Constants.LIMITS.FREE_DAILY_LIMIT;
                     IGRadarWatchlistLimits.enforceStorageLimit()

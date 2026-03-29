@@ -728,7 +728,8 @@ h2, h3, h4, h5, h6 { color: var(--text-primary); }
     box-shadow: 0 2px 8px rgba(193,53,132,.35);
 }
 
-.premium-email {
+.premium-email,
+.premium-renews {
     font-size: 11px;
     color: var(--text-secondary);
     word-break: break-all;
@@ -786,23 +787,67 @@ h2, h3, h4, h5, h6 { color: var(--text-primary); }
     text-align: center;
 }
 
-.btn-gumroad {
+.btn-google {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    color: #3c4043;
+    border: 1px solid #dadce0;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,.12);
+}
+
+.btn-google:hover {
+    background: #f8f8f8;
+    box-shadow: 0 2px 8px rgba(0,0,0,.18);
+}
+
+.btn-google:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.google-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4285F4 25%, #EA4335 25% 50%, #FBBC05 50% 75%, #34A853 75%);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.btn-upgrade {
     display: block;
     width: 100%;
     text-align: center;
-    text-decoration: none;
     padding: 12px;
     border-radius: 8px;
     font-size: 14px;
     font-weight: 700;
     margin-bottom: 8px;
     transition: all 0.3s ease;
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+    color: #fff;
+    border: none;
+    cursor: pointer;
 }
 
-.btn-gumroad:hover {
-    filter: brightness(1.1);
+.btn-upgrade:hover {
+    filter: brightness(1.08);
     transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(193,53,132,.45);
+    box-shadow: 0 4px 16px rgba(245,158,11,.4);
 }
 
 .buy-hint {
@@ -831,56 +876,85 @@ h2, h3, h4, h5, h6 { color: var(--text-primary); }
 
 .feature-locked { color: var(--text-secondary); }
 
-.license-form { margin-bottom: 12px; }
+/* ─── Auth bar ─────────────────────────────────────────────────────────── */
 
-.license-label {
-    display: block;
-    font-size: 12px;
-    color: var(--text-secondary);
-    margin-bottom: 6px;
-    font-weight: 500;
-}
-
-.license-status {
-    font-size: 12px;
+.auth-bar {
     margin-top: 8px;
-    padding: 6px 10px;
-    border-radius: 6px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color);
 }
 
-.license-status--success {
-    background: rgba(76,175,80,.12);
-    color: var(--success-color);
-    border-left: 3px solid var(--success-color);
+.auth-signed-out,
+.auth-signed-in {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.license-status--error {
-    background: rgba(229,57,53,.10);
-    color: var(--danger-color);
-    border-left: 3px solid var(--danger-color);
+.user-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
 }
 
-#deactivateWrapper {
-    text-align: center;
-    margin-top: 8px;
-}
-
-.subscription-manage-note {
-    margin-top: 10px;
-    font-size: 11px;
-    color: var(--text-secondary);
-    line-height: 1.4;
-}
-
-.subscription-manage-note a {
-    color: var(--primary-color);
+.user-name-label {
+    font-size: 12px;
     font-weight: 600;
+    color: var(--text-color);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.auth-premium-badge {
+    font-size: 11px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+    color: #fff;
+    border-radius: 10px;
+    padding: 2px 8px;
+    flex-shrink: 0;
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--text-secondary);
     text-decoration: underline;
     text-underline-offset: 2px;
+    flex-shrink: 0;
 }
 
-.subscription-manage-note a:hover {
-    filter: brightness(0.9);
+.btn-link:hover { color: var(--primary-color); }
+
+/* ─── Premium sign-in prompt ────────────────────────────────────────────── */
+
+.premium-signin-notice {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+.premium-signin-notice p {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+/* ─── Manage wrapper ────────────────────────────────────────────────────── */
+
+#manageWrapper {
+    text-align: center;
+    margin-top: 8px;
 }
 
 .btn--small {

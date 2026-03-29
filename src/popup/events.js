@@ -196,90 +196,80 @@ const IGRadarEvents = (function() {
         IGRadarUI.renderWhitelistList(whitelist);
     }
 
-    // ─── LICENSE / PREMIUM ────────────────────────────────────────────────────
+    // ─── AUTH / PREMIUM ───────────────────────────────────────────────────────
 
     /**
-     * Validates the entered license key against the Gumroad API.
-     * On success, persists premium status and notifies the content script.
+     * Shared helper called after a sign-in attempt to refresh UI.
+     * @param {Object|null} user
      */
-    async function handleLicenseActivate() {
-        const key = IGRadarUI.el.licenseInput.value.trim();
-        if (!key) return;
+    async function _applyAuthState(user) {
+        const premium = await IGRadarAuth.refreshPremium();
+        IGRadarUI.renderAuthState(user, premium.isPremium);
+        const email = user ? user.email : null;
+        IGRadarUI.renderPremiumStatus(premium.isPremium, email, premium, !!user);
+        await IGRadarUI.loadStats();
 
-        IGRadarUI.setLicenseLoading(true);
-        IGRadarUI.el.licenseStatus.style.display = 'none';
-
-        try {
-            const body = new URLSearchParams({
-                product_permalink:      Constants.GUMROAD.PRODUCT_PERMALINK,
-                license_key:            key,
-                increment_uses_count:   'false'
-            });
-            const response = await fetch(Constants.GUMROAD.VERIFY_URL, {
-                method:  'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body
-            });
-            const json = await response.json();
-
-            if (json.success === true) {
-                const email = json.purchase && json.purchase.email ? json.purchase.email : null;
-                await chrome.storage.local.set({
-                    [Constants.STORAGE_KEYS.IS_PREMIUM]:    true,
-                    [Constants.STORAGE_KEYS.LICENSE_KEY]:   key,
-                    [Constants.STORAGE_KEYS.LICENSE_EMAIL]: email
+        if (premium.isPremium) {
+            try {
+                await sendToContent({
+                    action:    Constants.ACTIONS.UPDATE_LICENSE,
+                    isPremium: true
                 });
-                try {
-                    await sendToContent({
-                        action:       Constants.ACTIONS.UPDATE_LICENSE,
-                        isPremium:    true,
-                        licenseKey:   key,
-                        licenseEmail: email
-                    });
-                } catch (_) {}
-                IGRadarUI.renderPremiumStatus(true, email);
-                IGRadarUI.showLicenseResult(true, 'premium.successMessage');
-                await IGRadarUI.loadStats();
-            } else {
-                IGRadarUI.showLicenseResult(false, 'premium.errorInvalid');
-            }
-        } catch (err) {
-            console.error('[IGRadar] License verification failed:', err);
-            IGRadarUI.showLicenseResult(false, 'premium.errorNetwork');
-        } finally {
-            IGRadarUI.setLicenseLoading(false);
+            } catch (_) {}
         }
     }
 
     /**
-     * Removes the stored license and reverts the user to free tier.
+     * Initiates Google Sign-In via IGRadarAuth and refreshes the UI.
      */
-    async function handleDeactivateLicense() {
-        if (!confirm(I18n.t('premium.confirmDeactivate'))) return;
-        await chrome.storage.local.set({
-            [Constants.STORAGE_KEYS.IS_PREMIUM]:    false,
-            [Constants.STORAGE_KEYS.LICENSE_KEY]:   null,
-            [Constants.STORAGE_KEYS.LICENSE_EMAIL]: null
-        });
+    async function handleSignIn() {
+        IGRadarUI.setSignInLoading(true);
+        try {
+            const result = await IGRadarAuth.signIn();
+            if (result.success) {
+                await _applyAuthState(result.user);
+            } else {
+                IGRadarUI.updateStatus('error', `❌ ${I18n.t('auth.error')}`);
+            }
+        } catch (err) {
+            console.error('[IGRadar] handleSignIn:', err);
+            IGRadarUI.updateStatus('error', `❌ ${I18n.t('auth.error')}`);
+        } finally {
+            IGRadarUI.setSignInLoading(false);
+        }
+    }
+
+    /**
+     * Signs the user out and resets auth + premium UI.
+     */
+    async function handleSignOut() {
+        if (!confirm(I18n.t('auth.confirmSignOut'))) return;
+        await IGRadarAuth.signOut();
+        IGRadarUI.renderAuthState(null, false);
+        IGRadarUI.renderPremiumStatus(false, null, null, false);
         try {
             await IGRadarWatchlistLimits.enforceStorageLimit();
         } catch (err) {
-            console.error('[IGRadar] enforceStorageLimit on deactivate', err);
+            console.error('[IGRadar] enforceStorageLimit on sign-out', err);
         }
         try {
-            await sendToContent({
-                action:    Constants.ACTIONS.UPDATE_LICENSE,
-                isPremium: false,
-                licenseKey:   null,
-                licenseEmail: null
-            });
+            await sendToContent({ action: Constants.ACTIONS.UPDATE_LICENSE, isPremium: false });
         } catch (_) {}
-        IGRadarUI.renderPremiumStatus(false, null);
         await IGRadarUI.loadStats();
         const watchTab = document.getElementById('watch-tab');
         if (watchTab && watchTab.classList.contains('active')) {
             await IGRadarUI.loadWatchList();
         }
+    }
+
+    /** Opens the Paddle checkout page for the signed-in user. */
+    async function handleUpgrade() {
+        await IGRadarAuth.openPaddleCheckout();
+    }
+
+    /** Opens the Paddle subscription management page. */
+    async function handleManagePlan() {
+        await IGRadarAuth.openPaddleManage();
     }
 
     // ─── THEME & LANGUAGE ─────────────────────────────────────────────────────
@@ -545,11 +535,21 @@ const IGRadarEvents = (function() {
         IGRadarUI.el.themeToggle.addEventListener('click',  handleThemeToggle);
         IGRadarUI.el.langSelect.addEventListener('change',  handleLanguageChange);
 
-        IGRadarUI.el.activateLicenseBtn.addEventListener('click', handleLicenseActivate);
-        IGRadarUI.el.licenseInput.addEventListener('keypress', e => {
-            if (e.key === 'Enter') handleLicenseActivate();
-        });
-        IGRadarUI.el.deactivateLicenseBtn.addEventListener('click', handleDeactivateLicense);
+        if (IGRadarUI.el.signInBtn) {
+            IGRadarUI.el.signInBtn.addEventListener('click', handleSignIn);
+        }
+        if (IGRadarUI.el.signOutBtn) {
+            IGRadarUI.el.signOutBtn.addEventListener('click', handleSignOut);
+        }
+        if (IGRadarUI.el.premiumSignInBtn) {
+            IGRadarUI.el.premiumSignInBtn.addEventListener('click', handleSignIn);
+        }
+        if (IGRadarUI.el.upgradeBtn) {
+            IGRadarUI.el.upgradeBtn.addEventListener('click', handleUpgrade);
+        }
+        if (IGRadarUI.el.managePlanBtn) {
+            IGRadarUI.el.managePlanBtn.addEventListener('click', handleManagePlan);
+        }
 
         if (IGRadarUI.el.exportCsvLock) {
             IGRadarUI.el.exportCsvLock.addEventListener('click', () => IGRadarUI.switchTab('premium'));
@@ -578,6 +578,7 @@ const IGRadarEvents = (function() {
         handleRemoveWhitelist,
         handleUndoSingleUser,
         handleAddToWhitelistFromList,
+        handleSignIn,
         setup
     };
 })();
