@@ -70,7 +70,9 @@ const Constants = (function () {
 
         // ─── PADDLE ─────────────────────────────────────────────────────────────────────────
         PADDLE: {
-            CHECKOUT_URL: 'https://checkout.paddle.com/product/YOUR_PRODUCT_ID',
+            PRODUCT_ID:   'pro_01kmwapwvzehnx0b5jqarc77x9',
+            PRICE_ID:     'pri_01kmwasf435m5dek001xhc8jhr',
+            CHECKOUT_URL: 'https://checkout.paddle.com/product/pro_01kmwapwvzehnx0b5jqarc77x9',
             MANAGE_URL:   'https://vendors.paddle.com/subscriptions/customers/manage'
         },
 
