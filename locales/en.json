@@ -127,16 +127,20 @@
         "pageReloaded": "Page reloaded — try again",
         "startFailed": "Failed to start — reload the page"
     },
+    "auth": {
+        "signIn": "Sign in with Google",
+        "signOut": "Sign out",
+        "signingIn": "Signing in...",
+        "signedInAs": "Signed in as:",
+        "confirmSignOut": "Are you sure you want to sign out? Your Premium access will be paused.",
+        "premiumBadge": "⭐ Premium",
+        "error": "Google sign-in failed. Please try again."
+    },
     "premium": {
         "activeBadge": "⭐ Premium Active",
         "freeBadge": "Free Plan",
         "colFree": "Free",
         "colPremium": "Premium",
-        "licenseLabel": "License Key",
-        "licensePlaceholder": "Enter your Gumroad license key",
-        "activateBtn": "Activate",
-        "deactivateBtn": "Remove License",
-        "confirmDeactivate": "Remove your Premium license? You will revert to the free plan (10/day).",
         "featureDailyLimit": "Daily Limit",
         "featureUndo": "Undo Actions",
         "featureFilters": "Filters & Whitelist",
@@ -145,13 +149,11 @@
         "featureExportCsv": "CSV Export",
         "featureSupport": "Priority Support",
         "exportLockHint": "🔒 CSV export is a Premium feature — Upgrade to unlock",
-        "buyBtn": "Buy on Gumroad — $1/mo",
-        "buyHint": "After purchase, enter the license key from your confirmation email below",
-        "manageSubscriptionLink": "Manage Subscription",
-        "manageSubscriptionHint": " on Gumroad to cancel your monthly billing.",
-        "successMessage": "Premium activated! You can now unfollow up to 500 users per day.",
-        "errorInvalid": "Invalid license key. Please double-check and try again.",
-        "errorNetwork": "Verification failed — please check your internet connection."
+        "notSignedIn": "Sign in with Google to access Premium features.",
+        "upgradeBtn": "Upgrade to Premium — $4.99/mo",
+        "upgradeHint": "Secure payment via Paddle — active instantly",
+        "managePlan": "Manage Subscription",
+        "renewsAt": "Renews on:"
     },
     "theme": {
         "toggle": "Toggle Theme"
