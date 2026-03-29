@@ -59,25 +59,20 @@ const IGRadarUI = (function() {
         el.langSelect         = document.getElementById('langSelect');
         el.statusBar          = document.getElementById('statusBar');
         el.userListEmpty      = document.getElementById('userListEmpty');
-        el.sessionProgress        = document.getElementById('sessionProgress');
-        el.premiumBadge           = document.getElementById('premiumBadge');
-        el.premiumEmail           = document.getElementById('premiumEmail');
-        el.premiumRenews          = document.getElementById('premiumRenews');
-        el.premiumSignInRequired  = document.getElementById('premiumSignInRequired');
-        el.premiumSignInBtn       = document.getElementById('premiumSignInBtn');
-        el.upgradeWrapper         = document.getElementById('upgradeWrapper');
-        el.upgradeBtn             = document.getElementById('upgradeBtn');
-        el.manageWrapper          = document.getElementById('manageWrapper');
-        el.managePlanBtn          = document.getElementById('managePlanBtn');
-        el.limitUpgradeHint       = document.getElementById('limitUpgradeHint');
-        el.exportCsvLock          = document.getElementById('exportCsvLock');
-        el.authSignedOut          = document.getElementById('authSignedOut');
-        el.authSignedIn           = document.getElementById('authSignedIn');
-        el.signInBtn              = document.getElementById('signInBtn');
-        el.signOutBtn             = document.getElementById('signOutBtn');
-        el.userAvatar             = document.getElementById('userAvatar');
-        el.userName               = document.getElementById('userName');
-        el.userPremiumBadge       = document.getElementById('userPremiumBadge');
+        el.sessionProgress      = document.getElementById('sessionProgress');
+        el.premiumBadge         = document.getElementById('premiumBadge');
+        el.premiumEmail         = document.getElementById('premiumEmail');
+        el.licenseInput         = document.getElementById('licenseInput');
+        el.activateLicenseBtn   = document.getElementById('activateLicenseBtn');
+        el.licenseStatus        = document.getElementById('licenseStatus');
+        el.deactivateWrapper    = document.getElementById('deactivateWrapper');
+        el.deactivateLicenseBtn = document.getElementById('deactivateLicenseBtn');
+        el.licenseForm          = document.getElementById('licenseForm');
+        el.limitUpgradeHint     = document.getElementById('limitUpgradeHint');
+        el.buyWrapper           = document.getElementById('buyWrapper');
+        el.buyOnGumroadBtn      = document.getElementById('buyOnGumroadBtn');
+        el.manageSubscriptionLink = document.getElementById('manageSubscriptionLink');
+        el.exportCsvLock        = document.getElementById('exportCsvLock');
         el.watchUsernameInput   = document.getElementById('watchUsernameInput');
         el.watchAddBtn          = document.getElementById('watchAddBtn');
         el.watchRefreshAllBtn   = document.getElementById('watchRefreshAllBtn');
@@ -540,89 +535,81 @@ const IGRadarUI = (function() {
         }, 1000);
     }
 
-    // ─── AUTH UI ──────────────────────────────────────────────────────────────
-
-    /**
-     * Renders the auth bar in the header based on the current user state.
-     * @param {{ email: string, name: string, avatar: string }|null} user
-     * @param {boolean} isPremium
-     */
-    function renderAuthState(user, isPremium) {
-        if (!el.authSignedOut || !el.authSignedIn) return;
-
-        if (user) {
-            el.authSignedOut.style.display = 'none';
-            el.authSignedIn.style.display  = 'flex';
-            if (el.userAvatar) {
-                el.userAvatar.src = user.avatar || '';
-                el.userAvatar.style.display = user.avatar ? 'block' : 'none';
-            }
-            if (el.userName) el.userName.textContent = user.name || user.email || '';
-            if (el.userPremiumBadge) {
-                el.userPremiumBadge.style.display = isPremium ? 'inline-block' : 'none';
-            }
-        } else {
-            el.authSignedOut.style.display = 'flex';
-            el.authSignedIn.style.display  = 'none';
-        }
-    }
-
-    /**
-     * Sets the sign-in button to a loading/disabled state during the auth flow.
-     * @param {boolean} loading
-     */
-    function setSignInLoading(loading) {
-        if (el.signInBtn) el.signInBtn.disabled = loading;
-        if (el.premiumSignInBtn) el.premiumSignInBtn.disabled = loading;
-    }
-
     // ─── PREMIUM UI ───────────────────────────────────────────────────────────
 
     /**
-     * Updates the premium tab to reflect the current subscription status.
+     * Updates the premium tab to reflect the current license status.
      * @param {boolean} isPremium
-     * @param {string|null} email
-     * @param {{ planName?: string, renewsAt?: string }|null} [planInfo]
-     * @param {boolean} [isSignedIn]
+     * @param {string|null} email - email from Gumroad purchase
      */
-    function renderPremiumStatus(isPremium, email, planInfo, isSignedIn) {
+    function renderPremiumStatus(isPremium, email) {
         if (!el.premiumBadge) return;
+
+        // Always set the Gumroad buy link
+        if (el.buyOnGumroadBtn) {
+            el.buyOnGumroadBtn.href =
+                `https://cayliverse.gumroad.com/l/${Constants.GUMROAD.PRODUCT_PERMALINK}`;
+        }
+        if (el.manageSubscriptionLink) {
+            el.manageSubscriptionLink.href = Constants.GUMROAD.MANAGE_URL;
+        }
 
         if (isPremium) {
             el.premiumBadge.textContent = I18n.t('premium.activeBadge');
             el.premiumBadge.className   = 'premium-badge premium-badge--active';
             el.premiumBadge.setAttribute('data-i18n', 'premium.activeBadge');
-
             if (email) {
                 el.premiumEmail.textContent   = email;
                 el.premiumEmail.style.display = 'block';
             }
-            if (planInfo && planInfo.renewsAt && el.premiumRenews) {
-                el.premiumRenews.textContent   = `${I18n.t('premium.renewsAt')} ${new Date(planInfo.renewsAt).toLocaleDateString()}`;
-                el.premiumRenews.style.display = 'block';
+            el.licenseForm.style.display       = 'none';
+            el.deactivateWrapper.style.display = 'block';
+            if (el.buyWrapper) el.buyWrapper.style.display = 'none';
+            // Unlock CSV export
+            if (el.exportCsvBtn) {
+                el.exportCsvBtn.disabled = false;
+                el.exportCsvBtn.classList.remove('btn--locked');
             }
-
-            if (el.premiumSignInRequired) el.premiumSignInRequired.style.display = 'none';
-            if (el.upgradeWrapper)        el.upgradeWrapper.style.display        = 'none';
-            if (el.manageWrapper)         el.manageWrapper.style.display         = 'block';
-
-            if (el.exportCsvBtn) el.exportCsvBtn.classList.remove('btn--locked');
             if (el.exportCsvLock) el.exportCsvLock.style.display = 'none';
         } else {
             el.premiumBadge.textContent = I18n.t('premium.freeBadge');
             el.premiumBadge.className   = 'premium-badge premium-badge--free';
             el.premiumBadge.setAttribute('data-i18n', 'premium.freeBadge');
-            el.premiumEmail.style.display  = 'none';
-            if (el.premiumRenews) el.premiumRenews.style.display = 'none';
-            if (el.manageWrapper) el.manageWrapper.style.display = 'none';
-
-            const signedIn = isSignedIn === true;
-            if (el.premiumSignInRequired) el.premiumSignInRequired.style.display = signedIn ? 'none' : 'block';
-            if (el.upgradeWrapper)        el.upgradeWrapper.style.display        = signedIn ? 'block' : 'none';
-
-            if (el.exportCsvBtn) el.exportCsvBtn.classList.add('btn--locked');
+            el.premiumEmail.style.display      = 'none';
+            el.licenseForm.style.display       = 'block';
+            el.deactivateWrapper.style.display = 'none';
+            if (el.buyWrapper) el.buyWrapper.style.display = 'block';
+            // Lock CSV export
+            if (el.exportCsvBtn) {
+                el.exportCsvBtn.disabled = false; // clickable so we can redirect to Premium tab
+                el.exportCsvBtn.classList.add('btn--locked');
+            }
             if (el.exportCsvLock) el.exportCsvLock.style.display = 'block';
         }
+    }
+
+    /**
+     * Enables or disables the activate button and shows a loading state.
+     * @param {boolean} loading
+     */
+    function setLicenseLoading(loading) {
+        if (!el.activateLicenseBtn) return;
+        el.activateLicenseBtn.disabled = loading;
+        el.activateLicenseBtn.textContent = loading
+            ? '⏳'
+            : I18n.t('premium.activateBtn');
+    }
+
+    /**
+     * Shows a success or error message below the license input.
+     * @param {boolean} success
+     * @param {string} messageKey - i18n key for the message text
+     */
+    function showLicenseResult(success, messageKey) {
+        if (!el.licenseStatus) return;
+        el.licenseStatus.textContent = I18n.t(messageKey);
+        el.licenseStatus.className   = `license-status license-status--${success ? 'success' : 'error'}`;
+        el.licenseStatus.style.display = 'block';
     }
 
     // ─── WATCH LIST ───────────────────────────────────────────────────────────
@@ -825,9 +812,9 @@ const IGRadarUI = (function() {
         addUserToList,
         handleStatusUpdate,
         handleRateLimitMessage,
-        renderAuthState,
-        setSignInLoading,
         renderPremiumStatus,
+        setLicenseLoading,
+        showLicenseResult,
         loadWatchList,
         renderWatchList,
         pruneWatchListEntries,

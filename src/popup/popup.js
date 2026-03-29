@@ -3,7 +3,7 @@
  * @description Initialises the popup, wires modules together, and routes
  *   incoming background messages to the appropriate UI handlers.
  *   All DOM manipulation lives in ui.js; all event handlers live in events.js.
- * @version 3.0.0
+ * @version 2.0.0
  */
 
 (function() {
@@ -41,46 +41,19 @@
         }
     }
 
-    // ─── AUTH LOADER ──────────────────────────────────────────────────────────
+    // ─── PREMIUM LOADER ───────────────────────────────────────────────────────
 
     /**
-     * Reads the stored user and premium status, then renders both the header
-     * auth bar and the premium tab in one pass.
-     * Also silently refreshes premium status from the backend in the background.
+     * Reads premium status from storage and renders the premium tab badge.
      */
-    async function loadAuthState() {
-        const user      = await IGRadarAuth.getUser();
+    async function loadPremiumStatus() {
         const data      = await chrome.storage.local.get([
             Constants.STORAGE_KEYS.IS_PREMIUM,
-            Constants.STORAGE_KEYS.USER_EMAIL,
-            Constants.STORAGE_KEYS.USER_PLAN_NAME,
-            Constants.STORAGE_KEYS.USER_PLAN_RENEWS
+            Constants.STORAGE_KEYS.LICENSE_EMAIL
         ]);
-        const isPremium = data[Constants.STORAGE_KEYS.IS_PREMIUM]       || false;
-        const email     = data[Constants.STORAGE_KEYS.USER_EMAIL]        || null;
-        const planInfo  = {
-            planName:  data[Constants.STORAGE_KEYS.USER_PLAN_NAME]   || null,
-            renewsAt:  data[Constants.STORAGE_KEYS.USER_PLAN_RENEWS] || null
-        };
-
-        IGRadarUI.renderAuthState(user, isPremium);
-        IGRadarUI.renderPremiumStatus(isPremium, email, planInfo, !!user);
-
-        // Silently refresh in background so next popup open has fresh data.
-        if (user) {
-            IGRadarAuth.refreshPremium().then(premium => {
-                if (premium.isPremium !== isPremium) {
-                    IGRadarUI.renderAuthState(user, premium.isPremium);
-                    IGRadarUI.renderPremiumStatus(
-                        premium.isPremium,
-                        email,
-                        premium,
-                        true
-                    );
-                    IGRadarUI.loadStats();
-                }
-            }).catch(() => {});
-        }
+        const isPremium = data[Constants.STORAGE_KEYS.IS_PREMIUM]    || false;
+        const email     = data[Constants.STORAGE_KEYS.LICENSE_EMAIL]  || null;
+        IGRadarUI.renderPremiumStatus(isPremium, email);
     }
 
     // ─── INIT ─────────────────────────────────────────────────────────────────
@@ -106,7 +79,7 @@
             IGRadarUI.loadWhitelist(),
             IGRadarUI.loadDryRunMode(),
             IGRadarUI.loadUndoQueue(),
-            loadAuthState()
+            loadPremiumStatus()
         ]);
 
         const savedTab = await chrome.storage.local.get([Constants.STORAGE_KEYS.POPUP_ACTIVE_TAB]);

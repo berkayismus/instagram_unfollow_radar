@@ -127,20 +127,16 @@
         "pageReloaded": "Seite neu geladen — bitte erneut versuchen",
         "startFailed": "Konnte nicht gestartet werden — bitte Seite neu laden"
     },
-    "auth": {
-        "signIn": "Mit Google anmelden",
-        "signOut": "Abmelden",
-        "signingIn": "Anmeldung läuft...",
-        "signedInAs": "Angemeldet als:",
-        "confirmSignOut": "Möchten Sie sich wirklich abmelden? Ihr Premium-Zugang wird pausiert.",
-        "premiumBadge": "⭐ Premium",
-        "error": "Google-Anmeldung fehlgeschlagen. Bitte erneut versuchen."
-    },
     "premium": {
         "activeBadge": "⭐ Premium Aktiv",
         "freeBadge": "Kostenloser Plan",
         "colFree": "Kostenlos",
         "colPremium": "Premium",
+        "licenseLabel": "Lizenzschlüssel",
+        "licensePlaceholder": "Gumroad-Lizenzschlüssel eingeben",
+        "activateBtn": "Aktivieren",
+        "deactivateBtn": "Lizenz entfernen",
+        "confirmDeactivate": "Premium-Lizenz entfernen? Sie kehren zum kostenlosen Plan zurück (10/Tag).",
         "featureDailyLimit": "Tageslimit",
         "featureUndo": "Aktionen rückgängig machen",
         "featureFilters": "Filter & Whitelist",
@@ -149,11 +145,13 @@
         "featureExportCsv": "CSV-Export",
         "featureSupport": "Prioritäts-Support",
         "exportLockHint": "🔒 CSV-Export ist eine Premium-Funktion — Upgrade erforderlich",
-        "notSignedIn": "Melden Sie sich mit Google an, um Premium-Funktionen zu nutzen.",
-        "upgradeBtn": "Upgrade auf Premium — 4,99 $/Monat",
-        "upgradeHint": "Sichere Zahlung über Paddle — sofort aktiv",
-        "managePlan": "Abo verwalten",
-        "renewsAt": "Verlängerungsdatum:"
+        "buyBtn": "Bei Gumroad kaufen — 1 $/Monat",
+        "buyHint": "Nach dem Kauf den Lizenzschlüssel aus der Bestätigungs-E-Mail unten eingeben",
+        "manageSubscriptionLink": "Abo verwalten",
+        "manageSubscriptionHint": " bei Gumroad, um die monatliche Zahlung zu kündigen.",
+        "successMessage": "Premium aktiviert! Sie können jetzt bis zu 500 Benutzer pro Tag entfolgen.",
+        "errorInvalid": "Ungültiger Lizenzschlüssel. Bitte überprüfen Sie ihn und versuchen Sie es erneut.",
+        "errorNetwork": "Überprüfung fehlgeschlagen — bitte Internetverbindung prüfen."
     },
     "theme": {
         "toggle": "Theme wechseln"

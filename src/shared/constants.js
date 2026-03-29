@@ -63,15 +63,11 @@ const Constants = (function () {
             ENTRY_SCHEMA:              3
         },
 
-        // ─── AUTH (Google + Backend) ──────────────────────────────────────────────────────
-        AUTH: {
-            BACKEND_URL: 'https://YOUR_BACKEND_DOMAIN/api'
-        },
-
-        // ─── PADDLE ─────────────────────────────────────────────────────────────────────────
-        PADDLE: {
-            CHECKOUT_URL: 'https://checkout.paddle.com/product/YOUR_PRODUCT_ID',
-            MANAGE_URL:   'https://vendors.paddle.com/subscriptions/customers/manage'
+        // ─── GUMROAD ─────────────────────────────────────────────────────────
+        GUMROAD: {
+            PRODUCT_PERMALINK: 'vnzrgn',
+            VERIFY_URL:        'https://api.gumroad.com/v2/licenses/verify',
+            MANAGE_URL:        'https://app.gumroad.com/library'
         },
 
         // ─── INSTAGRAM API ────────────────────────────────────────────────────
@@ -110,12 +106,8 @@ const Constants = (function () {
             THEME:            'igTheme',
             LANGUAGE:         'igLanguage',
             IS_PREMIUM:       'igIsPremium',
-            AUTH_TOKEN:       'igAuthToken',
-            USER_EMAIL:       'igUserEmail',
-            USER_NAME:        'igUserName',
-            USER_AVATAR:      'igUserAvatar',
-            USER_PLAN_NAME:   'igUserPlanName',
-            USER_PLAN_RENEWS: 'igUserPlanRenews',
+            LICENSE_KEY:      'igLicenseKey',
+            LICENSE_EMAIL:    'igLicenseEmail',
             WATCH_LIST:       'igWatchList',
             POPUP_ACTIVE_TAB: 'igPopupActiveTab'
         },
@@ -139,10 +131,7 @@ const Constants = (function () {
             TOGGLE_DRY_RUN:   'TOGGLE_DRY_RUN',
             UNDO_LAST:        'UNDO_LAST',
             UNDO_SINGLE:      'UNDO_SINGLE',
-            UPDATE_LICENSE:     'UPDATE_LICENSE',
-            SIGN_IN:            'SIGN_IN',
-            SIGN_OUT:           'SIGN_OUT',
-            REFRESH_PREMIUM:    'REFRESH_PREMIUM',
+            UPDATE_LICENSE:   'UPDATE_LICENSE',
             WATCH_LIST_GET:     'WATCH_LIST_GET',
             WATCH_LIST_ADD:     'WATCH_LIST_ADD',
             WATCH_LIST_REMOVE:  'WATCH_LIST_REMOVE',

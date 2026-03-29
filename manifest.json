@@ -4,21 +4,11 @@
   "version": "1.2.1",
   "description": "Automatically detect and unfollow users who don't follow you back on Instagram",
   "permissions": [
-    "storage",
-    "identity"
+    "storage"
   ],
-  "oauth2": {
-    "client_id": "802490066850-di0g3l7dg7b5d2go49nc22fo3iftugjf.apps.googleusercontent.com",
-    "scopes": [
-      "openid",
-      "email",
-      "profile"
-    ]
-  },
   "host_permissions": [
     "https://www.instagram.com/*",
-    "https://www.googleapis.com/*",
-    "https://YOUR_BACKEND_DOMAIN/*"
+    "https://api.gumroad.com/*"
   ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
