@@ -499,7 +499,14 @@ const IGRadarUI = (function() {
                 setRunning(true);
                 break;
             case Constants.STATUS.ERROR:
-                updateStatus('stopped', `⚠️ ${I18n.t('status.error')}`);
+                updateStatus(
+                    'stopped',
+                    `⚠️ ${I18n.t(
+                        data.message === 'followers_scan_incomplete'
+                            ? 'status.followersScanIncomplete'
+                            : 'status.error'
+                    )}`
+                );
                 setRunning(false);
                 break;
             default:

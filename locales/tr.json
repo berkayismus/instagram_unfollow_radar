@@ -19,6 +19,7 @@
         "scanning": "Taranıyor",
         "buildingFollowers": "Takipçi listesi yükleniyor...",
         "checked": "kontrol edildi",
+        "followersScanIncomplete": "Takipçi listesi eksik alındığı için güvenlik amacıyla hiçbir işlem yapılmadı",
         "error": "Tarama başarısız — Instagram'ı yeniden yükleyip tekrar deneyin",
         "processing": "İşleniyor",
         "paused": "Duraklatıldı",

@@ -19,12 +19,14 @@ const IGUnfollowRadarContent = (function() {
         testComplete:    false,
         unfollowQueue:   [],
         processedUsers:  new Set(),
+        previewCount:    0,
         sessionCount:    0,
         totalUnfollowed: 0,
         keywords:        [],
         whitelist:       {},
         dryRunMode:      false,
         undoQueue:       [],
+        undoInFlight:    false,
         rateLimitUntil:  null,
         abortController: null,
         isPremium:       false,
@@ -62,6 +64,7 @@ const IGUnfollowRadarContent = (function() {
                         state.isPaused        = false;
                         state.unfollowQueue   = [];
                         state.processedUsers  = new Set();
+                        state.previewCount    = 0;
                         state.abortController = new AbortController();
                         IGRadarAutomation.mainLoop(state, sendStatus).catch(err => {
                             console.error('[IGRadar] mainLoop error:', err);
@@ -113,16 +116,39 @@ const IGUnfollowRadarContent = (function() {
                     sendResponse({ success: true });
                     break;
 
-                case Constants.ACTIONS.UNDO_LAST:
-                    if (state.undoQueue.length > 0) {
-                        const last = state.undoQueue.pop();
-                        IGRadarAPI.refollowUser(last.id);
-                        chrome.storage.local.set({ [Constants.STORAGE_KEYS.UNDO_QUEUE]: state.undoQueue });
-                        sendResponse({ success: true, username: last.username });
-                    } else {
-                        sendResponse({ success: false, message: 'No users to undo' });
+                case Constants.ACTIONS.UNDO_LAST: {
+                    if (state.undoInFlight) {
+                        sendResponse({ success: false, message: 'Undo already in progress' });
+                        break;
                     }
-                    break;
+                    const last = state.undoQueue[state.undoQueue.length - 1];
+                    if (!last) {
+                        sendResponse({ success: false, message: 'No users to undo' });
+                        break;
+                    }
+                    state.undoInFlight = true;
+                    IGRadarAPI.refollowUser(last.id)
+                        .then(async ok => {
+                            if (!ok) {
+                                sendResponse({ success: false, message: 'Refollow request failed' });
+                                return;
+                            }
+                            const idx = state.undoQueue.findIndex(u =>
+                                u.id === last.id && u.timestamp === last.timestamp
+                            );
+                            if (idx !== -1) state.undoQueue.splice(idx, 1);
+                            await chrome.storage.local.set({
+                                [Constants.STORAGE_KEYS.UNDO_QUEUE]: state.undoQueue
+                            });
+                            sendResponse({ success: true, username: last.username });
+                        })
+                        .catch(err => {
+                            console.error('[IGRadar] UNDO_LAST', err);
+                            sendResponse({ success: false, message: 'Refollow request failed' });
+                        })
+                        .finally(() => { state.undoInFlight = false; });
+                    return true;
+                }
 
                 case Constants.ACTIONS.UPDATE_LICENSE: {
                     state.isPremium    = message.isPremium;
@@ -141,17 +167,40 @@ const IGUnfollowRadarContent = (function() {
                 }
 
                 case Constants.ACTIONS.UNDO_SINGLE: {
+                    if (state.undoInFlight) {
+                        sendResponse({ success: false, message: 'Undo already in progress' });
+                        break;
+                    }
                     const { username } = message;
                     const idx  = state.undoQueue.findIndex(u => u.username === username);
-                    const user = idx !== -1 ? state.undoQueue.splice(idx, 1)[0] : null;
-                    if (user) {
-                        IGRadarAPI.refollowUser(user.id);
-                    } else {
+                    const user = idx !== -1 ? state.undoQueue[idx] : null;
+                    if (!user) {
                         console.warn('[IGRadar] Cannot refollow — user not in undo queue:', username);
+                        sendResponse({ success: false, message: 'User not in undo queue' });
+                        break;
                     }
-                    chrome.storage.local.set({ [Constants.STORAGE_KEYS.UNDO_QUEUE]: state.undoQueue });
-                    sendResponse({ success: true, username });
-                    break;
+                    state.undoInFlight = true;
+                    IGRadarAPI.refollowUser(user.id)
+                        .then(async ok => {
+                            if (!ok) {
+                                sendResponse({ success: false, message: 'Refollow request failed' });
+                                return;
+                            }
+                            const currentIdx = state.undoQueue.findIndex(u =>
+                                u.id === user.id && u.timestamp === user.timestamp
+                            );
+                            if (currentIdx !== -1) state.undoQueue.splice(currentIdx, 1);
+                            await chrome.storage.local.set({
+                                [Constants.STORAGE_KEYS.UNDO_QUEUE]: state.undoQueue
+                            });
+                            sendResponse({ success: true, username });
+                        })
+                        .catch(err => {
+                            console.error('[IGRadar] UNDO_SINGLE', err);
+                            sendResponse({ success: false, message: 'Refollow request failed' });
+                        })
+                        .finally(() => { state.undoInFlight = false; });
+                    return true;
                 }
 
                 case Constants.ACTIONS.WATCH_LIST_GET:

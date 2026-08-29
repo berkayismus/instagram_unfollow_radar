@@ -19,6 +19,7 @@
         "scanning": "Scannen",
         "buildingFollowers": "Follower-Liste wird geladen...",
         "checked": "geprüft",
+        "followersScanIncomplete": "Es wurde nichts geändert, da die Follower-Liste nicht vollständig geladen werden konnte",
         "error": "Scan fehlgeschlagen — bitte Instagram neu laden und erneut versuchen",
         "processing": "Verarbeitung läuft",
         "paused": "Pausiert",
@@ -32,7 +33,7 @@
         "rateLimit": "Rate Limit!",
         "rateLimitDesc": "Instagram hat Sie wegen zu vieler Anfragen begrenzt. Bitte warten.",
         "dailyLimitReached": "24-Stunden-Limit erreicht",
-        "dailyLimitDesc": "Sie haben in den letzten 24 Stunden 100 Benutzer entfolgt. Bitte warten Sie 24 Stunden für eine neue Sitzung.",
+        "dailyLimitDesc": "Sie haben Ihr tägliches Entfolge-Limit erreicht. Bitte warten Sie 24 Stunden auf eine neue Sitzung.",
         "upgradeHint": "Für mehr Entfolgungen auf Premium upgraden — 500/Tag"
     },
     "buttons": {
@@ -182,4 +183,3 @@
         "chartDescription": "Diagramm mit der Anzahl der in den letzten 30 Tagen entfolgten Benutzer"
     }
 }
-

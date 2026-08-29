@@ -13,6 +13,14 @@
 const IGRadarAutomation = (function() {
     'use strict';
 
+    class IncompleteFollowerScanError extends Error {
+        constructor() {
+            super('Follower scan did not complete');
+            this.name = 'IncompleteFollowerScanError';
+            this.code = 'followers_scan_incomplete';
+        }
+    }
+
     // ─── UTILITIES ────────────────────────────────────────────────────────────
 
     /**
@@ -75,7 +83,7 @@ const IGRadarAutomation = (function() {
     async function processUnfollow(user, state, sendStatus, signal) {
         if (state.dryRunMode) {
             await randomDelay(Constants.TIMING.MIN_DELAY, Constants.TIMING.MAX_DELAY);
-            state.sessionCount++;
+            state.previewCount = (state.previewCount || 0) + 1;
             sendStatus(Constants.STATUS.UNFOLLOWED, { username: user.username, dryRun: true });
             chrome.runtime.sendMessage({
                 type: Constants.MESSAGE_TYPES.USER_PROCESSED,
@@ -85,7 +93,6 @@ const IGRadarAutomation = (function() {
                     timestamp: Date.now()
                 }
             });
-            await IGRadarStorage.updateDailyStats();
             return true;
         }
 
@@ -138,7 +145,7 @@ const IGRadarAutomation = (function() {
             });
 
             const result = await IGRadarAPI.fetchFollowersPage(userId, cursor, signal);
-            if (!result) break;
+            if (!result) throw new IncompleteFollowerScanError();
 
             result.users.forEach(u => followerSet.add(String(u.pk || u.id)));
             cursor = result.nextCursor;
@@ -238,6 +245,11 @@ const IGRadarAutomation = (function() {
                 await handleRateLimit(state, sendStatus);
                 return;
             }
+            if (err instanceof IncompleteFollowerScanError) {
+                state.isRunning = false;
+                sendStatus(Constants.STATUS.ERROR, { message: err.code });
+                return;
+            }
             throw err;
         }
 
@@ -265,15 +277,16 @@ const IGRadarAutomation = (function() {
             }
 
             // Session limit guard
-            if (state.sessionCount >= state.dailyLimit) {
+            if (!state.dryRunMode && state.sessionCount >= state.dailyLimit) {
                 state.isRunning = false;
                 sendStatus(Constants.STATUS.LIMIT_REACHED);
                 break;
             }
 
             // Batch (test-mode) milestone guard
+            const processedCount = state.dryRunMode ? state.previewCount : state.sessionCount;
             if (state.testMode && !state.testComplete &&
-                state.sessionCount >= Constants.LIMITS.BATCH_SIZE) {
+                processedCount >= Constants.LIMITS.BATCH_SIZE) {
                 state.isPaused = true;
                 chrome.runtime.sendMessage({ type: Constants.MESSAGE_TYPES.TEST_COMPLETE });
                 sendStatus(Constants.STATUS.TEST_COMPLETE);
@@ -314,9 +327,10 @@ const IGRadarAutomation = (function() {
 
             // Drain queue
             while (state.unfollowQueue.length > 0 && state.isRunning && !state.isPaused) {
-                if (state.sessionCount >= state.dailyLimit) break;
+                if (!state.dryRunMode && state.sessionCount >= state.dailyLimit) break;
+                const batchCount = state.dryRunMode ? state.previewCount : state.sessionCount;
                 if (state.testMode && !state.testComplete &&
-                    state.sessionCount >= Constants.LIMITS.BATCH_SIZE) {
+                    batchCount >= Constants.LIMITS.BATCH_SIZE) {
                     state.isPaused = true;
                     chrome.runtime.sendMessage({ type: Constants.MESSAGE_TYPES.TEST_COMPLETE });
                     sendStatus(Constants.STATUS.TEST_COMPLETE);

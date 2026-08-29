@@ -1,0 +1,9 @@
+{
+  "name": "instagram-unfollow-radar",
+  "version": "1.2.1",
+  "private": true,
+  "scripts": {
+    "check": "node --test && find src -name '*.js' -exec node --check {} \\;",
+    "test": "node --test"
+  }
+}
