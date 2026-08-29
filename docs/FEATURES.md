@@ -1,60 +1,45 @@
-# Instagram Unfollow Radar — Özellikler
+# Özellikler
 
-Kısa özet: Instagram’da oturumunuz açıkken, sizi geri takip etmeyen hesapları bulur; isteğe bağlı olarak güvenli gecikmelerle takipten çıkmanıza yardımcı olur. Veriler cihazınızda kalır; şifreniz okunmaz.
+Bu belge ürün davranışının kısa özetidir. Teknik ayrıntılar için [TECHNICAL.md](./TECHNICAL.md), planlar için [PREMIUM.md](./PREMIUM.md) kullanılır.
 
----
+## Otomasyon
 
-## Ana işlevler
+- Takipçi listesi tamamen alınmadan unfollow aşaması başlamaz.
+- Takip edilen hesaplar, takipçi kümesiyle karşılaştırılır.
+- Whitelist veya anahtar kelime filtresine uyan hesaplar atlanır.
+- Gerçek işlemler arasında 5–10 saniye rastgele gecikme uygulanır.
+- Ücretsiz plan 10, Premium plan 500 gerçek unfollow ile sınırlıdır; pencere 24 saattir.
+- İlk kullanımda 50 işlenen adaydan sonra legacy batch duraklaması gösterilebilir; devam seçimi yerelde saklanır.
+- Ayrı bir tarama-sonrası ön onay ekranı yoktur.
 
-| Özellik | Açıklama |
-|--------|-----------|
-| **Tarama** | Takipçi listesi ile takip listesi karşılaştırılır; geri takip etmeyenler sıraya alınır. |
-| **Gecikme** | Her işlem arasında yaklaşık 5–10 sn rastgele bekleme. |
-| **Günlük limit** | Ücretsiz: 10 / Premium: 500 (24 saatte bir sıfırlanır). |
-| **Toplu duraklama** | İlk 50 işlemden sonra devam etmek için onay ister. |
-| **Dry run** | Gerçekten takipten çıkmadan “kim çıkarılacaktı” simülasyonu. |
-| **Geri alma (Undo)** | Son işlemlerden en fazla 10 hesabı tekrar takip etme. |
+## Güvenlik
 
----
+- Eksik takipçi taraması hiçbir unfollow yapmadan sona erer.
+- Aynı anda yalnızca bir Instagram sekmesi otomasyon çalıştırabilir.
+- Aktif Instagram hesabı değişirse süreç durur.
+- Dry-run gerçek kota veya unfollow istatistiği tüketmez.
+- Undo, Instagram refollow isteği başarılı olduktan sonra kuyruktan silinir.
 
-## Filtreler sekmesi
+## Filtreler ve geçmiş
 
-- **Whitelist:** Listeye eklediğiniz kullanıcılar asla çıkarılmaz.
-- **Anahtar kelimeler:** Kullanıcı adı veya görünen isimde bu kelimeler geçenler atlanır.
+- Kullanıcı adı veya görünen ad için anahtar kelime filtresi
+- Kalıcı whitelist
+- Son 10 işlem için undo
+- Son 30 gün istatistiği
+- Premium için CSV dışa aktarımı
 
----
+## İzleme listesi
 
-## İstatistikler sekmesi
+- Ücretsiz planda 1, Premium’da 10 hesap
+- Manuel yenileme
+- Listeye eklenme anından sonraki 24 saat içinde algılanan yeni takipler
+- Yalnızca tam alınan following snapshot’ları karşılaştırılır
+- Eksik, gizli veya tutarsız API verisi baseline’ı değiştirmez
 
-- Son 30 güne ait özet grafik.
-- **CSV dışa aktarma** (Premium).
-
----
-
-## İzleme sekmesi
-
-- İzlenen hesap kotası: **ücretsiz 1**, **Premium 10** (detay: [PREMIUM.md](./PREMIUM.md)).
-- **Yenile** ile güncelleme; listeye ekledikten sonraki **24 saat** içinde, profil takip sayısındaki artışa göre yeni takipler gösterilir (Instagram’ın sunduğu veriyle sınırlıdır).
-
----
-
-## Premium (Gumroad)
-
-Ayrıntılı plan karşılaştırması, lisans akışı ve teknik referans: **[PREMIUM.md](./PREMIUM.md)**.
-
-- Günlük 500 kişi limiti (ücretsiz: 10); izleme listesi 10 hesap (ücretsiz: 1).
-- CSV indirme.
-- Lisans anahtarı ile etkinleştirme; iptal Gumroad üzerinden.
-
----
+İzleme sonucu Instagram’ın sunduğu verilere bağlıdır; özel veya çok büyük hesaplarda tam liste alınamayabilir.
 
 ## Arayüz
 
-- **Açık / koyu tema**
-- **Diller:** Türkçe, İngilizce, Almanca
-
----
-
-## Teknik özet (bir satır)
-
-İstekler yalnızca `instagram.com` oturumunuz ve yerel depolama üzerinden çalışır; ana iş akışı için harici sunucuya veri gönderilmez (Premium lisans doğrulaması Gumroad API’sine gider).
+- Türkçe, İngilizce ve Almanca
+- Açık/koyu tema
+- Ana, Filtreler, İzleme, İstatistikler ve Premium sekmeleri
