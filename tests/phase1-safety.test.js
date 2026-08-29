@@ -150,6 +150,44 @@ test('dry-run previews do not consume the real action quota or unfollow statisti
     assert.equal(sessionSaveCalls, 0);
 });
 
+test('an Instagram account change stops automation before the unfollow request', async () => {
+    let identityChecks = 0;
+    let unfollowCalls = 0;
+    const statuses = [];
+    const automation = loadAutomation({
+        api: {
+            getCurrentUserId: () => {
+                identityChecks++;
+                return identityChecks >= 4 ? 'other-account' : 'original-account';
+            },
+            fetchFollowersPage: async () => ({ users: [], nextCursor: null }),
+            fetchFollowingPage: async () => ({
+                users: [{ id: '1', username: 'must_not_be_touched' }],
+                nextCursor: null
+            }),
+            unfollowUser: async () => {
+                unfollowCalls++;
+                return true;
+            }
+        },
+        storage: {
+            loadState: async state => state,
+            updateDailyStats: async () => {},
+            saveSessionProgress: async () => {},
+            addToHistory: async () => {},
+            setRateLimitUntil: async () => {},
+            clearRateLimit: async () => {}
+        }
+    });
+    const state = baseState({ runUserId: 'original-account' });
+
+    await automation.mainLoop(state, (status, extra = {}) => statuses.push({ status, ...extra }));
+
+    assert.equal(state.isRunning, false);
+    assert.equal(unfollowCalls, 0);
+    assert.deepEqual(statuses.at(-1), { status: 'error', message: 'account_changed' });
+});
+
 function loadContent({ initialUndoQueue, refollowResult }) {
     let listener;
     const storageWrites = [];

@@ -28,6 +28,7 @@ const IGUnfollowRadarContent = (function() {
         undoQueue:       [],
         undoInFlight:    false,
         runId:           null,
+        runUserId:       null,
         lockHeartbeatId: null,
         rateLimitUntil:  null,
         abortController: null,
@@ -78,6 +79,15 @@ const IGUnfollowRadarContent = (function() {
         stopLockHeartbeat();
         state.lockHeartbeatId = setInterval(async() => {
             if (!state.isRunning || state.runId !== runId) return;
+            const currentUserId = IGRadarAPI.getCurrentUserId();
+            if (!currentUserId || String(currentUserId) !== String(state.runUserId)) {
+                if (state.abortController) state.abortController.abort();
+                state.isRunning = false;
+                state.isPaused  = false;
+                sendStatus(Constants.STATUS.ERROR, { message: 'account_changed' });
+                releaseRunLock(runId);
+                return;
+            }
             try {
                 const result = await requestRunLock(Constants.ACTIONS.RENEW_RUN_LOCK, runId);
                 if (result && result.success) return;
@@ -101,7 +111,10 @@ const IGUnfollowRadarContent = (function() {
         } catch (err) {
             console.error('[IGRadar] Run lock release failed:', err);
         } finally {
-            if (state.runId === runId) state.runId = null;
+            if (state.runId === runId) {
+                state.runId     = null;
+                state.runUserId = null;
+            }
         }
     }
 
@@ -128,6 +141,11 @@ const IGUnfollowRadarContent = (function() {
                         sendResponse({ success: true, isRunning: true });
                         break;
                     }
+                    const runUserId = IGRadarAPI.getCurrentUserId();
+                    if (!runUserId) {
+                        sendResponse({ success: false, error: 'not_logged_in' });
+                        break;
+                    }
                     const runId = createRunId();
                     requestRunLock(Constants.ACTIONS.ACQUIRE_RUN_LOCK, runId)
                         .then(result => {
@@ -139,6 +157,7 @@ const IGUnfollowRadarContent = (function() {
                                 return;
                             }
                             state.runId           = runId;
+                            state.runUserId       = runUserId;
                             state.isRunning       = true;
                             state.isPaused        = false;
                             state.unfollowQueue   = [];

@@ -21,6 +21,7 @@
         "checked": "geprüft",
         "followersScanIncomplete": "Es wurde nichts geändert, da die Follower-Liste nicht vollständig geladen werden konnte",
         "runLockLost": "Die Automatisierung wurde sicher gestoppt, da ihre Ausführungssperre verloren ging",
+        "accountChanged": "Die Automatisierung wurde sicher gestoppt, da das aktive Instagram-Konto gewechselt hat",
         "error": "Scan fehlgeschlagen — bitte Instagram neu laden und erneut versuchen",
         "processing": "Verarbeitung läuft",
         "paused": "Pausiert",

@@ -21,6 +21,22 @@ const IGRadarAutomation = (function() {
         }
     }
 
+    class AccountChangedError extends Error {
+        constructor() {
+            super('Active Instagram account changed during automation');
+            this.name = 'AccountChangedError';
+            this.code = 'account_changed';
+        }
+    }
+
+    function assertActiveAccount(state) {
+        if (!state.runUserId) return;
+        const currentUserId = IGRadarAPI.getCurrentUserId();
+        if (!currentUserId || String(currentUserId) !== String(state.runUserId)) {
+            throw new AccountChangedError();
+        }
+    }
+
     // ─── UTILITIES ────────────────────────────────────────────────────────────
 
     /**
@@ -81,6 +97,7 @@ const IGRadarAutomation = (function() {
      * @returns {Promise<boolean>} true if the action succeeded
      */
     async function processUnfollow(user, state, sendStatus, signal) {
+        assertActiveAccount(state);
         if (state.dryRunMode) {
             await randomDelay(Constants.TIMING.MIN_DELAY, Constants.TIMING.MAX_DELAY);
             state.previewCount = (state.previewCount || 0) + 1;
@@ -138,6 +155,7 @@ const IGRadarAutomation = (function() {
 
         do {
             if (!state.isRunning) break;
+            assertActiveAccount(state);
 
             sendStatus(Constants.STATUS.SCANNING, {
                 phase: 'buildingFollowers',
@@ -174,6 +192,7 @@ const IGRadarAutomation = (function() {
      * @returns {Promise<{nextCursor: string|null, fetched: number}|null>}
      */
     async function scanPage(userId, cursor, followerSet, state, sendStatus, totalScanned) {
+        assertActiveAccount(state);
         const signal = state.abortController && state.abortController.signal;
         const result = await IGRadarAPI.fetchFollowingPage(userId, cursor, signal);
         if (!result) return null;
@@ -234,6 +253,12 @@ const IGRadarAutomation = (function() {
             state.isRunning = false;
             return;
         }
+        if (!state.runUserId) state.runUserId = userId;
+        if (String(userId) !== String(state.runUserId)) {
+            state.isRunning = false;
+            sendStatus(Constants.STATUS.ERROR, { message: 'account_changed' });
+            return;
+        }
 
         // ── Phase 1: build follower set ────────────────────────────────────────
         let followerSet;
@@ -246,6 +271,11 @@ const IGRadarAutomation = (function() {
                 return;
             }
             if (err instanceof IncompleteFollowerScanError) {
+                state.isRunning = false;
+                sendStatus(Constants.STATUS.ERROR, { message: err.code });
+                return;
+            }
+            if (err instanceof AccountChangedError) {
                 state.isRunning = false;
                 sendStatus(Constants.STATUS.ERROR, { message: err.code });
                 return;
@@ -316,6 +346,11 @@ const IGRadarAutomation = (function() {
                     }
                 } catch (err) {
                     if (err.name === 'AbortError') return;
+                    if (err instanceof AccountChangedError) {
+                        state.isRunning = false;
+                        sendStatus(Constants.STATUS.ERROR, { message: err.code });
+                        return;
+                    }
                     if (err instanceof RateLimitError) {
                         await handleRateLimit(state, sendStatus);
                         continue;
@@ -343,6 +378,11 @@ const IGRadarAutomation = (function() {
                     await processUnfollow(user, state, sendStatus, signal);
                 } catch (err) {
                     if (err.name === 'AbortError') return;
+                    if (err instanceof AccountChangedError) {
+                        state.isRunning = false;
+                        sendStatus(Constants.STATUS.ERROR, { message: err.code });
+                        return;
+                    }
                     if (err instanceof RateLimitError) {
                         await handleRateLimit(state, sendStatus);
                         break;

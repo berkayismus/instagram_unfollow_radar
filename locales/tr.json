@@ -21,6 +21,7 @@
         "checked": "kontrol edildi",
         "followersScanIncomplete": "Takipçi listesi eksik alındığı için güvenlik amacıyla hiçbir işlem yapılmadı",
         "runLockLost": "Otomasyon kilidi kaybedildiği için işlem güvenli biçimde durduruldu",
+        "accountChanged": "Instagram hesabı değiştiği için otomatik işlem güvenli biçimde durduruldu",
         "error": "Tarama başarısız — Instagram'ı yeniden yükleyip tekrar deneyin",
         "processing": "İşleniyor",
         "paused": "Duraklatıldı",

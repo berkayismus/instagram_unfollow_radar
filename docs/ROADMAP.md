@@ -1,50 +1,35 @@
-# Instagram Unfollow Radar — Development Roadmap
+# Yol Haritası
 
-## Phase 1 — Action safety and quota integrity
+## Tamamlananlar
 
-Goal: prevent incorrect unfollows and keep destructive actions auditable.
+- Eksik takipçi taramasında güvenli durdurma
+- Dry-run ve gerçek kota ayrımı
+- Başarılı API yanıtına bağlı undo
+- İstatistik sıfırlama ile 24 saatlik kotanın ayrılması
+- Sekmeler arası tek aktif otomasyon kilidi ve heartbeat
+- Hesap değişikliğinde otomatik durdurma
+- Watchlist snapshot bütünlüğü ve seri mutation kuyruğu
+- Regresyon testleri, CI ve deterministik mağaza paketi
 
-- Fail closed when the follower list cannot be fetched completely.
-- Keep dry-run previews separate from real unfollow quota and statistics.
-- Prevent statistics reset from resetting the protected 24-hour quota window.
-- Complete undo only after Instagram confirms the refollow request.
-- Prevent concurrent undo requests.
-- Add automated regression tests for these safety rules.
+## Kalan işler
 
-Status: implemented and verified on `codex/phase-1-safety`.
+### Otomasyon dayanıklılığı
 
-## Phase 2 — Durable execution and concurrency
+- Tarama fazı, cursor ve kuyruk checkpoint’leri
+- Sayfa yenileme ve rate-limit sonrasında devam
+- Kimlik doğrulama, challenge, ağ ve sunucu hatalarını ayrı sınıflandırma
 
-Goal: make long-running scans predictable across tabs, reloads, and rate limits.
+### Premium
 
-- Enforce a single active automation session across Instagram tabs.
-- Persist phase, pagination cursor, queue, and scan checkpoints.
-- Resume reliably after rate limits and page reloads.
-- Remove duplicate runtime message delivery.
-- Classify authentication, challenge, rate-limit, server, and network failures.
+- Periyodik lisans yeniden doğrulaması
+- İade, chargeback ve abonelik bitiş kontrolleri
+- Sınırlı offline kullanım süresi
 
-Status: in progress on `codex/phase-2-durable-execution`. The extension-wide run lease,
-heartbeat, stale-lock expiry, and duplicate background relay removal are implemented.
+### Ürün ve veri
 
-## Phase 3 — Watchlist and premium integrity
+- Ayar/whitelist içe ve dışa aktarma
+- Verileri Instagram hesap kimliğine göre ayırma
+- Daha geniş entegrasyon testleri ve storage migration doğrulamaları
+- Gizlilik, mağaza ve özellik metinlerini sürüm sürecinde otomatik kontrol etme
 
-Goal: improve accuracy for large watched accounts and harden entitlements.
-
-- Replace the 500-user partial snapshot limitation with cursor checkpoints or an explicit cap.
-- Serialize concurrent watchlist refreshes and prevent stale storage writes.
-- Revalidate licenses periodically and check refund, chargeback, and subscription state.
-- Add a bounded offline grace period and document Gumroad data handling accurately.
-
-Status: in progress on `codex/phase-3-watchlist-premium-integrity`. Incomplete watchlist
-snapshots now fail closed, baseline state is explicit, and all watch-list mutations are serialized.
-
-## Phase 4 — Product experience and release engineering
-
-Goal: make releases repeatable and give users more control before actions.
-
-- Add a pre-action summary and selectable preview list.
-- Add filter and whitelist import/export.
-- Separate data by Instagram account and stop when the active account changes.
-- Add API/storage schema validation, broader integration tests, linting, and CI.
-- Generate the store ZIP through a deterministic release command.
-- Align privacy, premium, feature, and store documentation with runtime behavior.
+Otomatik unfollow akışı korunacaktır. Yeni bir tarama-sonrası ön onay ekranı planlanmamaktadır. İlk kullanımda görülebilen legacy batch duraklaması daha sonra ayrıca sadeleştirilecektir.
