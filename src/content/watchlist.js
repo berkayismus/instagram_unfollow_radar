@@ -10,8 +10,14 @@ const IGRadarWatchlist = (function() {
 
     const WL = Constants.WATCH_LIST;
 
-    /** Serialises `addUser` so two parallel adds cannot overwrite storage with stale lists. */
-    let addUserQueue = Promise.resolve();
+    /** Serialises every watch-list mutation to prevent stale storage overwrites. */
+    let mutationQueue = Promise.resolve();
+
+    function serialiseMutation(operation) {
+        const result = mutationQueue.then(operation, operation);
+        mutationQueue = result.then(() => undefined, () => undefined);
+        return result;
+    }
 
     /**
      * Keeps events inside the watch window: [watchStartedAt, watchStartedAt + 24h].
@@ -63,9 +69,9 @@ const IGRadarWatchlist = (function() {
 
         const cap = IGRadarWatchlistLimits.maxEntries(!!isPremium);
 
-        const run = async () => {
+        return serialiseMutation(async() => {
             try {
-                let list = await IGRadarStorage.getWatchList();
+                const list = await IGRadarStorage.getWatchList();
                 if (list.length >= cap) return { success: false, error: 'max_entries' };
                 if (list.some(x => x.username === username)) return { success: false, error: 'duplicate' };
 
@@ -96,6 +102,7 @@ const IGRadarWatchlist = (function() {
                     watchStartedAt:           started,
                     watchSchema:              WL.ENTRY_SCHEMA,
                     lastFollowingIds:         [],
+                    snapshotReady:            false,
                     lastCheckedAt:            null,
                     recentNewFollows:         [],
                     partialSnapshot:          false,
@@ -107,14 +114,7 @@ const IGRadarWatchlist = (function() {
                 console.error('[IGRadar] watchlist addUser:', err);
                 return { success: false, error: 'unknown' };
             }
-        };
-
-        const done = addUserQueue.then(run, run);
-        addUserQueue = done.then(
-            () => undefined,
-            () => undefined
-        );
-        return done;
+        });
     }
 
     /**
@@ -122,7 +122,7 @@ const IGRadarWatchlist = (function() {
      * @param {AbortSignal} [signal]
      * @returns {Promise<{success: boolean, list?: Array, error?: string}>}
      */
-    async function refreshUser(rawUsername, signal) {
+    async function refreshUserNow(rawUsername, signal) {
         const username = normalizeUsername(rawUsername);
         let list       = await IGRadarStorage.getWatchList();
         const idx      = list.findIndex(x => x.username === username);
@@ -132,6 +132,7 @@ const IGRadarWatchlist = (function() {
 
         if ((entry.watchSchema ?? 1) < WL.ENTRY_SCHEMA) {
             entry.recentNewFollows = [];
+            entry.snapshotReady = entry.partialSnapshot !== true && entry.lastCheckedAt != null;
             entry.watchSchema      = WL.ENTRY_SCHEMA;
         }
 
@@ -154,11 +155,14 @@ const IGRadarWatchlist = (function() {
             const idSet        = new Set();
             let cursor         = null;
             let pages          = 0;
-            let partial        = false;
+            let scanFailed     = false;
 
             while (pages < WL.MAX_PAGES_PER_REFRESH) {
                 const result = await IGRadarAPI.fetchFollowingPage(entry.userId, cursor, signal);
-                if (!result) break;
+                if (!result) {
+                    scanFailed = true;
+                    break;
+                }
                 for (const u of result.users) {
                     const id = String(u.pk != null ? u.pk : u.id);
                     idSet.add(id);
@@ -168,32 +172,28 @@ const IGRadarWatchlist = (function() {
                 pages++;
                 if (!cursor) break;
             }
-            if (cursor) partial = true;
 
             const prevSet     = new Set(entry.lastFollowingIds || []);
-            const isBaseline  = prevSet.size === 0;
+            const isBaseline  = entry.snapshotReady !== true;
             const now         = Date.now();
-            const prevPartial = entry.partialSnapshot === true;
+            const countMismatch = profile.followingCount > idSet.size + WL.FOLLOW_COUNT_SLACK;
 
             /**
-             * Incomplete fetch: do not change baseline (avoids false "new" on next full scan).
+             * Never mutate the comparison baseline after a failed or truncated scan.
              */
-            if (partial && !isBaseline) {
+            if (scanFailed || cursor || countMismatch) {
                 entry.lastCheckedAt = now;
-                entry.error         = null;
+                if (isBaseline) entry.partialSnapshot = true;
+                entry.error = scanFailed ? 'snapshot_failed' : 'snapshot_incomplete';
                 list[idx]           = entry;
                 await IGRadarStorage.saveWatchList(list);
-                return { success: true, list: await getList() };
+                return { success: false, error: entry.error, list: await getList() };
             }
 
             if (isBaseline) {
                 entry.lastFollowingIds = Array.from(idSet);
-                entry.partialSnapshot  = partial;
-            } else if (prevPartial) {
-                // Earlier baseline was partial; full list now — replace baseline, do not diff.
-                entry.lastFollowingIds = Array.from(idSet);
                 entry.partialSnapshot  = false;
-                entry.recentNewFollows = [];
+                entry.snapshotReady    = true;
             } else {
                 const existing  = entry.recentNewFollows ? [...entry.recentNewFollows] : [];
                 const inWindow  = isDetectionInWatchWindow(entry, now);
@@ -260,24 +260,50 @@ const IGRadarWatchlist = (function() {
         }
     }
 
+    function refreshUser(rawUsername, signal) {
+        return serialiseMutation(() => refreshUserNow(rawUsername, signal));
+    }
+
+    function removeUser(rawUsername) {
+        const username = normalizeUsername(rawUsername);
+        return serialiseMutation(async() => {
+            const list = await IGRadarStorage.getWatchList();
+            const next = list.filter(entry => entry.username !== username);
+            if (next.length === list.length) {
+                return { success: false, error: 'not_in_list', list: await getList() };
+            }
+            await IGRadarStorage.saveWatchList(next);
+            return { success: true, list: await getList() };
+        });
+    }
+
     /**
      * @param {AbortSignal} [signal]
      * @returns {Promise<{success: boolean, list?: Array, error?: string}>}
      */
-    async function refreshAll(signal) {
+    async function refreshAllNow(signal) {
         const list = await IGRadarStorage.getWatchList();
         if (!list.length) return { success: true, list: await getList() };
 
+        let firstError = null;
         for (const e of list) {
-            const res = await refreshUser(e.username, signal);
+            const res = await refreshUserNow(e.username, signal);
             if (!res.success && res.error === 'rate_limit') return res;
+            if (!res.success && !firstError) firstError = res.error;
         }
-        return { success: true, list: await getList() };
+        return firstError
+            ? { success: false, error: firstError, list: await getList() }
+            : { success: true, list: await getList() };
+    }
+
+    function refreshAll(signal) {
+        return serialiseMutation(() => refreshAllNow(signal));
     }
 
     return {
         getList,
         addUser,
+        removeUser,
         refreshUser,
         refreshAll,
         normalizeUsername

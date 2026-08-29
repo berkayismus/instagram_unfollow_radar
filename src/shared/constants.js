@@ -62,7 +62,7 @@ const Constants = (function () {
             /** Max extra "new" ids vs profile Δ before treating scan as unstable. */
             FOLLOW_COUNT_SLACK:        1,
             /** Bump to reset stored watch entries once (logic / false-positive fix). */
-            ENTRY_SCHEMA:              3
+            ENTRY_SCHEMA:              4
         },
 
         // ─── GUMROAD ─────────────────────────────────────────────────────────

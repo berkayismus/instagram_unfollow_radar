@@ -63,7 +63,7 @@
     "watch": {
         "title": "Beobachtungsliste",
         "disclaimer": "Fügen Sie ein Konto hinzu, um zu sehen, wen die Person neu folgt. Bei privaten Konten fehlt die Liste meist. Bitte die Instagram-Regeln beachten.",
-        "partialNote": "Tippen Sie auf Aktualisieren. Neue Follows erscheinen, wenn die Anzahl „Gefolgt“ im Profil steigt. Folgt jemand sehr vielen Konten, kann es mehrere Aktualisierungen brauchen, bis die Liste vollständig ist.",
+        "partialNote": "Tippen Sie zum Aktualisieren. Neue Follows erscheinen nach einem Anstieg der Profilzahl. Kann die vollständige Liste nicht geladen werden, erfolgt aus Sicherheitsgründen kein Vergleich.",
         "slotLimitHint": "Kostenlos: bis zu {freeMax} Konto. Premium: bis zu {premiumMax} Konten.",
         "usernamePlaceholder": "@benutzername",
         "addBtn": "Hinzufügen",
@@ -89,6 +89,8 @@
             "duplicate": "Dieser Nutzer steht bereits auf der Liste",
             "not_found": "Nutzer nicht gefunden oder Profil nicht verfügbar",
             "profile_failed": "Profil konnte nicht geladen werden (evtl. privat)",
+            "snapshot_failed": "Die Gefolgt-Liste konnte nicht geladen werden; die vorhandenen Vergleichsdaten wurden beibehalten",
+            "snapshot_incomplete": "Die Gefolgt-Liste war unvollständig; zur Vermeidung falscher Ergebnisse wurde kein Vergleich durchgeführt",
             "not_in_list": "Nutzer steht nicht auf der Liste",
             "rate_limit": "Gerade zu viele Anfragen — kurz warten und erneut versuchen",
             "unknown": "Etwas ist schiefgelaufen",

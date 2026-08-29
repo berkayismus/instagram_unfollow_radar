@@ -63,7 +63,7 @@
     "watch": {
         "title": "Watch list",
         "disclaimer": "Add an account to see when they follow someone new. Private accounts usually won’t show a list. Follow Instagram’s rules.",
-        "partialNote": "Tap Refresh to update. New follows show up after that person’s following count on their profile goes up. If they follow many people, you may need to refresh a few times to load the full list.",
+        "partialNote": "Tap Refresh to update. New follows appear after the profile following count increases. If the full list cannot be loaded, no comparison is made for safety.",
         "slotLimitHint": "Free plan: up to {freeMax} account. Premium: up to {premiumMax}.",
         "usernamePlaceholder": "@username",
         "addBtn": "Add",
@@ -89,6 +89,8 @@
             "duplicate": "This user is already on the list",
             "not_found": "User not found or profile unavailable",
             "profile_failed": "Could not load profile (account may be private)",
+            "snapshot_failed": "The following list could not be loaded; the existing comparison data was preserved",
+            "snapshot_incomplete": "The following list was incomplete, so no comparison was made to avoid false results",
             "not_in_list": "User is not on the list",
             "rate_limit": "Too many requests right now — wait a bit and try again",
             "unknown": "Something went wrong",

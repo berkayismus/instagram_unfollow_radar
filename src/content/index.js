@@ -304,6 +304,15 @@ const IGUnfollowRadarContent = (function() {
                         });
                     return true;
 
+                case Constants.ACTIONS.WATCH_LIST_REMOVE:
+                    IGRadarWatchlist.removeUser(message.username)
+                        .then(sendResponse)
+                        .catch(err => {
+                            console.error('[IGRadar] WATCH_LIST_REMOVE', err);
+                            sendResponse({ success: false, error: 'unknown' });
+                        });
+                    return true;
+
                 case Constants.ACTIONS.WATCH_LIST_REFRESH: {
                     const run = message.username
                         ? () => IGRadarWatchlist.refreshUser(message.username)

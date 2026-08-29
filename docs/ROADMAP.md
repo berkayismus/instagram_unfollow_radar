@@ -35,6 +35,9 @@ Goal: improve accuracy for large watched accounts and harden entitlements.
 - Revalidate licenses periodically and check refund, chargeback, and subscription state.
 - Add a bounded offline grace period and document Gumroad data handling accurately.
 
+Status: in progress on `codex/phase-3-watchlist-premium-integrity`. Incomplete watchlist
+snapshots now fail closed, baseline state is explicit, and all watch-list mutations are serialized.
+
 ## Phase 4 — Product experience and release engineering
 
 Goal: make releases repeatable and give users more control before actions.
