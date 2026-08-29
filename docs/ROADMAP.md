@@ -48,3 +48,6 @@ Goal: make releases repeatable and give users more control before actions.
 - Add API/storage schema validation, broader integration tests, linting, and CI.
 - Generate the store ZIP through a deterministic release command.
 - Align privacy, premium, feature, and store documentation with runtime behavior.
+
+Status: in progress on `codex/phase-4-product-release-engineering`. Deterministic release
+packaging, manifest/package integrity tests, locale parity checks, and pull-request CI are implemented.
