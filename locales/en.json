@@ -19,6 +19,7 @@
         "scanning": "Scanning",
         "buildingFollowers": "Loading follower list...",
         "checked": "checked",
+        "followersScanIncomplete": "No action was taken because the follower list could not be loaded completely",
         "error": "Scan failed — please reload Instagram and try again",
         "processing": "Processing",
         "paused": "Paused",

@@ -100,25 +100,15 @@ const IGRadarEvents = (function() {
     async function handleReset() {
         if (!confirm(I18n.t('messages.confirmReset'))) return;
         await chrome.storage.local.set({
-            [Constants.STORAGE_KEYS.SESSION_COUNT]:    0,
             [Constants.STORAGE_KEYS.TOTAL_UNFOLLOWED]: 0,
-            [Constants.STORAGE_KEYS.SESSION_START]:    Date.now(),
-            [Constants.STORAGE_KEYS.TEST_MODE]:        true,
-            [Constants.STORAGE_KEYS.TEST_COMPLETE]:    false,
-            [Constants.STORAGE_KEYS.UNDO_QUEUE]:       []
+            [Constants.STORAGE_KEYS.LAST_RUN]:         null,
+            [Constants.STORAGE_KEYS.UNFOLLOW_STATS]:   { daily: {} },
+            [Constants.STORAGE_KEYS.UNFOLLOW_HISTORY]: []
         });
-        const d         = await chrome.storage.local.get([Constants.STORAGE_KEYS.IS_PREMIUM]);
-        const isPremium = d[Constants.STORAGE_KEYS.IS_PREMIUM] || false;
-        const limit     = isPremium
-            ? Constants.LIMITS.PREMIUM_DAILY_LIMIT
-            : Constants.LIMITS.FREE_DAILY_LIMIT;
-        IGRadarUI.el.sessionCount.textContent        = `0/${limit}`;
         IGRadarUI.el.totalCount.textContent          = '0';
         IGRadarUI.el.lastRun.textContent             = '-';
-        IGRadarUI.el.limitReachedAlert.style.display = 'none';
-        IGRadarUI.el.startBtn.disabled               = false;
         IGRadarUI.clearUserList();
-        IGRadarUI.updateUndoButton(0);
+        await IGRadarUI.loadStats();
         IGRadarUI.updateStatus('ready', `✓ ${I18n.t('status.reset')}`);
     }
 

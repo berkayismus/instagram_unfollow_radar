@@ -192,7 +192,7 @@ const IGRadarAPI = (function() {
      */
     async function unfollowUser(userId, signal) {
         const data = await postJSON(Constants.API.DESTROY(userId), '', signal);
-        return data !== null;
+        return data !== null && data.status !== 'fail';
     }
 
     /**
@@ -203,7 +203,7 @@ const IGRadarAPI = (function() {
      */
     async function refollowUser(userId, signal) {
         const data = await postJSON(Constants.API.CREATE(userId), '', signal);
-        return data !== null;
+        return data !== null && data.status !== 'fail';
     }
 
     return {
