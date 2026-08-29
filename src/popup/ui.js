@@ -506,7 +506,9 @@ const IGRadarUI = (function() {
                             ? 'status.followersScanIncomplete'
                             : (data.message === 'run_lock_lost'
                                 ? 'status.runLockLost'
-                                : 'status.error')
+                                : (data.message === 'account_changed'
+                                    ? 'status.accountChanged'
+                                    : 'status.error'))
                     )}`
                 );
                 setRunning(false);
