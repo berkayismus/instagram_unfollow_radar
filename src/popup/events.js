@@ -37,6 +37,8 @@ const IGRadarEvents = (function() {
             duplicate:       'watch.error.duplicate',
             not_found:       'watch.error.not_found',
             profile_failed:  'watch.error.profile_failed',
+            snapshot_failed: 'watch.error.snapshot_failed',
+            snapshot_incomplete: 'watch.error.snapshot_incomplete',
             not_in_list:     'watch.error.not_in_list',
             rate_limit:      'watch.error.rate_limit',
             unknown:         'watch.error.unknown',
@@ -360,14 +362,29 @@ const IGRadarEvents = (function() {
     }
 
     async function handleWatchRemove(username) {
-        const data = await chrome.storage.local.get([Constants.STORAGE_KEYS.WATCH_LIST]);
-        const list = (data[Constants.STORAGE_KEYS.WATCH_LIST] || []).filter(
-            x => x.username !== username
-        );
-        const pruned = IGRadarUI.pruneWatchListEntries(list);
-        await chrome.storage.local.set({ [Constants.STORAGE_KEYS.WATCH_LIST]: pruned });
-        IGRadarUI.renderWatchList(pruned);
+        IGRadarUI.setWatchListLoading(true);
         IGRadarUI.hideWatchMessage();
+        try {
+            const tabId = await getInstagramTabId();
+            if (tabId == null) {
+                IGRadarUI.showWatchMessage('watch.errorNoInstagramTab', true);
+                return;
+            }
+            const res = await chrome.tabs.sendMessage(tabId, {
+                action: Constants.ACTIONS.WATCH_LIST_REMOVE,
+                username
+            });
+            if (res && res.success && res.list) {
+                IGRadarUI.renderWatchList(res.list);
+            } else if (res && res.error) {
+                IGRadarUI.showWatchMessage(watchErrorKey(res.error), true);
+            }
+        } catch (err) {
+            console.error('[IGRadar] watch remove:', err);
+            IGRadarUI.showWatchMessage('watch.errorContentScript', true);
+        } finally {
+            IGRadarUI.setWatchListLoading(false);
+        }
     }
 
     async function handleWatchRefreshOne(username) {

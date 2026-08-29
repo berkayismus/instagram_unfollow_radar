@@ -709,7 +709,8 @@ const IGRadarUI = (function() {
             meta.appendChild(document.createTextNode(
                 I18n.t('watch.newLast24', { count: newCount })
             ));
-            if (entry.partialSnapshot) {
+            if (entry.partialSnapshot ||
+                entry.error === 'snapshot_incomplete' || entry.error === 'snapshot_failed') {
                 meta.appendChild(document.createTextNode(' · '));
                 const partial = createElement('span', { className: 'watch-list__partial' });
                 partial.textContent = I18n.t('watch.partialBadge');
