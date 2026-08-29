@@ -20,6 +20,7 @@
         "buildingFollowers": "Loading follower list...",
         "checked": "checked",
         "followersScanIncomplete": "No action was taken because the follower list could not be loaded completely",
+        "runLockLost": "The automation stopped safely because its run lock was lost",
         "error": "Scan failed — please reload Instagram and try again",
         "processing": "Processing",
         "paused": "Paused",
@@ -115,6 +116,7 @@
     },
     "messages": {
         "confirmReset": "All statistics will be reset. Are you sure?",
+        "runAlreadyActive": "Automation is already running in another Instagram tab",
         "confirmReload": "Extension not loaded yet. Would you like to reload the page?",
         "noUndoAction": "No action to undo",
         "undoFailed": "Undo failed",

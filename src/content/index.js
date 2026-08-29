@@ -27,6 +27,8 @@ const IGUnfollowRadarContent = (function() {
         dryRunMode:      false,
         undoQueue:       [],
         undoInFlight:    false,
+        runId:           null,
+        lockHeartbeatId: null,
         rateLimitUntil:  null,
         abortController: null,
         isPremium:       false,
@@ -52,36 +54,117 @@ const IGUnfollowRadarContent = (function() {
         });
     }
 
+    function createRunId() {
+        if (crypto.randomUUID) return crypto.randomUUID();
+        return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+
+    function requestRunLock(action, runId) {
+        return chrome.runtime.sendMessage({
+            target: 'background',
+            action,
+            runId
+        });
+    }
+
+    function stopLockHeartbeat() {
+        if (state.lockHeartbeatId != null) {
+            clearInterval(state.lockHeartbeatId);
+            state.lockHeartbeatId = null;
+        }
+    }
+
+    function startLockHeartbeat(runId) {
+        stopLockHeartbeat();
+        state.lockHeartbeatId = setInterval(async() => {
+            if (!state.isRunning || state.runId !== runId) return;
+            try {
+                const result = await requestRunLock(Constants.ACTIONS.RENEW_RUN_LOCK, runId);
+                if (result && result.success) return;
+            } catch (err) {
+                console.error('[IGRadar] Run lock heartbeat failed:', err);
+            }
+
+            if (state.abortController) state.abortController.abort();
+            state.isRunning = false;
+            state.isPaused  = false;
+            stopLockHeartbeat();
+            sendStatus(Constants.STATUS.ERROR, { message: 'run_lock_lost' });
+        }, Constants.TIMING.RUN_LOCK_HEARTBEAT);
+    }
+
+    async function releaseRunLock(runId) {
+        if (!runId) return;
+        stopLockHeartbeat();
+        try {
+            await requestRunLock(Constants.ACTIONS.RELEASE_RUN_LOCK, runId);
+        } catch (err) {
+            console.error('[IGRadar] Run lock release failed:', err);
+        } finally {
+            if (state.runId === runId) state.runId = null;
+        }
+    }
+
+    function runAutomation(runId) {
+        IGRadarAutomation.mainLoop(state, sendStatus)
+            .catch(err => {
+                console.error('[IGRadar] mainLoop error:', err);
+                state.isRunning = false;
+                sendStatus(Constants.STATUS.ERROR);
+            })
+            .finally(() => {
+                if (!state.isRunning && state.runId === runId) releaseRunLock(runId);
+            });
+    }
+
     // ─── MESSAGE LISTENER ─────────────────────────────────────────────────────
 
     function setupMessageListener() {
         chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
             switch (message.action) {
 
-                case Constants.ACTIONS.START:
-                    if (!state.isRunning) {
-                        state.isRunning       = true;
-                        state.isPaused        = false;
-                        state.unfollowQueue   = [];
-                        state.processedUsers  = new Set();
-                        state.previewCount    = 0;
-                        state.abortController = new AbortController();
-                        IGRadarAutomation.mainLoop(state, sendStatus).catch(err => {
-                            console.error('[IGRadar] mainLoop error:', err);
-                            state.isRunning = false;
-                            sendStatus(Constants.STATUS.ERROR);
-                        });
+                case Constants.ACTIONS.START: {
+                    if (state.isRunning) {
+                        sendResponse({ success: true, isRunning: true });
+                        break;
                     }
-                    sendResponse({ success: true });
-                    break;
+                    const runId = createRunId();
+                    requestRunLock(Constants.ACTIONS.ACQUIRE_RUN_LOCK, runId)
+                        .then(result => {
+                            if (!result || !result.success) {
+                                sendResponse({
+                                    success: false,
+                                    error: result && result.error ? result.error : 'run_lock_error'
+                                });
+                                return;
+                            }
+                            state.runId           = runId;
+                            state.isRunning       = true;
+                            state.isPaused        = false;
+                            state.unfollowQueue   = [];
+                            state.processedUsers  = new Set();
+                            state.previewCount    = 0;
+                            state.abortController = new AbortController();
+                            startLockHeartbeat(runId);
+                            runAutomation(runId);
+                            sendResponse({ success: true, runId });
+                        })
+                        .catch(err => {
+                            console.error('[IGRadar] Failed to acquire run lock:', err);
+                            sendResponse({ success: false, error: 'run_lock_error' });
+                        });
+                    return true;
+                }
 
-                case Constants.ACTIONS.STOP:
+                case Constants.ACTIONS.STOP: {
                     if (state.abortController) state.abortController.abort();
+                    const runId    = state.runId;
                     state.isRunning = false;
                     state.isPaused  = false;
                     sendStatus(Constants.STATUS.STOPPED);
-                    sendResponse({ success: true });
-                    break;
+                    releaseRunLock(runId).finally(() => sendResponse({ success: true }));
+                    return true;
+                }
 
                 case Constants.ACTIONS.CONTINUE_TEST:
                     state.testComplete    = true;
@@ -89,7 +172,7 @@ const IGUnfollowRadarContent = (function() {
                     state.isRunning       = true;
                     state.abortController = new AbortController();
                     chrome.storage.local.set({ [Constants.STORAGE_KEYS.TEST_COMPLETE]: true });
-                    IGRadarAutomation.mainLoop(state, sendStatus);
+                    runAutomation(state.runId);
                     sendResponse({ success: true });
                     break;
 

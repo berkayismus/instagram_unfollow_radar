@@ -20,6 +20,7 @@
         "buildingFollowers": "Takipçi listesi yükleniyor...",
         "checked": "kontrol edildi",
         "followersScanIncomplete": "Takipçi listesi eksik alındığı için güvenlik amacıyla hiçbir işlem yapılmadı",
+        "runLockLost": "Otomasyon kilidi kaybedildiği için işlem güvenli biçimde durduruldu",
         "error": "Tarama başarısız — Instagram'ı yeniden yükleyip tekrar deneyin",
         "processing": "İşleniyor",
         "paused": "Duraklatıldı",
@@ -115,6 +116,7 @@
     },
     "messages": {
         "confirmReset": "Tüm istatistikler sıfırlanacak. Emin misiniz?",
+        "runAlreadyActive": "Başka bir Instagram sekmesinde otomasyon zaten çalışıyor",
         "confirmReload": "Eklenti henüz yüklenmedi. Sayfayı yenilemek ister misiniz?",
         "noUndoAction": "Geri alınacak işlem yok",
         "undoFailed": "Geri alınamadı",
