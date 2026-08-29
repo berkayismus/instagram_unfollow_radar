@@ -504,7 +504,9 @@ const IGRadarUI = (function() {
                     `⚠️ ${I18n.t(
                         data.message === 'followers_scan_incomplete'
                             ? 'status.followersScanIncomplete'
-                            : 'status.error'
+                            : (data.message === 'run_lock_lost'
+                                ? 'status.runLockLost'
+                                : 'status.error')
                     )}`
                 );
                 setRunning(false);

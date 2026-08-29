@@ -35,7 +35,9 @@ const Constants = (function () {
             HUMAN_PAUSE_MAX:      15000,
             SESSION_DURATION:     24 * 60 * 60 * 1000,
             RATE_LIMIT_WAIT:      15 * 60 * 1000,
-            RATE_LIMIT_MINUTES:   15
+            RATE_LIMIT_MINUTES:   15,
+            RUN_LOCK_TTL:         45 * 1000,
+            RUN_LOCK_HEARTBEAT:   15 * 1000
         },
 
         // ─── LIMITS ──────────────────────────────────────────────────────────
@@ -109,7 +111,8 @@ const Constants = (function () {
             LICENSE_KEY:      'igLicenseKey',
             LICENSE_EMAIL:    'igLicenseEmail',
             WATCH_LIST:       'igWatchList',
-            POPUP_ACTIVE_TAB: 'igPopupActiveTab'
+            POPUP_ACTIVE_TAB: 'igPopupActiveTab',
+            ACTIVE_RUN_LOCK:  'igActiveRunLock'
         },
 
         // ─── MESSAGE TYPES ────────────────────────────────────────────────────
@@ -135,7 +138,10 @@ const Constants = (function () {
             WATCH_LIST_GET:     'WATCH_LIST_GET',
             WATCH_LIST_ADD:     'WATCH_LIST_ADD',
             WATCH_LIST_REMOVE:  'WATCH_LIST_REMOVE',
-            WATCH_LIST_REFRESH: 'WATCH_LIST_REFRESH'
+            WATCH_LIST_REFRESH: 'WATCH_LIST_REFRESH',
+            ACQUIRE_RUN_LOCK:    'ACQUIRE_RUN_LOCK',
+            RENEW_RUN_LOCK:      'RENEW_RUN_LOCK',
+            RELEASE_RUN_LOCK:    'RELEASE_RUN_LOCK'
         },
 
         // ─── STATUS ──────────────────────────────────────────────────────────

@@ -23,6 +23,9 @@ Goal: make long-running scans predictable across tabs, reloads, and rate limits.
 - Remove duplicate runtime message delivery.
 - Classify authentication, challenge, rate-limit, server, and network failures.
 
+Status: in progress on `codex/phase-2-durable-execution`. The extension-wide run lease,
+heartbeat, stale-lock expiry, and duplicate background relay removal are implemented.
+
 ## Phase 3 — Watchlist and premium integrity
 
 Goal: improve accuracy for large watched accounts and harden entitlements.

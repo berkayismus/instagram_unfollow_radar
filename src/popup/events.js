@@ -60,7 +60,14 @@ const IGRadarEvents = (function() {
     async function handleStart() {
         if (!_currentTab) return;
         try {
-            await sendToContent({ action: Constants.ACTIONS.START });
+            const result = await sendToContent({ action: Constants.ACTIONS.START });
+            if (!result || !result.success) {
+                const key = result && result.error === 'run_already_active'
+                    ? 'messages.runAlreadyActive'
+                    : 'messages.startFailed';
+                IGRadarUI.updateStatus('error', `❌ ${I18n.t(key)}`);
+                return;
+            }
             IGRadarUI.setRunning(true);
             IGRadarUI.clearUserList();
             IGRadarUI.updateStatus('active', `🔄 ${I18n.t('status.processing')}...`);
