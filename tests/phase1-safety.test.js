@@ -49,6 +49,7 @@ function loadAutomation({ api, storage, runtimeMessages = [] }) {
             clearRunCheckpoint: async () => {},
             setRateLimitUntil: async () => {},
             clearRateLimit: async () => {},
+            addRunActivity: async () => {},
             ...storage
         },
         RateLimitError,
@@ -124,6 +125,7 @@ test('incomplete follower scan fails closed before following users are processed
 test('dry-run previews do not consume the real action quota or unfollow statistics', async () => {
     let dailyStatsCalls = 0;
     let sessionSaveCalls = 0;
+    const activity = [];
     const automation = loadAutomation({
         api: {
             getCurrentUserId: () => 'self',
@@ -141,6 +143,7 @@ test('dry-run previews do not consume the real action quota or unfollow statisti
             updateDailyStats: async () => { dailyStatsCalls++; },
             saveSessionProgress: async () => { sessionSaveCalls++; },
             addToHistory: async () => {},
+            addRunActivity: async entry => { activity.push(entry); },
             setRateLimitUntil: async () => {},
             clearRateLimit: async () => {}
         }
@@ -153,6 +156,9 @@ test('dry-run previews do not consume the real action quota or unfollow statisti
     assert.equal(state.sessionCount, 10);
     assert.equal(dailyStatsCalls, 0);
     assert.equal(sessionSaveCalls, 0);
+    assert.equal(activity.length, 1);
+    assert.equal(activity[0].username, 'previewed_user');
+    assert.equal(activity[0].action, 'dry-run');
 });
 
 test('an Instagram account change stops automation before the unfollow request', async () => {
@@ -322,10 +328,12 @@ test('classified API failures preserve the pending unfollow before stopping', as
     assert.deepEqual(statuses.at(-1), { status: 'error', message: 'network_error' });
 });
 
-function loadContent({ initialUndoQueue, refollowResult, checkpoint = null }) {
+function loadContent({ initialUndoQueue, refollowResult, checkpoint = null, keepRunning = false }) {
     let listener;
     let automationCalls = 0;
+    let emitLateStatus = null;
     const storageWrites = [];
+    const runtimeMessages = [];
     const context = vm.createContext({
         AbortController,
         Constants: {
@@ -349,7 +357,10 @@ function loadContent({ initialUndoQueue, refollowResult, checkpoint = null }) {
             LIMITS: { FREE_DAILY_LIMIT: 10, PREMIUM_DAILY_LIMIT: 500 },
             TIMING: { CHECKPOINT_MAX_AGE: 86400000, RUN_LOCK_HEARTBEAT: 30000 },
             MESSAGE_TYPES: { STATUS_UPDATE: 'STATUS_UPDATE' },
-            STATUS: { READY: 'ready', STOPPED: 'stopped', IDLE: 'idle', ERROR: 'error' },
+            STATUS: {
+                READY: 'ready', STOPPED: 'stopped', IDLE: 'idle', ERROR: 'error',
+                SCANNING: 'scanning'
+            },
             STORAGE_KEYS: {
                 UNDO_QUEUE: 'undoQueue',
                 KEYWORDS: 'keywords',
@@ -362,9 +373,17 @@ function loadContent({ initialUndoQueue, refollowResult, checkpoint = null }) {
             refollowUser: async () => refollowResult
         },
         IGRadarAutomation: {
-            mainLoop: async state => {
+            mainLoop: async (state, sendStatus) => {
                 automationCalls++;
-                state.isRunning = false;
+                emitLateStatus = () => sendStatus('scanning', {
+                    queueSize: 99,
+                    totalScanned: 999
+                });
+                if (keepRunning) {
+                    sendStatus('scanning', { queueSize: 2, totalScanned: 17 });
+                } else {
+                    state.isRunning = false;
+                }
             }
         },
         IGRadarAccountStorage: {
@@ -375,6 +394,7 @@ function loadContent({ initialUndoQueue, refollowResult, checkpoint = null }) {
         IGRadarStorage: {
             getRunCheckpoint: async () => checkpoint,
             clearRunCheckpoint: async () => {},
+            clearRunActivity: async () => {},
             clearRateLimit: async () => {},
             loadState: async state => {
                 state.undoQueue = initialUndoQueue.map(item => ({ ...item }));
@@ -393,7 +413,7 @@ function loadContent({ initialUndoQueue, refollowResult, checkpoint = null }) {
                 onMessage: { addListener: callback => { listener = callback; } },
                 sendMessage: message => message.target === 'background'
                     ? Promise.resolve({ success: true })
-                    : undefined
+                    : runtimeMessages.push(message)
             },
             storage: {
                 local: {
@@ -416,6 +436,8 @@ function loadContent({ initialUndoQueue, refollowResult, checkpoint = null }) {
             return new Promise(resolve => listener({ action, ...extra }, {}, resolve));
         },
         storageWrites,
+        runtimeMessages,
+        emitLateStatus: () => emitLateStatus && emitLateStatus(),
         getAutomationCalls: () => automationCalls
     };
 }
@@ -458,6 +480,44 @@ test('content initialization automatically resumes a recent matching checkpoint'
     await new Promise(resolve => setImmediate(resolve));
 
     assert.equal(content.getAutomationCalls(), 1);
+});
+
+test('GET_STATUS returns the live run snapshot without broadcasting idle', async () => {
+    const content = loadContent({
+        initialUndoQueue: [],
+        refollowResult: true,
+        keepRunning: true
+    });
+
+    await new Promise(resolve => setImmediate(resolve));
+    content.runtimeMessages.length = 0;
+    const started = await content.send('START');
+    const response = await content.send('GET_STATUS');
+
+    assert.equal(started.success, true);
+    assert.equal(response.isRunning, true);
+    assert.equal(response.statusData.status, 'scanning');
+    assert.equal(response.statusData.queueSize, 2);
+    assert.equal(response.statusData.totalScanned, 17);
+    assert.equal(content.runtimeMessages.some(message => message.status === 'idle'), false);
+});
+
+test('STOP suppresses late active status updates from in-flight work', async () => {
+    const content = loadContent({
+        initialUndoQueue: [],
+        refollowResult: true,
+        keepRunning: true
+    });
+
+    await new Promise(resolve => setImmediate(resolve));
+    await content.send('START');
+    await content.send('STOP');
+    content.emitLateStatus();
+    const response = await content.send('GET_STATUS');
+
+    assert.equal(response.isRunning, false);
+    assert.equal(response.statusData.status, 'stopped');
+    assert.equal(content.runtimeMessages.at(-1).status, 'stopped');
 });
 
 test('statistics reset does not reset the protected daily quota window', () => {

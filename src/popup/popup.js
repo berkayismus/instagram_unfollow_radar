@@ -90,15 +90,18 @@
             } catch (_) {}
         }
 
+        chrome.runtime.onMessage.addListener(handleMessage);
+
         const loaded = await Promise.all([
             IGRadarUI.loadStats(),
             IGRadarUI.loadKeywords(),
             IGRadarUI.loadWhitelist(),
             IGRadarUI.loadDryRunMode(),
             IGRadarUI.loadUndoQueue(),
+            IGRadarUI.loadProcessedUsers(),
             loadPremiumStatus()
         ]);
-        const premiumState = loaded[5];
+        const premiumState = loaded[6];
         if (isOnInstagram && premiumState) {
             try {
                 await chrome.tabs.sendMessage(tab.id, {
@@ -117,12 +120,15 @@
         }
 
         IGRadarEvents.setup();
-        chrome.runtime.onMessage.addListener(handleMessage);
 
         if (isOnInstagram) {
             if (statusResponse) {
-                if (statusResponse.isRunning) IGRadarUI.setRunning(true);
-                IGRadarUI.updateStatus('ready', `✓ ${I18n.t('status.ready')}`);
+                if (statusResponse.statusData) {
+                    IGRadarUI.handleStatusUpdate(statusResponse.statusData);
+                }
+                const isRateLimited = statusResponse.statusData &&
+                    statusResponse.statusData.status === Constants.STATUS.RATE_LIMIT;
+                IGRadarUI.setRunning(!!statusResponse.isRunning && !isRateLimited);
             } else {
                 IGRadarUI.updateStatus('ready', `⚠️ ${I18n.t('status.ready')}`);
             }

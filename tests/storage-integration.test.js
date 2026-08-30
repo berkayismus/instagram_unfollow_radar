@@ -67,6 +67,7 @@ test('real storage modules isolate operational data and share license state', as
     });
     await contentStorage.saveWatchList([{ username: 'a-watch' }]);
     await contentStorage.saveRunCheckpoint({ version: 1, userId: 'account-a' });
+    await contentStorage.addRunActivity({ username: 'a-processed', action: 'dry-run' });
 
     accountStorage.setScope('account-b');
     await accountStorage.migrateLegacy();
@@ -79,6 +80,7 @@ test('real storage modules isolate operational data and share license state', as
     assert.equal(stateB.isPremium, true);
     assert.equal(JSON.stringify(await contentStorage.getWatchList()), '[]');
     assert.equal(await contentStorage.getRunCheckpoint(), null);
+    assert.equal(JSON.stringify(await contentStorage.getRunActivity()), '[]');
 
     accountStorage.setScope('account-a');
     const stateA = blankState();
@@ -90,6 +92,7 @@ test('real storage modules isolate operational data and share license state', as
     assert.equal(JSON.stringify(stateA.undoQueue), JSON.stringify([{ id: '1', username: 'a-user' }]));
     assert.equal(JSON.stringify(await contentStorage.getWatchList()), JSON.stringify([{ username: 'a-watch' }]));
     assert.equal((await contentStorage.getRunCheckpoint()).userId, 'account-a');
+    assert.equal((await contentStorage.getRunActivity())[0].username, 'a-processed');
 });
 
 test('legacy values flow through migration into the real content state once', async () => {
@@ -112,4 +115,17 @@ test('legacy values flow through migration into the real content state once', as
     assert.equal(stored[SK.SESSION_COUNT], undefined);
     assert.equal(stored.igTestComplete, undefined);
     assert.equal(await accountStorage.migrateLegacy(), false);
+});
+
+test('processed-user activity is capped to the popup display limit', async () => {
+    const { constants, accountStorage, contentStorage } = loadStorageStack();
+    accountStorage.setScope('activity-account');
+
+    for (let index = 0; index < constants.LIMITS.MAX_USER_LIST_DISPLAY + 5; index++) {
+        await contentStorage.addRunActivity({ username: `user-${index}`, action: 'dry-run' });
+    }
+
+    const activity = await contentStorage.getRunActivity();
+    assert.equal(activity.length, constants.LIMITS.MAX_USER_LIST_DISPLAY);
+    assert.equal(activity[0].username, 'user-5');
 });

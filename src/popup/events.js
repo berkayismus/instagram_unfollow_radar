@@ -77,7 +77,8 @@ const IGRadarEvents = (function() {
                 return;
             }
             IGRadarUI.setRunning(true);
-            IGRadarUI.clearUserList();
+            if (result.resumed) await IGRadarUI.loadProcessedUsers();
+            else IGRadarUI.clearUserList();
             IGRadarUI.updateStatus('active', `🔄 ${I18n.t('status.processing')}...`);
         } catch (err) {
             console.error('[IGRadar] Failed to start:', err);
@@ -107,7 +108,8 @@ const IGRadarEvents = (function() {
             [Constants.STORAGE_KEYS.TOTAL_UNFOLLOWED]: 0,
             [Constants.STORAGE_KEYS.LAST_RUN]:         null,
             [Constants.STORAGE_KEYS.UNFOLLOW_STATS]:   { daily: {} },
-            [Constants.STORAGE_KEYS.UNFOLLOW_HISTORY]: []
+            [Constants.STORAGE_KEYS.UNFOLLOW_HISTORY]: [],
+            [Constants.STORAGE_KEYS.RUN_ACTIVITY]:     []
         });
         IGRadarUI.el.totalCount.textContent          = '0';
         IGRadarUI.el.lastRun.textContent             = '-';

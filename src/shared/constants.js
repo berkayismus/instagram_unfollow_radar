@@ -38,7 +38,8 @@ const Constants = (function () {
             RATE_LIMIT_MINUTES:   15,
             RUN_LOCK_TTL:         45 * 1000,
             RUN_LOCK_HEARTBEAT:   15 * 1000,
-            CHECKPOINT_MAX_AGE:   24 * 60 * 60 * 1000
+            CHECKPOINT_MAX_AGE:   24 * 60 * 60 * 1000,
+            API_READ_RETRY_DELAY: 1000
         },
 
         // ─── LIMITS ──────────────────────────────────────────────────────────
@@ -50,7 +51,8 @@ const Constants = (function () {
             SCAN_PAGE_SIZE:          50,
             CHART_DAYS:              30,
             FREE_DAILY_LIMIT:        10,
-            PREMIUM_DAILY_LIMIT:     500
+            PREMIUM_DAILY_LIMIT:     500,
+            API_READ_MAX_ATTEMPTS:   2
         },
 
         // ─── WATCH LIST (follow activity) ────────────────────────────────────
@@ -81,6 +83,8 @@ const Constants = (function () {
             FOLLOWERS: (userId) => `https://www.instagram.com/api/v1/friendships/${userId}/followers/`,
             DESTROY:   (userId) => `https://www.instagram.com/api/v1/friendships/destroy/${userId}/`,
             CREATE:    (userId) => `https://www.instagram.com/api/v1/friendships/create/${userId}/`,
+            WEB_DESTROY: (userId) => `https://www.instagram.com/web/friendships/${userId}/unfollow/`,
+            WEB_CREATE:  (userId) => `https://www.instagram.com/web/friendships/${userId}/follow/`,
             WEB_PROFILE_INFO: (username) =>
                 `https://www.instagram.com/api/v1/users/web_profile_info/?username=${encodeURIComponent(username)}`
         },
@@ -116,7 +120,8 @@ const Constants = (function () {
             WATCH_LIST:       'igWatchList',
             POPUP_ACTIVE_TAB: 'igPopupActiveTab',
             ACTIVE_RUN_LOCK:  'igActiveRunLock',
-            RUN_CHECKPOINT:   'igRunCheckpoint'
+            RUN_CHECKPOINT:   'igRunCheckpoint',
+            RUN_ACTIVITY:     'igRunActivity'
         },
 
         // ─── MESSAGE TYPES ────────────────────────────────────────────────────

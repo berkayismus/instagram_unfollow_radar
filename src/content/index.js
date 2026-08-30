@@ -36,7 +36,9 @@ const IGUnfollowRadarContent = (function() {
         isPremium:       false,
         licenseKey:      null,
         licenseEmail:    null,
-        dailyLimit:      Constants.LIMITS.FREE_DAILY_LIMIT
+        dailyLimit:      Constants.LIMITS.FREE_DAILY_LIMIT,
+        currentStatus:   Constants.STATUS.READY,
+        currentStatusExtra: {}
     };
 
     // ─── STATUS BROADCAST ─────────────────────────────────────────────────────
@@ -47,6 +49,16 @@ const IGUnfollowRadarContent = (function() {
      * @param {Object} [extra]
      */
     function sendStatus(status, extra = {}) {
+        const activeStatuses = [
+            Constants.STATUS.STARTED,
+            Constants.STATUS.SCANNING,
+            Constants.STATUS.UNFOLLOWED,
+            Constants.STATUS.RESUMED,
+            Constants.STATUS.RATE_LIMIT
+        ];
+        if (!state.isRunning && activeStatuses.includes(status)) return;
+        state.currentStatus      = status;
+        state.currentStatusExtra = { ...extra };
         chrome.runtime.sendMessage({
             type:            Constants.MESSAGE_TYPES.STATUS_UPDATE,
             status,
@@ -59,6 +71,14 @@ const IGUnfollowRadarContent = (function() {
     function createRunId() {
         if (crypto.randomUUID) return crypto.randomUUID();
         return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+
+    function isUsableRunCheckpoint(checkpoint, userId) {
+        return !!checkpoint &&
+            checkpoint.version === 1 &&
+            String(checkpoint.userId) === String(userId) &&
+            checkpoint.dryRunMode === state.dryRunMode &&
+            Date.now() - checkpoint.updatedAt <= Constants.TIMING.CHECKPOINT_MAX_AGE;
     }
 
     function requestRunLock(action, runId) {
@@ -143,6 +163,8 @@ const IGUnfollowRadarContent = (function() {
         state.startPromise = (async() => {
             IGRadarAccountStorage.setScope(runUserId);
             await IGRadarAccountStorage.migrateLegacy();
+            const checkpoint = await IGRadarStorage.getRunCheckpoint();
+            const resumed = isUsableRunCheckpoint(checkpoint, runUserId);
             const result = await requestRunLock(Constants.ACTIONS.ACQUIRE_RUN_LOCK, runId);
             if (!result || !result.success) {
                 return {
@@ -150,6 +172,7 @@ const IGUnfollowRadarContent = (function() {
                     error: result && result.error ? result.error : 'run_lock_error'
                 };
             }
+            if (!resumed) await IGRadarStorage.clearRunActivity();
 
             state.runId           = runId;
             state.runUserId       = runUserId;
@@ -161,7 +184,7 @@ const IGUnfollowRadarContent = (function() {
             state.abortController = new AbortController();
             startLockHeartbeat(runId);
             runAutomation(runId);
-            return { success: true, runId };
+            return { success: true, runId, resumed };
         })();
 
         try {
@@ -219,11 +242,16 @@ const IGUnfollowRadarContent = (function() {
                     ).catch(err => {
                         console.error('[IGRadar] Account storage migration failed:', err);
                     }).finally(() => {
-                        sendStatus(Constants.STATUS.IDLE);
                         sendResponse({
                             success: true,
                             isRunning: state.isRunning,
-                            userId: statusUserId
+                            userId: statusUserId,
+                            statusData: {
+                                status: state.currentStatus,
+                                sessionCount: state.sessionCount,
+                                totalUnfollowed: state.totalUnfollowed,
+                                ...state.currentStatusExtra
+                            }
                         });
                     });
                     return true;
@@ -405,11 +433,7 @@ const IGUnfollowRadarContent = (function() {
                         console.error('[IGRadar] enforceStorageLimit on init', err);
                     }
                     const checkpoint = await IGRadarStorage.getRunCheckpoint();
-                    const canResume = checkpoint &&
-                        checkpoint.version === 1 &&
-                        String(checkpoint.userId) === String(userId) &&
-                        checkpoint.dryRunMode === state.dryRunMode &&
-                        Date.now() - checkpoint.updatedAt <= Constants.TIMING.CHECKPOINT_MAX_AGE;
+                    const canResume = isUsableRunCheckpoint(checkpoint, userId);
                     if (canResume) {
                         const result = await beginRun();
                         if (!result.success) sendStatus(Constants.STATUS.READY);

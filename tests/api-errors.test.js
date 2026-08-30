@@ -15,24 +15,30 @@ function loadAPI(fetchImpl) {
                 FOLLOWERS: id => `https://instagram.test/${id}/followers`,
                 DESTROY: id => `https://instagram.test/${id}/destroy`,
                 CREATE: id => `https://instagram.test/${id}/create`,
+                WEB_DESTROY: id => `https://instagram.test/${id}/web-unfollow`,
+                WEB_CREATE: id => `https://instagram.test/${id}/web-follow`,
                 WEB_PROFILE_INFO: username => `https://instagram.test/${username}/profile`
             },
-            LIMITS: { SCAN_PAGE_SIZE: 50 }
+            LIMITS: { SCAN_PAGE_SIZE: 50, API_READ_MAX_ATTEMPTS: 2 },
+            TIMING: { API_READ_RETRY_DELAY: 0 }
         },
         URLSearchParams,
         document: { cookie: 'ds_user_id=self; csrftoken=csrf' },
-        fetch: fetchImpl
+        fetch: fetchImpl,
+        setTimeout: callback => callback(),
+        console
     });
     const source = fs.readFileSync(path.join(root, 'src/content/api.js'), 'utf8');
     vm.runInContext(source, context);
     return vm.runInContext('IGRadarAPI', context);
 }
 
-function response(status, body) {
+function response(status, body, extra = {}) {
     return {
         status,
         ok: status >= 200 && status < 300,
-        text: async () => body
+        text: async () => body,
+        ...extra
     };
 }
 
@@ -64,7 +70,9 @@ test('network and invalid JSON responses remain distinct', async () => {
     );
     await assert.rejects(
         () => invalid.fetchFollowersPage('self', null),
-        err => err.code === 'invalid_response' && err.retriable === false
+        err => err.code === 'invalid_response' &&
+            err.reason === 'html_response' &&
+            err.retriable === false
     );
 });
 
@@ -80,6 +88,70 @@ test('successful HTTP responses with Instagram failure payloads are classified',
     );
 });
 
+test('successful empty unfollow responses are accepted without a duplicate request', async () => {
+    let calls = 0;
+    const api = loadAPI(async () => {
+        calls++;
+        return response(204, '');
+    });
+
+    assert.equal(await api.unfollowUser('42'), true);
+    assert.equal(calls, 1);
+});
+
+test('explicit plain-text ok unfollow responses are accepted', async () => {
+    const api = loadAPI(async () => response(200, 'ok'));
+
+    assert.equal(await api.unfollowUser('42'), true);
+});
+
+test('HTML unfollow responses use the web fallback once', async () => {
+    const urls = [];
+    const api = loadAPI(async url => {
+        urls.push(url);
+        return urls.length === 1
+            ? response(200, '<html>not found</html>')
+            : response(200, JSON.stringify({ status: 'ok' }));
+    });
+
+    assert.equal(await api.unfollowUser('42'), true);
+    assert.deepEqual(urls, [
+        'https://instagram.test/42/destroy',
+        'https://instagram.test/42/web-unfollow'
+    ]);
+});
+
+test('failed web fallback is reported without another write attempt', async () => {
+    let calls = 0;
+    const api = loadAPI(async () => {
+        calls++;
+        return response(200, '<html>not found</html>');
+    });
+
+    await assert.rejects(
+        () => api.unfollowUser('42'),
+        err => err.code === 'invalid_response' && err.endpoint === 'unfollow_fallback'
+    );
+    assert.equal(calls, 2);
+});
+
+test('login redirects do not trigger the unfollow fallback', async () => {
+    let calls = 0;
+    const api = loadAPI(async () => {
+        calls++;
+        return response(200, '<html>login</html>', {
+            redirected: true,
+            url: 'https://www.instagram.com/accounts/login/'
+        });
+    });
+
+    await assert.rejects(
+        () => api.unfollowUser('42'),
+        err => err.code === 'auth_required'
+    );
+    assert.equal(calls, 1);
+});
+
 test('pagination rejects structurally incomplete success payloads', async () => {
     const api = loadAPI(async () => response(200, JSON.stringify({ status: 'ok' })));
 
@@ -87,4 +159,31 @@ test('pagination rejects structurally incomplete success payloads', async () => 
         () => api.fetchFollowingPage('self', null),
         err => err.code === 'invalid_response'
     );
+});
+
+test('safe list reads retry one transient invalid response', async () => {
+    let calls = 0;
+    const api = loadAPI(async () => {
+        calls++;
+        return calls === 1
+            ? response(200, '')
+            : response(200, JSON.stringify({ users: [{ id: '1' }], next_max_id: 'next' }));
+    });
+
+    const page = await api.fetchFollowingPage('self', null);
+
+    assert.equal(calls, 2);
+    assert.equal(page.users.length, 1);
+    assert.equal(page.nextCursor, 'next');
+});
+
+test('wrapped Instagram list payloads are normalized', async () => {
+    const api = loadAPI(async () => response(200, JSON.stringify({
+        data: { users: [{ id: '1' }], next_cursor: 'wrapped-next' }
+    })));
+
+    const page = await api.fetchFollowersPage('self', null);
+
+    assert.equal(page.users.length, 1);
+    assert.equal(page.nextCursor, 'wrapped-next');
 });

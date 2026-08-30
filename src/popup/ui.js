@@ -435,6 +435,17 @@ const IGRadarUI = (function() {
         el.userListEmpty.style.display = '';
     }
 
+    async function loadProcessedUsers() {
+        clearUserList();
+        const data = await IGRadarAccountStorage.get([Constants.STORAGE_KEYS.RUN_ACTIVITY]);
+        for (const entry of data[Constants.STORAGE_KEYS.RUN_ACTIVITY] || []) {
+            if (!entry || typeof entry.username !== 'string' || typeof entry.action !== 'string') {
+                continue;
+            }
+            await addUserToList(entry.username, entry.action, entry.timestamp);
+        }
+    }
+
     // ─── MESSAGE-DRIVEN UI UPDATES ────────────────────────────────────────────
 
     /**
@@ -496,6 +507,9 @@ const IGRadarUI = (function() {
                 updateStatus('active', `🔄 ${I18n.t('status.processing')}...`);
                 setRunning(true);
                 break;
+            case Constants.STATUS.RATE_LIMIT:
+                handleRateLimitMessage(data);
+                break;
             case Constants.STATUS.ERROR: {
                 const errorKeys = {
                     followers_scan_incomplete: 'status.followersScanIncomplete',
@@ -508,9 +522,14 @@ const IGRadarUI = (function() {
                     invalid_response: 'status.invalidResponse',
                     api_error: 'status.apiError'
                 };
+                const diagnostic = data.message === 'invalid_response' &&
+                    (data.apiEndpoint || data.apiReason)
+                    ? ` [${[data.apiEndpoint, data.apiReason, data.httpStatus]
+                        .filter(Boolean).join(' / ')}]`
+                    : '';
                 updateStatus(
                     'stopped',
-                    `⚠️ ${I18n.t(errorKeys[data.message] || 'status.error')}`
+                    `⚠️ ${I18n.t(errorKeys[data.message] || 'status.error')}${diagnostic}`
                 );
                 setRunning(false);
                 break;
@@ -812,6 +831,7 @@ const IGRadarUI = (function() {
         setRunning,
         isRunning,
         clearUserList,
+        loadProcessedUsers,
         loadStats,
         loadKeywords,
         loadWhitelist,
