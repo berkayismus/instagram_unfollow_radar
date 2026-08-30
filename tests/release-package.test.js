@@ -5,6 +5,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const test = require('node:test');
+const vm = require('node:vm');
 
 const root = path.resolve(__dirname, '..');
 
@@ -25,6 +26,32 @@ test('package and manifest versions stay aligned', () => {
     const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 
     assert.equal(packageJson.version, manifest.version);
+    assert.match(manifest.version, /^\d+\.\d+\.\d+$/);
+});
+
+test('documented permissions and product limits match the shipped configuration', () => {
+    const manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf8'));
+    const privacy = fs.readFileSync(path.join(root, 'docs/PRIVACY_POLICY.md'), 'utf8');
+    const readme = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
+    const premium = fs.readFileSync(path.join(root, 'docs/PREMIUM.md'), 'utf8');
+    const constantsContext = vm.createContext({});
+    vm.runInContext(
+        fs.readFileSync(path.join(root, 'src/shared/constants.js'), 'utf8'),
+        constantsContext
+    );
+    const constants = vm.runInContext('Constants', constantsContext);
+
+    for (const permission of manifest.permissions) {
+        assert.match(privacy, new RegExp('\\| `' + permission + '` \\|'));
+    }
+    for (const permission of manifest.host_permissions) {
+        const hostname = new URL(permission.replace('*', '')).hostname.replace(/^www\./, '');
+        assert.match(privacy, new RegExp(hostname.replaceAll('.', '\\.')));
+    }
+
+    const limitRow = `| 24 saatlik unfollow limiti | ${constants.LIMITS.FREE_DAILY_LIMIT} | ${constants.LIMITS.PREMIUM_DAILY_LIMIT} |`;
+    assert.ok(readme.includes(limitRow));
+    assert.ok(premium.includes(limitRow));
 });
 
 test('every file referenced directly by the manifest exists', () => {
@@ -103,4 +130,26 @@ test('release ZIP output is deterministic', t => {
 
     const digest = file => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
     assert.equal(digest(first), digest(second));
+    assert.equal(fs.statSync(first).mode & 0o777, 0o644);
+    assert.equal(fs.statSync(second).mode & 0o777, 0o644);
+
+    const listing = spawnSync('python3', [
+        '-c',
+        'import sys,zipfile; print("\\n".join(zipfile.ZipFile(sys.argv[1]).namelist()))',
+        first
+    ], { encoding: 'utf8' });
+    assert.equal(listing.status, 0, listing.stderr || listing.stdout);
+    const archived = new Set(listing.stdout.trim().split('\n'));
+    const manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf8'));
+    const required = [
+        'manifest.json',
+        manifest.action.default_popup,
+        manifest.background.service_worker,
+        ...manifest.content_scripts.flatMap(scriptEntry => scriptEntry.js)
+    ];
+    required.forEach(file => assert.equal(archived.has(file), true, `ZIP is missing ${file}`));
+    for (const file of archived) {
+        assert.doesNotMatch(file, /^(tests|docs|scripts|dist)\//);
+        assert.doesNotMatch(file, /(^|\/)\./);
+    }
 });

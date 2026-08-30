@@ -119,4 +119,4 @@ npm run check
 npm run package
 ```
 
-Testler Node’un yerleşik test runner’ını kullanır. Paketleme scripti sabit dosya sırası, zaman damgası ve izinlerle deterministik ZIP üretir. GitHub Actions PR’larda test/sözdizimi kontrolü yapar ve mağaza paketini artifact olarak oluşturur.
+Testler Node’un yerleşik test runner’ını tek worker ile kullanır. Paketleme scripti sabit dosya sırası, zaman damgası ve izinlerle deterministik ZIP üretir. Testler gerçek storage katmanlarının hesap izolasyonunu/migration’ını, ZIP allowlist’ini, manifest izinlerinin gizlilik metnindeki karşılığını ve ürün limitlerinin dokümanlarla uyumunu doğrular. GitHub Actions PR’larda bu kontrolleri çalıştırır ve mağaza paketini artifact olarak oluşturur.
