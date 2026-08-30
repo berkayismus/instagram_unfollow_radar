@@ -1,6 +1,6 @@
 /**
  * @fileoverview Instagram Unfollow Radar - Storage Layer
- * @description All chrome.storage.local interactions in one place.
+ * @description Account-aware storage operations for automation and watchlist data.
  *   Functions either populate a state object or persist specific counters.
  *   No fetch calls, no DOM access.
  * @version 2.0.0
@@ -28,7 +28,7 @@ const IGRadarStorage = (function() {
             SK.IS_PREMIUM,    SK.LICENSE_KEY,    SK.LICENSE_EMAIL
         ];
 
-        const data = await chrome.storage.local.get(keys);
+        const data = await IGRadarAccountStorage.get(keys);
         const now  = Date.now();
 
         const sessionExpired =
@@ -37,7 +37,7 @@ const IGRadarStorage = (function() {
 
         if (sessionExpired) {
             state.sessionCount = 0;
-            await chrome.storage.local.set({ [SK.SESSION_COUNT]: 0, [SK.SESSION_START]: now });
+            await IGRadarAccountStorage.set({ [SK.SESSION_COUNT]: 0, [SK.SESSION_START]: now });
         } else {
             state.sessionCount = data[SK.SESSION_COUNT] || 0;
         }
@@ -56,13 +56,13 @@ const IGRadarStorage = (function() {
 
         // Initialise missing records so downstream reads never see undefined
         if (!data[SK.SESSION_START]) {
-            await chrome.storage.local.set({ [SK.SESSION_START]: now });
+            await IGRadarAccountStorage.set({ [SK.SESSION_START]: now });
         }
         if (!data[SK.UNFOLLOW_STATS]) {
-            await chrome.storage.local.set({ [SK.UNFOLLOW_STATS]: { daily: {} } });
+            await IGRadarAccountStorage.set({ [SK.UNFOLLOW_STATS]: { daily: {} } });
         }
         if (!data[SK.UNFOLLOW_HISTORY]) {
-            await chrome.storage.local.set({ [SK.UNFOLLOW_HISTORY]: [] });
+            await IGRadarAccountStorage.set({ [SK.UNFOLLOW_HISTORY]: [] });
         }
 
         return state;
@@ -76,7 +76,7 @@ const IGRadarStorage = (function() {
      * @param {Array}  params.undoQueue
      */
     async function saveSessionProgress({ sessionCount, totalUnfollowed, undoQueue }) {
-        await chrome.storage.local.set({
+        await IGRadarAccountStorage.set({
             [SK.SESSION_COUNT]:    sessionCount,
             [SK.TOTAL_UNFOLLOWED]: totalUnfollowed,
             [SK.LAST_RUN]:         new Date().toISOString(),
@@ -89,13 +89,13 @@ const IGRadarStorage = (function() {
      */
     async function updateDailyStats() {
         const today  = new Date().toISOString().split('T')[0];
-        const data   = await chrome.storage.local.get([SK.UNFOLLOW_STATS]);
+        const data   = await IGRadarAccountStorage.get([SK.UNFOLLOW_STATS]);
         const stats  = data[SK.UNFOLLOW_STATS] || { daily: {} };
         if (!stats.daily[today]) {
             stats.daily[today] = { unfollowed: 0, timestamp: Date.now() };
         }
         stats.daily[today].unfollowed++;
-        await chrome.storage.local.set({ [SK.UNFOLLOW_STATS]: stats });
+        await IGRadarAccountStorage.set({ [SK.UNFOLLOW_STATS]: stats });
     }
 
     /**
@@ -105,12 +105,12 @@ const IGRadarStorage = (function() {
      * @param {string} reason
      */
     async function addToHistory(username, reason) {
-        const data    = await chrome.storage.local.get([SK.UNFOLLOW_HISTORY]);
+        const data    = await IGRadarAccountStorage.get([SK.UNFOLLOW_HISTORY]);
         const history = data[SK.UNFOLLOW_HISTORY] || [];
         history.push({ username, date: new Date().toISOString(), reason });
         const cutoff  = Date.now() - Constants.LIMITS.HISTORY_RETENTION_DAYS * 86400000;
         const trimmed = history.filter(item => new Date(item.date).getTime() > cutoff);
-        await chrome.storage.local.set({ [SK.UNFOLLOW_HISTORY]: trimmed });
+        await IGRadarAccountStorage.set({ [SK.UNFOLLOW_HISTORY]: trimmed });
     }
 
     /**
@@ -118,27 +118,27 @@ const IGRadarStorage = (function() {
      * @param {number} timestamp - ms since epoch
      */
     async function setRateLimitUntil(timestamp) {
-        await chrome.storage.local.set({ [SK.RATE_LIMIT_UNTIL]: timestamp });
+        await IGRadarAccountStorage.set({ [SK.RATE_LIMIT_UNTIL]: timestamp });
     }
 
     /** Clears the stored rate-limit expiry (called on auto-resume). */
     async function clearRateLimit() {
-        await chrome.storage.local.set({ [SK.RATE_LIMIT_UNTIL]: null });
+        await IGRadarAccountStorage.set({ [SK.RATE_LIMIT_UNTIL]: null });
     }
 
     async function getRunCheckpoint() {
-        const data = await chrome.storage.local.get([SK.RUN_CHECKPOINT]);
+        const data = await IGRadarAccountStorage.get([SK.RUN_CHECKPOINT]);
         return data[SK.RUN_CHECKPOINT] || null;
     }
 
     async function saveRunCheckpoint(checkpoint) {
-        await chrome.storage.local.set({
+        await IGRadarAccountStorage.set({
             [SK.RUN_CHECKPOINT]: { ...checkpoint, updatedAt: Date.now() }
         });
     }
 
     async function clearRunCheckpoint() {
-        await chrome.storage.local.remove(SK.RUN_CHECKPOINT);
+        await IGRadarAccountStorage.remove(SK.RUN_CHECKPOINT);
     }
 
     /**
@@ -148,7 +148,7 @@ const IGRadarStorage = (function() {
      * @param {string|null} email - email from Gumroad purchase record
      */
     async function saveLicenseState(isPremium, licenseKey, email) {
-        await chrome.storage.local.set({
+        await IGRadarAccountStorage.set({
             [SK.IS_PREMIUM]:    isPremium,
             [SK.LICENSE_KEY]:   licenseKey,
             [SK.LICENSE_EMAIL]: email
@@ -159,7 +159,7 @@ const IGRadarStorage = (function() {
      * @returns {Promise<Array>} watch-list entries (may be empty)
      */
     async function getWatchList() {
-        const data = await chrome.storage.local.get([SK.WATCH_LIST]);
+        const data = await IGRadarAccountStorage.get([SK.WATCH_LIST]);
         return data[SK.WATCH_LIST] || [];
     }
 
@@ -167,7 +167,7 @@ const IGRadarStorage = (function() {
      * @param {Array} list - serialisable watch-list entry objects
      */
     async function saveWatchList(list) {
-        await chrome.storage.local.set({ [SK.WATCH_LIST]: list });
+        await IGRadarAccountStorage.set({ [SK.WATCH_LIST]: list });
     }
 
     return {

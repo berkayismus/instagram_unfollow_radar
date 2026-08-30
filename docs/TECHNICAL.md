@@ -100,7 +100,7 @@ Başlıca anahtarlar:
 | UI | `igTheme`, `igLanguage`, `igPopupActiveTab` |
 | Çalışma | `igRateLimitUntil`, `igActiveRunLock`, `igRunCheckpoint` |
 
-Veri doğrulama ve hesap kimliğine göre ayrı namespace kullanımı henüz uygulanmamıştır.
+Instagram’a bağlı anahtarlar `::<account-id>` son ekiyle ayrı namespace’lerde tutulur. Kota, filtreler, geçmiş, undo, watchlist ve checkpoint hesap kapsamındadır; tema, dil, popup sekmesi, lisans ve extension-geneli çalışma kilidi globaldir. Eski kapsamlandırılmamış veri, güncelleme sonrası görülen ilk hesaba bir kez ve mevcut scoped veriyi ezmeden taşınır.
 
 ## Mesajlaşma
 

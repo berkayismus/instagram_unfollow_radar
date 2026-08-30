@@ -26,6 +26,7 @@ Premium Gumroad üzerinden etkinleştirilir: [cayliverse.gumroad.com/l/vnzrgn](h
 - TR, EN ve DE arayüz
 - Aynı anda yalnızca bir Instagram sekmesinde otomasyon
 - Sayfa yenileme ve Instagram rate-limit sonrasında otomatik devam
+- Instagram hesabına göre ayrı kota, filtre, geçmiş ve izleme verisi
 - Çalışma sırasında hesap değişirse güvenli durdurma
 - İzleme listesinde yalnızca tam alınan snapshot’ları karşılaştırma
 

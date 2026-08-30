@@ -1,6 +1,6 @@
 /**
  * @fileoverview Watch list slot limits (free vs Premium) — shared by popup + content.
- * @description Enforces max watched accounts in chrome.storage.local; no Instagram API.
+ * @description Enforces max watched accounts in account-scoped local storage.
  */
 
 window.IGRadarWatchlistLimits = (function() {
@@ -21,7 +21,7 @@ window.IGRadarWatchlistLimits = (function() {
      */
     async function enforceStorageLimit() {
         const SK = Constants.STORAGE_KEYS;
-        const data = await chrome.storage.local.get([SK.WATCH_LIST, SK.IS_PREMIUM]);
+        const data = await IGRadarAccountStorage.get([SK.WATCH_LIST, SK.IS_PREMIUM]);
         const isPremium = data[SK.IS_PREMIUM] || false;
         const max       = maxEntries(isPremium);
         let list        = data[SK.WATCH_LIST] || [];
@@ -29,7 +29,7 @@ window.IGRadarWatchlistLimits = (function() {
             return { list, trimmed: false };
         }
         list = list.slice(0, max);
-        await chrome.storage.local.set({ [SK.WATCH_LIST]: list });
+        await IGRadarAccountStorage.set({ [SK.WATCH_LIST]: list });
         return { list, trimmed: true };
     }
 

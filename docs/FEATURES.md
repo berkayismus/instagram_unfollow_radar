@@ -19,6 +19,7 @@ Bu belge ürün davranışının kısa özetidir. Teknik ayrıntılar için [TEC
 - Aynı anda yalnızca bir Instagram sekmesi otomasyon çalıştırabilir.
 - Aktif Instagram hesabı değişirse süreç durur.
 - Kaydedilmiş ilerleme yalnızca aynı hesap ve aynı dry-run modunda, en fazla 24 saat içinde sürdürülür.
+- Filtreler, kota, geçmiş, undo, watchlist ve çalışma ilerlemesi Instagram hesap kimliğine göre ayrılır.
 - Dry-run gerçek kota veya unfollow istatistiği tüketmez.
 - Undo, Instagram refollow isteği başarılı olduktan sonra kuyruktan silinir.
 

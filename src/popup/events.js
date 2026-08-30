@@ -108,7 +108,7 @@ const IGRadarEvents = (function() {
 
     async function handleReset() {
         if (!confirm(I18n.t('messages.confirmReset'))) return;
-        await chrome.storage.local.set({
+        await IGRadarAccountStorage.set({
             [Constants.STORAGE_KEYS.TOTAL_UNFOLLOWED]: 0,
             [Constants.STORAGE_KEYS.LAST_RUN]:         null,
             [Constants.STORAGE_KEYS.UNFOLLOW_STATS]:   { daily: {} },
@@ -138,7 +138,7 @@ const IGRadarEvents = (function() {
 
     async function handleDryRunToggle(e) {
         const enabled = e.target.checked;
-        await chrome.storage.local.set({ [Constants.STORAGE_KEYS.DRY_RUN_MODE]: enabled });
+        await IGRadarAccountStorage.set({ [Constants.STORAGE_KEYS.DRY_RUN_MODE]: enabled });
         try { await sendToContent({ action: Constants.ACTIONS.TOGGLE_DRY_RUN, enabled }); } catch (_) {}
         IGRadarUI.updateStatus(
             'ready',
@@ -151,11 +151,11 @@ const IGRadarEvents = (function() {
     async function handleAddKeyword() {
         const keyword = IGRadarUI.el.keywordInput.value.trim().toLowerCase();
         if (!keyword) return;
-        const data     = await chrome.storage.local.get([Constants.STORAGE_KEYS.KEYWORDS]);
+        const data     = await IGRadarAccountStorage.get([Constants.STORAGE_KEYS.KEYWORDS]);
         const keywords = data[Constants.STORAGE_KEYS.KEYWORDS] || [];
         if (!keywords.includes(keyword)) {
             keywords.push(keyword);
-            await chrome.storage.local.set({ [Constants.STORAGE_KEYS.KEYWORDS]: keywords });
+            await IGRadarAccountStorage.set({ [Constants.STORAGE_KEYS.KEYWORDS]: keywords });
             try { await sendToContent({ action: Constants.ACTIONS.UPDATE_KEYWORDS, keywords }); } catch (_) {}
             IGRadarUI.renderKeywordList(keywords);
         }
@@ -163,9 +163,9 @@ const IGRadarEvents = (function() {
     }
 
     async function handleRemoveKeyword(keyword) {
-        const data     = await chrome.storage.local.get([Constants.STORAGE_KEYS.KEYWORDS]);
+        const data     = await IGRadarAccountStorage.get([Constants.STORAGE_KEYS.KEYWORDS]);
         const filtered = (data[Constants.STORAGE_KEYS.KEYWORDS] || []).filter(k => k !== keyword);
-        await chrome.storage.local.set({ [Constants.STORAGE_KEYS.KEYWORDS]: filtered });
+        await IGRadarAccountStorage.set({ [Constants.STORAGE_KEYS.KEYWORDS]: filtered });
         try { await sendToContent({ action: Constants.ACTIONS.UPDATE_KEYWORDS, keywords: filtered }); } catch (_) {}
         IGRadarUI.renderKeywordList(filtered);
     }
@@ -175,11 +175,11 @@ const IGRadarEvents = (function() {
     async function handleAddWhitelist() {
         const username = IGRadarUI.el.whitelistInput.value.trim().replace('@', '').toLowerCase();
         if (!username) return;
-        const data      = await chrome.storage.local.get([Constants.STORAGE_KEYS.WHITELIST]);
+        const data      = await IGRadarAccountStorage.get([Constants.STORAGE_KEYS.WHITELIST]);
         const whitelist = data[Constants.STORAGE_KEYS.WHITELIST] || {};
         if (!whitelist[username]) {
             whitelist[username] = { addedDate: Date.now() };
-            await chrome.storage.local.set({ [Constants.STORAGE_KEYS.WHITELIST]: whitelist });
+            await IGRadarAccountStorage.set({ [Constants.STORAGE_KEYS.WHITELIST]: whitelist });
             try { await sendToContent({ action: Constants.ACTIONS.UPDATE_WHITELIST, whitelist }); } catch (_) {}
             IGRadarUI.renderWhitelistList(whitelist);
         }
@@ -187,10 +187,10 @@ const IGRadarEvents = (function() {
     }
 
     async function handleRemoveWhitelist(username) {
-        const data      = await chrome.storage.local.get([Constants.STORAGE_KEYS.WHITELIST]);
+        const data      = await IGRadarAccountStorage.get([Constants.STORAGE_KEYS.WHITELIST]);
         const whitelist = data[Constants.STORAGE_KEYS.WHITELIST] || {};
         delete whitelist[username];
-        await chrome.storage.local.set({ [Constants.STORAGE_KEYS.WHITELIST]: whitelist });
+        await IGRadarAccountStorage.set({ [Constants.STORAGE_KEYS.WHITELIST]: whitelist });
         try { await sendToContent({ action: Constants.ACTIONS.UPDATE_WHITELIST, whitelist }); } catch (_) {}
         IGRadarUI.renderWhitelistList(whitelist);
     }
@@ -223,7 +223,7 @@ const IGRadarEvents = (function() {
 
             if (json.success === true) {
                 const email = json.purchase && json.purchase.email ? json.purchase.email : null;
-                await chrome.storage.local.set({
+                await IGRadarAccountStorage.set({
                     [Constants.STORAGE_KEYS.IS_PREMIUM]:    true,
                     [Constants.STORAGE_KEYS.LICENSE_KEY]:   key,
                     [Constants.STORAGE_KEYS.LICENSE_EMAIL]: email
@@ -255,7 +255,7 @@ const IGRadarEvents = (function() {
      */
     async function handleDeactivateLicense() {
         if (!confirm(I18n.t('premium.confirmDeactivate'))) return;
-        await chrome.storage.local.set({
+        await IGRadarAccountStorage.set({
             [Constants.STORAGE_KEYS.IS_PREMIUM]:    false,
             [Constants.STORAGE_KEYS.LICENSE_KEY]:   null,
             [Constants.STORAGE_KEYS.LICENSE_EMAIL]: null
@@ -286,7 +286,7 @@ const IGRadarEvents = (function() {
     async function handleThemeToggle() {
         const isDark = document.documentElement.classList.contains('dark-mode');
         const theme  = isDark ? Constants.THEMES.LIGHT : Constants.THEMES.DARK;
-        await chrome.storage.local.set({ [Constants.STORAGE_KEYS.THEME]: theme });
+        await IGRadarAccountStorage.set({ [Constants.STORAGE_KEYS.THEME]: theme });
         IGRadarUI.applyTheme(theme);
     }
 
@@ -306,7 +306,7 @@ const IGRadarEvents = (function() {
             return;
         }
 
-        const pre = await chrome.storage.local.get([
+        const pre = await IGRadarAccountStorage.get([
             Constants.STORAGE_KEYS.WATCH_LIST,
             Constants.STORAGE_KEYS.IS_PREMIUM
         ]);
@@ -517,10 +517,10 @@ const IGRadarEvents = (function() {
      */
     async function handleAddToWhitelistFromList(username, btnElement) {
         const cleanName = username.replace('@', '').toLowerCase();
-        const data      = await chrome.storage.local.get([Constants.STORAGE_KEYS.WHITELIST]);
+        const data      = await IGRadarAccountStorage.get([Constants.STORAGE_KEYS.WHITELIST]);
         const whitelist = data[Constants.STORAGE_KEYS.WHITELIST] || {};
         whitelist[cleanName] = { addedDate: Date.now() };
-        await chrome.storage.local.set({ [Constants.STORAGE_KEYS.WHITELIST]: whitelist });
+        await IGRadarAccountStorage.set({ [Constants.STORAGE_KEYS.WHITELIST]: whitelist });
         try { await sendToContent({ action: Constants.ACTIONS.UPDATE_WHITELIST, whitelist }); } catch (_) {}
         IGRadarUI.renderWhitelistList(whitelist);
         btnElement.textContent = '✓';
