@@ -126,6 +126,21 @@ const IGRadarStorage = (function() {
         await chrome.storage.local.set({ [SK.RATE_LIMIT_UNTIL]: null });
     }
 
+    async function getRunCheckpoint() {
+        const data = await chrome.storage.local.get([SK.RUN_CHECKPOINT]);
+        return data[SK.RUN_CHECKPOINT] || null;
+    }
+
+    async function saveRunCheckpoint(checkpoint) {
+        await chrome.storage.local.set({
+            [SK.RUN_CHECKPOINT]: { ...checkpoint, updatedAt: Date.now() }
+        });
+    }
+
+    async function clearRunCheckpoint() {
+        await chrome.storage.local.remove(SK.RUN_CHECKPOINT);
+    }
+
     /**
      * Persists Gumroad premium license information.
      * @param {boolean} isPremium
@@ -162,6 +177,9 @@ const IGRadarStorage = (function() {
         addToHistory,
         setRateLimitUntil,
         clearRateLimit,
+        getRunCheckpoint,
+        saveRunCheckpoint,
+        clearRunCheckpoint,
         saveLicenseState,
         getWatchList,
         saveWatchList

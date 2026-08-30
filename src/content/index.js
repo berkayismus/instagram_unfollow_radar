@@ -29,6 +29,9 @@ const IGUnfollowRadarContent = (function() {
         undoInFlight:    false,
         runId:           null,
         runUserId:       null,
+        runCheckpoint:   null,
+        isStarting:      false,
+        startPromise:    null,
         lockHeartbeatId: null,
         rateLimitUntil:  null,
         abortController: null,
@@ -130,6 +133,49 @@ const IGUnfollowRadarContent = (function() {
             });
     }
 
+    async function beginRun() {
+        if (state.isRunning) return { success: true, isRunning: true };
+        if (state.startPromise) return state.startPromise;
+
+        const runUserId = IGRadarAPI.getCurrentUserId();
+        if (!runUserId) return { success: false, error: 'not_logged_in' };
+
+        state.isStarting = true;
+        const runId = createRunId();
+        state.startPromise = (async() => {
+            const result = await requestRunLock(Constants.ACTIONS.ACQUIRE_RUN_LOCK, runId);
+            if (!result || !result.success) {
+                return {
+                    success: false,
+                    error: result && result.error ? result.error : 'run_lock_error'
+                };
+            }
+
+            state.runId           = runId;
+            state.runUserId       = runUserId;
+            state.isRunning       = true;
+            state.isPaused        = false;
+            state.unfollowQueue   = [];
+            state.processedUsers  = new Set();
+            state.previewCount    = 0;
+            state.abortController = new AbortController();
+            startLockHeartbeat(runId);
+            runAutomation(runId);
+            return { success: true, runId };
+        })();
+
+        try {
+            return await state.startPromise;
+        } catch (err) {
+            console.error('[IGRadar] Failed to acquire run lock:', err);
+            if (state.runId === runId) await releaseRunLock(runId);
+            return { success: false, error: 'run_lock_error' };
+        } finally {
+            state.isStarting = false;
+            state.startPromise = null;
+        }
+    }
+
     // ─── MESSAGE LISTENER ─────────────────────────────────────────────────────
 
     function setupMessageListener() {
@@ -137,41 +183,7 @@ const IGUnfollowRadarContent = (function() {
             switch (message.action) {
 
                 case Constants.ACTIONS.START: {
-                    if (state.isRunning) {
-                        sendResponse({ success: true, isRunning: true });
-                        break;
-                    }
-                    const runUserId = IGRadarAPI.getCurrentUserId();
-                    if (!runUserId) {
-                        sendResponse({ success: false, error: 'not_logged_in' });
-                        break;
-                    }
-                    const runId = createRunId();
-                    requestRunLock(Constants.ACTIONS.ACQUIRE_RUN_LOCK, runId)
-                        .then(result => {
-                            if (!result || !result.success) {
-                                sendResponse({
-                                    success: false,
-                                    error: result && result.error ? result.error : 'run_lock_error'
-                                });
-                                return;
-                            }
-                            state.runId           = runId;
-                            state.runUserId       = runUserId;
-                            state.isRunning       = true;
-                            state.isPaused        = false;
-                            state.unfollowQueue   = [];
-                            state.processedUsers  = new Set();
-                            state.previewCount    = 0;
-                            state.abortController = new AbortController();
-                            startLockHeartbeat(runId);
-                            runAutomation(runId);
-                            sendResponse({ success: true, runId });
-                        })
-                        .catch(err => {
-                            console.error('[IGRadar] Failed to acquire run lock:', err);
-                            sendResponse({ success: false, error: 'run_lock_error' });
-                        });
+                    beginRun().then(sendResponse);
                     return true;
                 }
 
@@ -181,7 +193,11 @@ const IGUnfollowRadarContent = (function() {
                     state.isRunning = false;
                     state.isPaused  = false;
                     sendStatus(Constants.STATUS.STOPPED);
-                    releaseRunLock(runId).finally(() => sendResponse({ success: true }));
+                    Promise.all([
+                        releaseRunLock(runId),
+                        IGRadarStorage.clearRunCheckpoint(),
+                        IGRadarStorage.clearRateLimit()
+                    ]).finally(() => sendResponse({ success: true }));
                     return true;
                 }
 
@@ -372,7 +388,19 @@ const IGUnfollowRadarContent = (function() {
                 } catch (err) {
                     console.error('[IGRadar] enforceStorageLimit on init', err);
                 }
-                sendStatus(Constants.STATUS.READY);
+                const checkpoint = await IGRadarStorage.getRunCheckpoint();
+                const canResume = checkpoint &&
+                    checkpoint.version === 1 &&
+                    String(checkpoint.userId) === String(userId) &&
+                    checkpoint.dryRunMode === state.dryRunMode &&
+                    Date.now() - checkpoint.updatedAt <= Constants.TIMING.CHECKPOINT_MAX_AGE;
+                if (canResume) {
+                    const result = await beginRun();
+                    if (!result.success) sendStatus(Constants.STATUS.READY);
+                } else {
+                    if (checkpoint) await IGRadarStorage.clearRunCheckpoint();
+                    sendStatus(Constants.STATUS.READY);
+                }
             });
         } else {
             console.warn('[IGRadar] User not logged in');

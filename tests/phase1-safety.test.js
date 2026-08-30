@@ -8,6 +8,7 @@ const root = path.resolve(__dirname, '..');
 
 function loadAutomation({ api, storage, runtimeMessages = [] }) {
     class RateLimitError extends Error {}
+    const resolvedApi = typeof api === 'function' ? api(RateLimitError) : api;
 
     const context = vm.createContext({
         AbortController,
@@ -36,14 +37,22 @@ function loadAutomation({ api, storage, runtimeMessages = [] }) {
                 HUMAN_PAUSE_MIN: 0,
                 HUMAN_PAUSE_MAX: 0,
                 RATE_LIMIT_WAIT: 0,
-                RATE_LIMIT_MINUTES: 15
+                RATE_LIMIT_MINUTES: 15,
+                CHECKPOINT_MAX_AGE: 86400000
             },
             UI: { HUMAN_PAUSE_PROBABILITY: 0 },
             USER_ACTIONS: { DRY_RUN: 'dry-run', UNFOLLOWED: 'unfollowed' }
         },
-        IGRadarAPI: api,
+        IGRadarAPI: resolvedApi,
         IGRadarFilters: { shouldSkipUser: () => ({ skip: false }) },
-        IGRadarStorage: storage,
+        IGRadarStorage: {
+            getRunCheckpoint: async () => null,
+            saveRunCheckpoint: async () => {},
+            clearRunCheckpoint: async () => {},
+            setRateLimitUntil: async () => {},
+            clearRateLimit: async () => {},
+            ...storage
+        },
         RateLimitError,
         chrome: { runtime: { sendMessage: message => runtimeMessages.push(message) } },
         console,
@@ -188,8 +197,102 @@ test('an Instagram account change stops automation before the unfollow request',
     assert.deepEqual(statuses.at(-1), { status: 'error', message: 'account_changed' });
 });
 
-function loadContent({ initialUndoQueue, refollowResult }) {
+test('a rate-limited unfollow remains queued and is retried after cooldown', async () => {
+    let unfollowCalls = 0;
+    const savedCheckpoints = [];
+    const automation = loadAutomation({
+        api: RateLimitError => ({
+            getCurrentUserId: () => 'self',
+            fetchFollowersPage: async () => ({ users: [], nextCursor: null }),
+            fetchFollowingPage: async () => ({
+                users: [{ id: '1', username: 'retry_me' }],
+                nextCursor: null
+            }),
+            unfollowUser: async () => {
+                unfollowCalls++;
+                if (unfollowCalls === 1) throw new RateLimitError();
+                return true;
+            }
+        }),
+        storage: {
+            loadState: async state => state,
+            saveRunCheckpoint: async checkpoint => {
+                savedCheckpoints.push(structuredClone(checkpoint));
+            },
+            saveSessionProgress: async () => {},
+            updateDailyStats: async () => {},
+            addToHistory: async () => {}
+        }
+    });
+    const state = baseState();
+
+    await automation.mainLoop(state, () => {});
+
+    assert.equal(unfollowCalls, 2);
+    assert.equal(state.sessionCount, 1);
+    assert.ok(savedCheckpoints.some(checkpoint =>
+        checkpoint.unfollowQueue?.[0]?.username === 'retry_me'
+    ));
+});
+
+test('a saved following checkpoint resumes its queue and next cursor', async () => {
+    let followerCalls = 0;
+    const followingCursors = [];
+    const unfollowed = [];
+    let checkpointCleared = false;
+    const checkpoint = {
+        version: 1,
+        userId: 'self',
+        dryRunMode: false,
+        updatedAt: Date.now(),
+        phase: 'following',
+        followerIds: ['friend'],
+        followingCursor: 'page-2',
+        hasMore: true,
+        unfollowQueue: [{ id: '1', username: 'pending_user' }],
+        processedUsernames: ['pending_user'],
+        totalScanned: 25,
+        previewCount: 0
+    };
+    const automation = loadAutomation({
+        api: {
+            getCurrentUserId: () => 'self',
+            fetchFollowersPage: async () => {
+                followerCalls++;
+                return { users: [], nextCursor: null };
+            },
+            fetchFollowingPage: async (_userId, cursor) => {
+                followingCursors.push(cursor);
+                return { users: [], nextCursor: null };
+            },
+            unfollowUser: async id => {
+                unfollowed.push(id);
+                return true;
+            }
+        },
+        storage: {
+            loadState: async state => state,
+            getRunCheckpoint: async () => checkpoint,
+            saveRunCheckpoint: async () => {},
+            clearRunCheckpoint: async () => { checkpointCleared = true; },
+            saveSessionProgress: async () => {},
+            updateDailyStats: async () => {},
+            addToHistory: async () => {}
+        }
+    });
+    const state = baseState({ runUserId: 'self' });
+
+    await automation.mainLoop(state, () => {});
+
+    assert.equal(followerCalls, 0);
+    assert.deepEqual(followingCursors, ['page-2']);
+    assert.deepEqual(unfollowed, ['1']);
+    assert.equal(checkpointCleared, true);
+});
+
+function loadContent({ initialUndoQueue, refollowResult, checkpoint = null }) {
     let listener;
+    let automationCalls = 0;
     const storageWrites = [];
     const context = vm.createContext({
         AbortController,
@@ -207,9 +310,13 @@ function loadContent({ initialUndoQueue, refollowResult }) {
                 UPDATE_LICENSE: 'UPDATE_LICENSE',
                 WATCH_LIST_GET: 'WATCH_LIST_GET',
                 WATCH_LIST_ADD: 'WATCH_LIST_ADD',
-                WATCH_LIST_REFRESH: 'WATCH_LIST_REFRESH'
+                WATCH_LIST_REFRESH: 'WATCH_LIST_REFRESH',
+                ACQUIRE_RUN_LOCK: 'ACQUIRE_RUN_LOCK',
+                RENEW_RUN_LOCK: 'RENEW_RUN_LOCK',
+                RELEASE_RUN_LOCK: 'RELEASE_RUN_LOCK'
             },
             LIMITS: { FREE_DAILY_LIMIT: 10, PREMIUM_DAILY_LIMIT: 500 },
+            TIMING: { CHECKPOINT_MAX_AGE: 86400000, RUN_LOCK_HEARTBEAT: 30000 },
             MESSAGE_TYPES: { STATUS_UPDATE: 'STATUS_UPDATE' },
             STATUS: { READY: 'ready', STOPPED: 'stopped', IDLE: 'idle', ERROR: 'error' },
             STORAGE_KEYS: {
@@ -224,8 +331,16 @@ function loadContent({ initialUndoQueue, refollowResult }) {
             getCurrentUserId: () => 'self',
             refollowUser: async () => refollowResult
         },
-        IGRadarAutomation: { mainLoop: async () => {} },
+        IGRadarAutomation: {
+            mainLoop: async state => {
+                automationCalls++;
+                state.isRunning = false;
+            }
+        },
         IGRadarStorage: {
+            getRunCheckpoint: async () => checkpoint,
+            clearRunCheckpoint: async () => {},
+            clearRateLimit: async () => {},
             loadState: async state => {
                 state.undoQueue = initialUndoQueue.map(item => ({ ...item }));
                 return state;
@@ -241,7 +356,9 @@ function loadContent({ initialUndoQueue, refollowResult }) {
         chrome: {
             runtime: {
                 onMessage: { addListener: callback => { listener = callback; } },
-                sendMessage: () => {}
+                sendMessage: message => message.target === 'background'
+                    ? Promise.resolve({ success: true })
+                    : undefined
             },
             storage: {
                 local: {
@@ -249,7 +366,10 @@ function loadContent({ initialUndoQueue, refollowResult }) {
                 }
             }
         },
-        console
+        console,
+        crypto: { randomUUID: () => 'run-id' },
+        setInterval: () => 1,
+        clearInterval: () => {}
     });
 
     const source = fs.readFileSync(path.join(root, 'src/content/index.js'), 'utf8');
@@ -260,7 +380,8 @@ function loadContent({ initialUndoQueue, refollowResult }) {
             await new Promise(resolve => setImmediate(resolve));
             return new Promise(resolve => listener({ action, ...extra }, {}, resolve));
         },
-        storageWrites
+        storageWrites,
+        getAutomationCalls: () => automationCalls
     };
 }
 
@@ -283,6 +404,25 @@ test('successful undo removes the user only after the refollow succeeds', async 
     assert.equal(response.success, true);
     assert.equal(response.username, 'restore_me');
     assert.equal(JSON.stringify(content.storageWrites), JSON.stringify([{ undoQueue: [] }]));
+});
+
+test('content initialization automatically resumes a recent matching checkpoint', async () => {
+    const content = loadContent({
+        initialUndoQueue: [],
+        refollowResult: true,
+        checkpoint: {
+            version: 1,
+            userId: 'self',
+            dryRunMode: false,
+            updatedAt: Date.now(),
+            phase: 'followers'
+        }
+    });
+
+    await new Promise(resolve => setImmediate(resolve));
+    await new Promise(resolve => setImmediate(resolve));
+
+    assert.equal(content.getAutomationCalls(), 1);
 });
 
 test('statistics reset does not reset the protected daily quota window', () => {
