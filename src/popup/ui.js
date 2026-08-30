@@ -496,21 +496,25 @@ const IGRadarUI = (function() {
                 updateStatus('active', `🔄 ${I18n.t('status.processing')}...`);
                 setRunning(true);
                 break;
-            case Constants.STATUS.ERROR:
+            case Constants.STATUS.ERROR: {
+                const errorKeys = {
+                    followers_scan_incomplete: 'status.followersScanIncomplete',
+                    run_lock_lost: 'status.runLockLost',
+                    account_changed: 'status.accountChanged',
+                    auth_required: 'status.authRequired',
+                    challenge_required: 'status.challengeRequired',
+                    network_error: 'status.networkError',
+                    server_error: 'status.serverError',
+                    invalid_response: 'status.invalidResponse',
+                    api_error: 'status.apiError'
+                };
                 updateStatus(
                     'stopped',
-                    `⚠️ ${I18n.t(
-                        data.message === 'followers_scan_incomplete'
-                            ? 'status.followersScanIncomplete'
-                            : (data.message === 'run_lock_lost'
-                                ? 'status.runLockLost'
-                                : (data.message === 'account_changed'
-                                    ? 'status.accountChanged'
-                                    : 'status.error'))
-                    )}`
+                    `⚠️ ${I18n.t(errorKeys[data.message] || 'status.error')}`
                 );
                 setRunning(false);
                 break;
+            }
             default:
                 break;
         }

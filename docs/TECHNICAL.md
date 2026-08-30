@@ -62,6 +62,8 @@ Takipçi taraması eksik kalırsa unfollow aşamasına geçilmez. Dry-run aynı 
 
 Kimlik doğrulama mevcut Instagram oturumu, CSRF cookie’si ve web App ID üzerinden yapılır. API belgelenmemiştir; yanıt yapıları değişebilir.
 
+API katmanı hataları `auth_required`, `challenge_required`, `rate_limit`, `network_error`, `server_error`, `invalid_response` ve genel `api_error` kodlarına dönüştürür. Rate-limit cooldown sonrasında otomatik sürer. Diğer hatalarda otomasyon güvenle durur; POST için kuyruktan alınmış aday checkpoint’e geri konur. Watchlist toplu yenilemesi terminal API hatasında kalan hesaplara istek göndermeyi bırakır.
+
 ## Kota ve zamanlama
 
 | Ayar | Değer |

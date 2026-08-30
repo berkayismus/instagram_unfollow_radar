@@ -41,6 +41,12 @@ const IGRadarEvents = (function() {
             snapshot_incomplete: 'watch.error.snapshot_incomplete',
             not_in_list:     'watch.error.not_in_list',
             rate_limit:      'watch.error.rate_limit',
+            auth_required:   'watch.error.auth_required',
+            challenge_required: 'watch.error.challenge_required',
+            network_error:   'watch.error.network',
+            server_error:    'watch.error.server_error',
+            invalid_response: 'watch.error.invalid_response',
+            api_error:       'watch.error.unknown',
             unknown:         'watch.error.unknown',
             unknown_action:  'watch.error.unknownAction',
             network:         'watch.error.network'

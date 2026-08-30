@@ -6,14 +6,56 @@
  * @version 2.0.0
  */
 
-/**
- * Thrown when the Instagram API responds with HTTP 429 (Too Many Requests).
- * Caught by automation.js to trigger the rate-limit pause flow.
- */
-class RateLimitError extends Error {
+class InstagramAPIError extends Error {
+    constructor(message, code, { status = null, retriable = false } = {}) {
+        super(message);
+        this.name = this.constructor.name;
+        this.code = code;
+        this.status = status;
+        this.retriable = retriable;
+    }
+}
+
+class RateLimitError extends InstagramAPIError {
+    constructor(status = 429) {
+        super('Instagram rate limit reached', 'rate_limit', { status, retriable: true });
+    }
+}
+
+class AuthenticationError extends InstagramAPIError {
+    constructor(status = 401) {
+        super('Instagram authentication required', 'auth_required', { status });
+    }
+}
+
+class ChallengeRequiredError extends InstagramAPIError {
+    constructor(status = null) {
+        super('Instagram challenge or checkpoint required', 'challenge_required', { status });
+    }
+}
+
+class NetworkError extends InstagramAPIError {
+    constructor(cause) {
+        super('Instagram network request failed', 'network_error', { retriable: true });
+        this.cause = cause;
+    }
+}
+
+class ServerError extends InstagramAPIError {
+    constructor(status) {
+        super('Instagram server error', 'server_error', { status, retriable: true });
+    }
+}
+
+class InvalidResponseError extends InstagramAPIError {
     constructor() {
-        super('Instagram rate limit reached (HTTP 429)');
-        this.name = 'RateLimitError';
+        super('Instagram returned an invalid response', 'invalid_response');
+    }
+}
+
+class APIRequestError extends InstagramAPIError {
+    constructor(status = null) {
+        super('Instagram API request failed', 'api_error', { status });
     }
 }
 
@@ -54,68 +96,74 @@ const IGRadarAPI = (function() {
 
     // ─── LOW-LEVEL FETCH WRAPPERS ─────────────────────────────────────────────
 
-    /**
-     * GETs a URL and returns the parsed JSON body.
-     * Returns null on non-429 HTTP errors.
-     * Throws RateLimitError on HTTP 429.
-     * Propagates AbortError transparently when signal is aborted.
-     *
-     * @param {string} url
-     * @param {AbortSignal} [signal]
-     * @returns {Promise<Object|null>}
-     */
-    async function getJSON(url, signal) {
-        const response = await fetch(url, {
-            headers:   getApiHeaders(),
-            signal,
-            credentials: 'include'
-        });
-        if (response.status === 429) throw new RateLimitError();
-        if (!response.ok) {
-            console.error('[IGRadar] GET failed:', response.status, url);
-            return null;
-        }
-        const text = await response.text();
-        if (!text) return null;
-        try {
-            return JSON.parse(text);
-        } catch (parseErr) {
-            console.error('[IGRadar] GET JSON parse failed:', url, parseErr);
-            return null;
-        }
+    function bodySignals(text, patterns) {
+        const normalized = String(text || '').toLowerCase();
+        return patterns.some(pattern => normalized.includes(pattern));
     }
 
-    /**
-     * POSTs to a URL with an optional URL-encoded body and returns parsed JSON.
-     * Returns null on non-429 HTTP errors.
-     * Throws RateLimitError on HTTP 429.
-     *
-     * @param {string} url
-     * @param {string} [body='']
-     * @param {AbortSignal} [signal]
-     * @returns {Promise<Object|null>}
-     */
-    async function postJSON(url, body = '', signal) {
-        const response = await fetch(url, {
-            method:      'POST',
-            headers:     { ...getApiHeaders(), 'Content-Type': 'application/x-www-form-urlencoded' },
-            body,
-            signal,
-            credentials: 'include'
-        });
-        if (response.status === 429) throw new RateLimitError();
-        if (!response.ok) {
-            console.error('[IGRadar] POST failed:', response.status, url);
-            return null;
+    function classifyFailure(status, text) {
+        if (status === 429) return new RateLimitError(status);
+        if (status >= 500) return new ServerError(status);
+        if (bodySignals(text, ['challenge_required', 'checkpoint_required', 'checkpoint_url',
+            'consent_required'])) {
+            return new ChallengeRequiredError(status);
         }
-        const text = await response.text();
-        if (!text) return null;
+        if (bodySignals(text, ['feedback_required', 'please wait a few minutes'])) {
+            return new RateLimitError(status);
+        }
+        if (status === 401 || status === 403 ||
+            bodySignals(text, ['login_required', 'not logged in'])) {
+            return new AuthenticationError(status);
+        }
+        return new APIRequestError(status);
+    }
+
+    function validatePayload(data) {
+        if (!data || typeof data !== 'object') throw new InvalidResponseError();
+        if (data.status !== 'fail') return data;
+        const serialized = JSON.stringify(data);
+        throw classifyFailure(null, serialized);
+    }
+
+    async function requestJSON(url, options) {
+        let response;
         try {
-            return JSON.parse(text);
-        } catch (parseErr) {
-            console.error('[IGRadar] POST JSON parse failed:', url, parseErr);
-            return null;
+            response = await fetch(url, { ...options, credentials: 'include' });
+        } catch (err) {
+            if (err && err.name === 'AbortError') throw err;
+            throw new NetworkError(err);
         }
+
+        let text;
+        try {
+            text = await response.text();
+        } catch (err) {
+            if (err && err.name === 'AbortError') throw err;
+            throw new NetworkError(err);
+        }
+        if (!response.ok) throw classifyFailure(response.status, text);
+        if (!text) throw new InvalidResponseError();
+
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (_) {
+            throw new InvalidResponseError();
+        }
+        return validatePayload(data);
+    }
+
+    async function getJSON(url, signal) {
+        return requestJSON(url, { headers: getApiHeaders(), signal });
+    }
+
+    async function postJSON(url, body = '', signal) {
+        return requestJSON(url, {
+            method: 'POST',
+            headers: { ...getApiHeaders(), 'Content-Type': 'application/x-www-form-urlencoded' },
+            body,
+            signal
+        });
     }
 
     // ─── INSTAGRAM ENDPOINTS ──────────────────────────────────────────────────
@@ -131,7 +179,7 @@ const IGRadarAPI = (function() {
         const params = new URLSearchParams({ count: Constants.LIMITS.SCAN_PAGE_SIZE });
         if (cursor) params.append('max_id', cursor);
         const data = await getJSON(`${Constants.API.FOLLOWING(userId)}?${params}`, signal);
-        if (!data) return null;
+        if (!Array.isArray(data.users)) throw new InvalidResponseError();
         return { users: data.users || [], nextCursor: data.next_max_id || null };
     }
 
@@ -146,7 +194,7 @@ const IGRadarAPI = (function() {
         const params = new URLSearchParams({ count: Constants.LIMITS.SCAN_PAGE_SIZE });
         if (cursor) params.append('max_id', cursor);
         const data = await getJSON(`${Constants.API.FOLLOWERS(userId)}?${params}`, signal);
-        if (!data) return null;
+        if (!Array.isArray(data.users)) throw new InvalidResponseError();
         return { users: data.users || [], nextCursor: data.next_max_id || null };
     }
 
@@ -158,11 +206,6 @@ const IGRadarAPI = (function() {
      */
     async function fetchWebProfileInfo(username, signal) {
         const data = await getJSON(Constants.API.WEB_PROFILE_INFO(username), signal);
-        if (!data) return null;
-        if (data.status === 'fail') {
-            console.warn('[IGRadar] web_profile_info:', data.message || data.feedback_message || 'fail');
-            return null;
-        }
         const u = data.data && data.data.user;
         if (!u) return null;
         const rawId = u.pk != null && u.pk !== '' ? u.pk : u.id;
@@ -191,8 +234,8 @@ const IGRadarAPI = (function() {
      * @returns {Promise<boolean>} true if the request succeeded
      */
     async function unfollowUser(userId, signal) {
-        const data = await postJSON(Constants.API.DESTROY(userId), '', signal);
-        return data !== null && data.status !== 'fail';
+        await postJSON(Constants.API.DESTROY(userId), '', signal);
+        return true;
     }
 
     /**
@@ -202,8 +245,8 @@ const IGRadarAPI = (function() {
      * @returns {Promise<boolean>}
      */
     async function refollowUser(userId, signal) {
-        const data = await postJSON(Constants.API.CREATE(userId), '', signal);
-        return data !== null && data.status !== 'fail';
+        await postJSON(Constants.API.CREATE(userId), '', signal);
+        return true;
     }
 
     return {

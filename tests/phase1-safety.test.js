@@ -286,6 +286,42 @@ test('a saved following checkpoint resumes its queue and next cursor', async () 
     assert.equal(checkpointCleared, true);
 });
 
+test('classified API failures preserve the pending unfollow before stopping', async () => {
+    const savedCheckpoints = [];
+    const statuses = [];
+    const automation = loadAutomation({
+        api: {
+            getCurrentUserId: () => 'self',
+            fetchFollowersPage: async () => ({ users: [], nextCursor: null }),
+            fetchFollowingPage: async () => ({
+                users: [{ id: '1', username: 'preserve_me' }],
+                nextCursor: null
+            }),
+            unfollowUser: async () => {
+                const error = new Error('offline');
+                error.code = 'network_error';
+                error.retriable = true;
+                throw error;
+            }
+        },
+        storage: {
+            loadState: async state => state,
+            saveRunCheckpoint: async checkpoint => {
+                savedCheckpoints.push(structuredClone(checkpoint));
+            }
+        }
+    });
+    const state = baseState();
+
+    await automation.mainLoop(state, (status, extra = {}) => statuses.push({ status, ...extra }));
+
+    assert.equal(state.isRunning, false);
+    assert.ok(savedCheckpoints.some(checkpoint =>
+        checkpoint.unfollowQueue?.[0]?.username === 'preserve_me'
+    ));
+    assert.deepEqual(statuses.at(-1), { status: 'error', message: 'network_error' });
+});
+
 function loadContent({ initialUndoQueue, refollowResult, checkpoint = null }) {
     let listener;
     let automationCalls = 0;
