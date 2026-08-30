@@ -13,13 +13,10 @@
 - Instagram hesabına göre ayrılmış yerel veri ve kayıpsız legacy migration
 - Periyodik Premium doğrulaması, iptal/iade kontrolleri ve offline grace period
 - Legacy 50 işlem batch duraklamasının kaldırılması
+- Kimlik doğrulama, challenge, rate-limit, ağ, sunucu ve geçersiz yanıt hatalarının sınıflandırılması
 - Regresyon testleri, CI ve deterministik mağaza paketi
 
 ## Kalan işler
-
-### Otomasyon dayanıklılığı
-
-- Kimlik doğrulama, challenge, ağ ve sunucu hatalarını ayrı sınıflandırma
 
 ### Ürün ve veri
 

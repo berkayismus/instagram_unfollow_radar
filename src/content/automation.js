@@ -37,6 +37,14 @@ const IGRadarAutomation = (function() {
         }
     }
 
+    function stopForAPIError(err, state, sendStatus) {
+        if (!err || !err.code) return false;
+        state.isRunning = false;
+        state.isPaused = false;
+        sendStatus(Constants.STATUS.ERROR, { message: err.code });
+        return true;
+    }
+
     // ─── UTILITIES ────────────────────────────────────────────────────────────
 
     /**
@@ -355,6 +363,7 @@ const IGRadarAutomation = (function() {
                 sendStatus(Constants.STATUS.ERROR, { message: err.code });
                 return;
             }
+            if (stopForAPIError(err, state, sendStatus)) return;
             throw err;
         }
 
@@ -437,6 +446,7 @@ const IGRadarAutomation = (function() {
                         if (!resumed) return;
                         continue;
                     }
+                    if (stopForAPIError(err, state, sendStatus)) return;
                     throw err;
                 }
                 await randomDelay(Constants.TIMING.MIN_DELAY, Constants.TIMING.MAX_DELAY);
@@ -464,6 +474,14 @@ const IGRadarAutomation = (function() {
                         const resumed = await handleRateLimit(state, sendStatus);
                         if (!resumed) return;
                         continue;
+                    }
+                    if (err && err.code) {
+                        state.unfollowQueue.unshift(user);
+                        await persistCheckpoint(state, {
+                            unfollowQueue: state.unfollowQueue
+                        });
+                        stopForAPIError(err, state, sendStatus);
+                        return;
                     }
                     console.error('[IGRadar] Unfollow error:', err);
                 }

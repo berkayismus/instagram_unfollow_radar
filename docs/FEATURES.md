@@ -18,6 +18,7 @@ Bu belge ürün davranışının kısa özetidir. Teknik ayrıntılar için [TEC
 - Eksik takipçi taraması hiçbir unfollow yapmadan sona erer.
 - Aynı anda yalnızca bir Instagram sekmesi otomasyon çalıştırabilir.
 - Aktif Instagram hesabı değişirse süreç durur.
+- Giriş/challenge gereksinimi, rate-limit, ağ, sunucu ve geçersiz API yanıtları ayrı sınıflandırılır; bekleyen kuyruk hata halinde korunur.
 - Kaydedilmiş ilerleme yalnızca aynı hesap ve aynı dry-run modunda, en fazla 24 saat içinde sürdürülür.
 - Filtreler, kota, geçmiş, undo, watchlist ve çalışma ilerlemesi Instagram hesap kimliğine göre ayrılır.
 - Dry-run gerçek kota veya unfollow istatistiği tüketmez.

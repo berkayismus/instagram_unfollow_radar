@@ -58,6 +58,19 @@ const IGRadarWatchlist = (function() {
         return String(u || '').trim().replace(/^@/, '').toLowerCase();
     }
 
+    function apiErrorCode(err) {
+        const supported = new Set([
+            'rate_limit',
+            'auth_required',
+            'challenge_required',
+            'network_error',
+            'server_error',
+            'invalid_response',
+            'api_error'
+        ]);
+        return err && supported.has(err.code) ? err.code : 'unknown';
+    }
+
     /**
      * @param {string} rawUsername
      * @param {boolean} isPremium
@@ -79,9 +92,8 @@ const IGRadarWatchlist = (function() {
                 try {
                     profile = await IGRadarAPI.fetchWebProfileInfo(username);
                 } catch (err) {
-                    if (err && err.name === 'RateLimitError') return { success: false, error: 'rate_limit' };
                     console.error('[IGRadar] watchlist addUser fetchWebProfileInfo:', err);
-                    return { success: false, error: 'network' };
+                    return { success: false, error: apiErrorCode(err) };
                 }
                 if (!profile || !profile.userId) return { success: false, error: 'not_found' };
 
@@ -249,14 +261,11 @@ const IGRadarWatchlist = (function() {
             await IGRadarStorage.saveWatchList(list);
             return { success: true, list: await getList() };
         } catch (err) {
-            if (err && err.name === 'RateLimitError') {
-                return { success: false, error: 'rate_limit', list: await getList() };
-            }
             console.error('[IGRadar] watchlist refreshUser:', err);
-            entry.error = 'unknown';
+            entry.error = apiErrorCode(err);
             list[idx]   = entry;
             await IGRadarStorage.saveWatchList(list);
-            return { success: false, error: 'unknown', list: await getList() };
+            return { success: false, error: entry.error, list: await getList() };
         }
     }
 
@@ -286,9 +295,18 @@ const IGRadarWatchlist = (function() {
         if (!list.length) return { success: true, list: await getList() };
 
         let firstError = null;
+        const terminalErrors = new Set([
+            'rate_limit',
+            'auth_required',
+            'challenge_required',
+            'network_error',
+            'server_error',
+            'invalid_response',
+            'api_error'
+        ]);
         for (const e of list) {
             const res = await refreshUserNow(e.username, signal);
-            if (!res.success && res.error === 'rate_limit') return res;
+            if (!res.success && terminalErrors.has(res.error)) return res;
             if (!res.success && !firstError) firstError = res.error;
         }
         return firstError

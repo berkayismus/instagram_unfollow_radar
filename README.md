@@ -29,6 +29,7 @@ Lisans durumu 12 saatte bir doğrulanır; geçici ağ kesintilerinde en fazla 72
 - Sayfa yenileme ve Instagram rate-limit sonrasında otomatik devam
 - Instagram hesabına göre ayrı kota, filtre, geçmiş ve izleme verisi
 - Çalışma sırasında hesap değişirse güvenli durdurma
+- Giriş, challenge, rate-limit, ağ ve sunucu hatalarında ayrı güvenli davranış
 - İzleme listesinde yalnızca tam alınan snapshot’ları karşılaştırma
 
 Otomasyon günlük kotaya ulaşana, açıkça durdurulana veya güvenlik koşullarından biri tetiklenene kadar ek onay istemeden devam eder.
