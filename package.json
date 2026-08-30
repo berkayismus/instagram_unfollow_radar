@@ -3,8 +3,8 @@
   "version": "1.2.1",
   "private": true,
   "scripts": {
-    "check": "node --test && find src -name '*.js' -exec node --check {} \\;",
+    "check": "node --test --test-concurrency=1 && find src -name '*.js' -exec node --check {} \\;",
     "package": "python3 scripts/build_extension.py",
-    "test": "node --test"
+    "test": "node --test --test-concurrency=1"
   }
 }
