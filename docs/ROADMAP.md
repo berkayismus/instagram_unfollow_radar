@@ -10,6 +10,7 @@
 - Hesap değişikliğinde otomatik durdurma
 - Watchlist snapshot bütünlüğü ve seri mutation kuyruğu
 - Tarama/cursor/kuyruk checkpoint’leri ve sayfa yenileme veya rate-limit sonrası otomatik devam
+- Instagram hesabına göre ayrılmış yerel veri ve kayıpsız legacy migration
 - Regresyon testleri, CI ve deterministik mağaza paketi
 
 ## Kalan işler
@@ -27,7 +28,6 @@
 ### Ürün ve veri
 
 - Ayar/whitelist içe ve dışa aktarma
-- Verileri Instagram hesap kimliğine göre ayırma
 - Daha geniş entegrasyon testleri ve storage migration doğrulamaları
 - Gizlilik, mağaza ve özellik metinlerini sürüm sürecinde otomatik kontrol etme
 

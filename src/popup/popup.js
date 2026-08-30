@@ -47,7 +47,7 @@
      * Reads premium status from storage and renders the premium tab badge.
      */
     async function loadPremiumStatus() {
-        const data      = await chrome.storage.local.get([
+        const data      = await IGRadarAccountStorage.get([
             Constants.STORAGE_KEYS.IS_PREMIUM,
             Constants.STORAGE_KEYS.LICENSE_EMAIL
         ]);
@@ -73,6 +73,19 @@
             IGRadarUI.el.startBtn.disabled = true;
         }
 
+        let statusResponse = null;
+        if (isOnInstagram) {
+            try {
+                statusResponse = await chrome.tabs.sendMessage(tab.id, {
+                    action: Constants.ACTIONS.GET_STATUS
+                });
+                if (statusResponse && statusResponse.userId) {
+                    IGRadarAccountStorage.setScope(statusResponse.userId);
+                    await IGRadarAccountStorage.migrateLegacy();
+                }
+            } catch (_) {}
+        }
+
         await Promise.all([
             IGRadarUI.loadStats(),
             IGRadarUI.loadKeywords(),
@@ -82,7 +95,7 @@
             loadPremiumStatus()
         ]);
 
-        const savedTab = await chrome.storage.local.get([Constants.STORAGE_KEYS.POPUP_ACTIVE_TAB]);
+        const savedTab = await IGRadarAccountStorage.get([Constants.STORAGE_KEYS.POPUP_ACTIVE_TAB]);
         const lastTab  = savedTab[Constants.STORAGE_KEYS.POPUP_ACTIVE_TAB];
         if (lastTab && Constants.UI.POPUP_TAB_IDS.includes(lastTab)) {
             IGRadarUI.switchTab(lastTab);
@@ -92,13 +105,10 @@
         chrome.runtime.onMessage.addListener(handleMessage);
 
         if (isOnInstagram) {
-            try {
-                const res = await chrome.tabs.sendMessage(tab.id, {
-                    action: Constants.ACTIONS.GET_STATUS
-                });
-                if (res && res.isRunning) IGRadarUI.setRunning(true);
+            if (statusResponse) {
+                if (statusResponse.isRunning) IGRadarUI.setRunning(true);
                 IGRadarUI.updateStatus('ready', `✓ ${I18n.t('status.ready')}`);
-            } catch (_) {
+            } else {
                 IGRadarUI.updateStatus('ready', `⚠️ ${I18n.t('status.ready')}`);
             }
         }

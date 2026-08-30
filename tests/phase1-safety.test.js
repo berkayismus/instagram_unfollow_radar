@@ -337,6 +337,11 @@ function loadContent({ initialUndoQueue, refollowResult, checkpoint = null }) {
                 state.isRunning = false;
             }
         },
+        IGRadarAccountStorage: {
+            setScope: () => {},
+            migrateLegacy: async () => false,
+            set: async value => { storageWrites.push(value); }
+        },
         IGRadarStorage: {
             getRunCheckpoint: async () => checkpoint,
             clearRunCheckpoint: async () => {},

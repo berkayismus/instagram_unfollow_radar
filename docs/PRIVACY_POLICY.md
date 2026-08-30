@@ -1,6 +1,6 @@
 # Privacy Policy — Instagram Unfollow Radar
 
-Last updated: August 29, 2026
+Last updated: August 30, 2026
 
 ## Overview
 
@@ -28,6 +28,8 @@ The following may be stored in `chrome.storage.local`:
 - temporary rate-limit, automation-lock, scan cursor, follower ID, and pending-queue state.
 
 The statistics reset button clears statistics and history only. Other data can be removed through the relevant controls or by uninstalling the extension/clearing its storage.
+
+Instagram-dependent data is stored in separate namespaces for each Instagram account ID used in the browser. Extension-wide preferences and Premium license state remain shared.
 
 ## External communication
 

@@ -132,7 +132,7 @@ const IGRadarUI = (function() {
         if (tabName === 'watch') loadWatchList();
 
         if (Constants.UI.POPUP_TAB_IDS.includes(tabName)) {
-            chrome.storage.local.set({ [Constants.STORAGE_KEYS.POPUP_ACTIVE_TAB]: tabName });
+            IGRadarAccountStorage.set({ [Constants.STORAGE_KEYS.POPUP_ACTIVE_TAB]: tabName });
         }
     }
 
@@ -197,7 +197,7 @@ const IGRadarUI = (function() {
     // ─── DATA LOADERS ─────────────────────────────────────────────────────────
 
     async function loadStats() {
-        const data = await chrome.storage.local.get([
+        const data = await IGRadarAccountStorage.get([
             Constants.STORAGE_KEYS.SESSION_COUNT,
             Constants.STORAGE_KEYS.TOTAL_UNFOLLOWED,
             Constants.STORAGE_KEYS.LAST_RUN,
@@ -235,27 +235,27 @@ const IGRadarUI = (function() {
     }
 
     async function loadKeywords() {
-        const data = await chrome.storage.local.get([Constants.STORAGE_KEYS.KEYWORDS]);
+        const data = await IGRadarAccountStorage.get([Constants.STORAGE_KEYS.KEYWORDS]);
         renderKeywordList(data[Constants.STORAGE_KEYS.KEYWORDS] || []);
     }
 
     async function loadWhitelist() {
-        const data = await chrome.storage.local.get([Constants.STORAGE_KEYS.WHITELIST]);
+        const data = await IGRadarAccountStorage.get([Constants.STORAGE_KEYS.WHITELIST]);
         renderWhitelistList(data[Constants.STORAGE_KEYS.WHITELIST] || {});
     }
 
     async function loadTheme() {
-        const data = await chrome.storage.local.get([Constants.STORAGE_KEYS.THEME]);
+        const data = await IGRadarAccountStorage.get([Constants.STORAGE_KEYS.THEME]);
         applyTheme(data[Constants.STORAGE_KEYS.THEME] || Constants.THEMES.LIGHT);
     }
 
     async function loadDryRunMode() {
-        const data = await chrome.storage.local.get([Constants.STORAGE_KEYS.DRY_RUN_MODE]);
+        const data = await IGRadarAccountStorage.get([Constants.STORAGE_KEYS.DRY_RUN_MODE]);
         el.dryRunMode.checked = data[Constants.STORAGE_KEYS.DRY_RUN_MODE] || false;
     }
 
     async function loadUndoQueue() {
-        const data = await chrome.storage.local.get([Constants.STORAGE_KEYS.UNDO_QUEUE]);
+        const data = await IGRadarAccountStorage.get([Constants.STORAGE_KEYS.UNDO_QUEUE]);
         updateUndoButton((data[Constants.STORAGE_KEYS.UNDO_QUEUE] || []).length);
     }
 
@@ -311,7 +311,7 @@ const IGRadarUI = (function() {
 
     /** Renders (or updates) the 30-day unfollow activity chart via Chartist. */
     async function renderChart() {
-        const data   = await chrome.storage.local.get([Constants.STORAGE_KEYS.UNFOLLOW_STATS]);
+        const data   = await IGRadarAccountStorage.get([Constants.STORAGE_KEYS.UNFOLLOW_STATS]);
         const stats  = data[Constants.STORAGE_KEYS.UNFOLLOW_STATS] || { daily: {} };
         const labels = [];
         const series = [];
@@ -336,13 +336,13 @@ const IGRadarUI = (function() {
 
     /** Downloads the unfollow history as a UTF-8 BOM CSV file. Premium only. */
     async function handleExportCsv() {
-        const premiumData = await chrome.storage.local.get([Constants.STORAGE_KEYS.IS_PREMIUM]);
+        const premiumData = await IGRadarAccountStorage.get([Constants.STORAGE_KEYS.IS_PREMIUM]);
         if (!premiumData[Constants.STORAGE_KEYS.IS_PREMIUM]) {
             IGRadarUI.switchTab('premium');
             return;
         }
 
-        const data    = await chrome.storage.local.get([Constants.STORAGE_KEYS.UNFOLLOW_HISTORY]);
+        const data    = await IGRadarAccountStorage.get([Constants.STORAGE_KEYS.UNFOLLOW_HISTORY]);
         const history = data[Constants.STORAGE_KEYS.UNFOLLOW_HISTORY] || [];
         if (history.length === 0) { alert(I18n.t('messages.noHistory')); return; }
 
@@ -374,7 +374,7 @@ const IGRadarUI = (function() {
         if (displayedUsers.has(key)) return;
         displayedUsers.add(key);
 
-        const data          = await chrome.storage.local.get([Constants.STORAGE_KEYS.WHITELIST]);
+        const data          = await IGRadarAccountStorage.get([Constants.STORAGE_KEYS.WHITELIST]);
         const whitelist     = data[Constants.STORAGE_KEYS.WHITELIST] || {};
         const cleanName     = username.replace('@', '').toLowerCase();
         const isWhitelisted = !!whitelist[cleanName];
@@ -446,7 +446,7 @@ const IGRadarUI = (function() {
      */
     function handleStatusUpdate(data) {
         if (data.sessionCount !== undefined) {
-            chrome.storage.local.get([Constants.STORAGE_KEYS.IS_PREMIUM]).then(d => {
+            IGRadarAccountStorage.get([Constants.STORAGE_KEYS.IS_PREMIUM]).then(d => {
                 const isPremium = d[Constants.STORAGE_KEYS.IS_PREMIUM] || false;
                 const limit     = isPremium
                     ? Constants.LIMITS.PREMIUM_DAILY_LIMIT
@@ -654,10 +654,10 @@ const IGRadarUI = (function() {
         } catch (err) {
             console.error('[IGRadar] enforceStorageLimit in popup', err);
         }
-        const data = await chrome.storage.local.get([Constants.STORAGE_KEYS.WATCH_LIST]);
+        const data = await IGRadarAccountStorage.get([Constants.STORAGE_KEYS.WATCH_LIST]);
         let list   = data[Constants.STORAGE_KEYS.WATCH_LIST] || [];
         list       = pruneWatchListEntries(list);
-        await chrome.storage.local.set({ [Constants.STORAGE_KEYS.WATCH_LIST]: list });
+        await IGRadarAccountStorage.set({ [Constants.STORAGE_KEYS.WATCH_LIST]: list });
         renderWatchList(list);
         if (el.watchSlotLimitHint) {
             el.watchSlotLimitHint.textContent = I18n.t('watch.slotLimitHint', {

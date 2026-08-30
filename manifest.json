@@ -33,6 +33,7 @@
       ],
       "js": [
         "src/shared/constants.js",
+        "src/shared/accountStorage.js",
         "src/shared/watchlistLimits.js",
         "src/content/api.js",
         "src/content/storage.js",

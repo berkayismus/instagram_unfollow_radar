@@ -143,6 +143,8 @@ const IGUnfollowRadarContent = (function() {
         state.isStarting = true;
         const runId = createRunId();
         state.startPromise = (async() => {
+            IGRadarAccountStorage.setScope(runUserId);
+            await IGRadarAccountStorage.migrateLegacy();
             const result = await requestRunLock(Constants.ACTIONS.ACQUIRE_RUN_LOCK, runId);
             if (!result || !result.success) {
                 return {
@@ -206,31 +208,54 @@ const IGUnfollowRadarContent = (function() {
                     state.isPaused        = false;
                     state.isRunning       = true;
                     state.abortController = new AbortController();
-                    chrome.storage.local.set({ [Constants.STORAGE_KEYS.TEST_COMPLETE]: true });
+                    IGRadarAccountStorage.set({ [Constants.STORAGE_KEYS.TEST_COMPLETE]: true });
                     runAutomation(state.runId);
                     sendResponse({ success: true });
                     break;
 
-                case Constants.ACTIONS.GET_STATUS:
-                    sendStatus(Constants.STATUS.IDLE);
-                    sendResponse({ success: true, isRunning: state.isRunning });
-                    break;
+                case Constants.ACTIONS.GET_STATUS: {
+                    const statusUserId = IGRadarAPI.getCurrentUserId();
+                    if (state.isRunning && state.runUserId && statusUserId &&
+                        String(state.runUserId) !== String(statusUserId)) {
+                        if (state.abortController) state.abortController.abort();
+                        const runId = state.runId;
+                        state.isRunning = false;
+                        state.isPaused  = false;
+                        sendStatus(Constants.STATUS.ERROR, { message: 'account_changed' });
+                        releaseRunLock(runId);
+                    }
+                    if (statusUserId) IGRadarAccountStorage.setScope(statusUserId);
+                    Promise.resolve(statusUserId
+                        ? IGRadarAccountStorage.migrateLegacy()
+                        : null
+                    ).catch(err => {
+                        console.error('[IGRadar] Account storage migration failed:', err);
+                    }).finally(() => {
+                        sendStatus(Constants.STATUS.IDLE);
+                        sendResponse({
+                            success: true,
+                            isRunning: state.isRunning,
+                            userId: statusUserId
+                        });
+                    });
+                    return true;
+                }
 
                 case Constants.ACTIONS.UPDATE_KEYWORDS:
                     state.keywords = message.keywords || [];
-                    chrome.storage.local.set({ [Constants.STORAGE_KEYS.KEYWORDS]: state.keywords });
+                    IGRadarAccountStorage.set({ [Constants.STORAGE_KEYS.KEYWORDS]: state.keywords });
                     sendResponse({ success: true });
                     break;
 
                 case Constants.ACTIONS.UPDATE_WHITELIST:
                     state.whitelist = message.whitelist || {};
-                    chrome.storage.local.set({ [Constants.STORAGE_KEYS.WHITELIST]: state.whitelist });
+                    IGRadarAccountStorage.set({ [Constants.STORAGE_KEYS.WHITELIST]: state.whitelist });
                     sendResponse({ success: true });
                     break;
 
                 case Constants.ACTIONS.TOGGLE_DRY_RUN:
                     state.dryRunMode = message.enabled;
-                    chrome.storage.local.set({ [Constants.STORAGE_KEYS.DRY_RUN_MODE]: state.dryRunMode });
+                    IGRadarAccountStorage.set({ [Constants.STORAGE_KEYS.DRY_RUN_MODE]: state.dryRunMode });
                     sendResponse({ success: true });
                     break;
 
@@ -255,7 +280,7 @@ const IGUnfollowRadarContent = (function() {
                                 u.id === last.id && u.timestamp === last.timestamp
                             );
                             if (idx !== -1) state.undoQueue.splice(idx, 1);
-                            await chrome.storage.local.set({
+                            await IGRadarAccountStorage.set({
                                 [Constants.STORAGE_KEYS.UNDO_QUEUE]: state.undoQueue
                             });
                             sendResponse({ success: true, username: last.username });
@@ -308,7 +333,7 @@ const IGUnfollowRadarContent = (function() {
                                 u.id === user.id && u.timestamp === user.timestamp
                             );
                             if (currentIdx !== -1) state.undoQueue.splice(currentIdx, 1);
-                            await chrome.storage.local.set({
+                            await IGRadarAccountStorage.set({
                                 [Constants.STORAGE_KEYS.UNDO_QUEUE]: state.undoQueue
                             });
                             sendResponse({ success: true, username });
@@ -379,29 +404,36 @@ const IGUnfollowRadarContent = (function() {
         setupMessageListener();
         const userId = IGRadarAPI.getCurrentUserId();
         if (userId) {
-            IGRadarStorage.loadState(state).then(async () => {
-                state.dailyLimit = state.isPremium
-                    ? Constants.LIMITS.PREMIUM_DAILY_LIMIT
-                    : Constants.LIMITS.FREE_DAILY_LIMIT;
-                try {
-                    await IGRadarWatchlistLimits.enforceStorageLimit();
-                } catch (err) {
-                    console.error('[IGRadar] enforceStorageLimit on init', err);
-                }
-                const checkpoint = await IGRadarStorage.getRunCheckpoint();
-                const canResume = checkpoint &&
-                    checkpoint.version === 1 &&
-                    String(checkpoint.userId) === String(userId) &&
-                    checkpoint.dryRunMode === state.dryRunMode &&
-                    Date.now() - checkpoint.updatedAt <= Constants.TIMING.CHECKPOINT_MAX_AGE;
-                if (canResume) {
-                    const result = await beginRun();
-                    if (!result.success) sendStatus(Constants.STATUS.READY);
-                } else {
-                    if (checkpoint) await IGRadarStorage.clearRunCheckpoint();
-                    sendStatus(Constants.STATUS.READY);
-                }
-            });
+            IGRadarAccountStorage.setScope(userId);
+            IGRadarAccountStorage.migrateLegacy()
+                .then(() => IGRadarStorage.loadState(state))
+                .then(async () => {
+                    state.dailyLimit = state.isPremium
+                        ? Constants.LIMITS.PREMIUM_DAILY_LIMIT
+                        : Constants.LIMITS.FREE_DAILY_LIMIT;
+                    try {
+                        await IGRadarWatchlistLimits.enforceStorageLimit();
+                    } catch (err) {
+                        console.error('[IGRadar] enforceStorageLimit on init', err);
+                    }
+                    const checkpoint = await IGRadarStorage.getRunCheckpoint();
+                    const canResume = checkpoint &&
+                        checkpoint.version === 1 &&
+                        String(checkpoint.userId) === String(userId) &&
+                        checkpoint.dryRunMode === state.dryRunMode &&
+                        Date.now() - checkpoint.updatedAt <= Constants.TIMING.CHECKPOINT_MAX_AGE;
+                    if (canResume) {
+                        const result = await beginRun();
+                        if (!result.success) sendStatus(Constants.STATUS.READY);
+                    } else {
+                        if (checkpoint) await IGRadarStorage.clearRunCheckpoint();
+                        sendStatus(Constants.STATUS.READY);
+                    }
+                })
+                .catch(err => {
+                    console.error('[IGRadar] Content initialization failed:', err);
+                    sendStatus(Constants.STATUS.ERROR, { message: 'storage_error' });
+                });
         } else {
             console.warn('[IGRadar] User not logged in');
         }
