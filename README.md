@@ -31,7 +31,7 @@ Lisans durumu 12 saatte bir doğrulanır; geçici ağ kesintilerinde en fazla 72
 - Çalışma sırasında hesap değişirse güvenli durdurma
 - İzleme listesinde yalnızca tam alınan snapshot’ları karşılaştırma
 
-İlk kullanımda 50 işlenen adaydan sonra legacy batch duraklaması gösterilebilir; **Devam Et** seçimi yerelde saklanır. Tarama tamamlanınca ayrı bir işlem öncesi onay ekranı yoktur.
+Otomasyon günlük kotaya ulaşana, açıkça durdurulana veya güvenlik koşullarından biri tetiklenene kadar ek onay istemeden devam eder.
 
 ## Kurulum
 

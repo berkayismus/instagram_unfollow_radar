@@ -13,10 +13,9 @@ function loadAutomation({ api, storage, runtimeMessages = [] }) {
     const context = vm.createContext({
         AbortController,
         Constants: {
-            LIMITS: { BATCH_SIZE: 50, MAX_UNDO_QUEUE: 10 },
+            LIMITS: { MAX_UNDO_QUEUE: 10 },
             MESSAGE_TYPES: {
                 RATE_LIMIT_HIT: 'RATE_LIMIT_HIT',
-                TEST_COMPLETE: 'TEST_COMPLETE',
                 USER_PROCESSED: 'USER_PROCESSED'
             },
             STATUS: {
@@ -28,7 +27,6 @@ function loadAutomation({ api, storage, runtimeMessages = [] }) {
                 LIMIT_REACHED: 'limit_reached',
                 RATE_LIMIT: 'rate_limit',
                 RESUMED: 'resumed',
-                TEST_COMPLETE: 'test_complete'
             },
             TIMING: {
                 MIN_DELAY: 0,
@@ -79,8 +77,6 @@ function baseState(overrides = {}) {
         previewCount: 0,
         processedUsers: new Set(),
         sessionCount: 0,
-        testComplete: false,
-        testMode: false,
         totalUnfollowed: 0,
         undoQueue: [],
         unfollowQueue: [],
@@ -300,7 +296,6 @@ function loadContent({ initialUndoQueue, refollowResult, checkpoint = null }) {
             ACTIONS: {
                 START: 'START',
                 STOP: 'STOP',
-                CONTINUE_TEST: 'CONTINUE_TEST',
                 GET_STATUS: 'GET_STATUS',
                 UPDATE_KEYWORDS: 'UPDATE_KEYWORDS',
                 UPDATE_WHITELIST: 'UPDATE_WHITELIST',
@@ -321,7 +316,6 @@ function loadContent({ initialUndoQueue, refollowResult, checkpoint = null }) {
             STATUS: { READY: 'ready', STOPPED: 'stopped', IDLE: 'idle', ERROR: 'error' },
             STORAGE_KEYS: {
                 UNDO_QUEUE: 'undoQueue',
-                TEST_COMPLETE: 'testComplete',
                 KEYWORDS: 'keywords',
                 WHITELIST: 'whitelist',
                 DRY_RUN_MODE: 'dryRun'

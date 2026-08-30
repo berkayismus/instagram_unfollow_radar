@@ -396,16 +396,6 @@ const IGRadarAutomation = (function() {
                 break;
             }
 
-            // Batch (test-mode) milestone guard
-            const processedCount = state.dryRunMode ? state.previewCount : state.sessionCount;
-            if (state.testMode && !state.testComplete &&
-                processedCount >= Constants.LIMITS.BATCH_SIZE) {
-                state.isPaused = true;
-                chrome.runtime.sendMessage({ type: Constants.MESSAGE_TYPES.TEST_COMPLETE });
-                sendStatus(Constants.STATUS.TEST_COMPLETE);
-                return;
-            }
-
             // Fetch next page when queue is drained and pages remain
             if (state.unfollowQueue.length === 0 && hasMore) {
                 try {
@@ -455,15 +445,6 @@ const IGRadarAutomation = (function() {
             // Drain queue
             while (state.unfollowQueue.length > 0 && state.isRunning && !state.isPaused) {
                 if (!state.dryRunMode && state.sessionCount >= state.dailyLimit) break;
-                const batchCount = state.dryRunMode ? state.previewCount : state.sessionCount;
-                if (state.testMode && !state.testComplete &&
-                    batchCount >= Constants.LIMITS.BATCH_SIZE) {
-                    state.isPaused = true;
-                    chrome.runtime.sendMessage({ type: Constants.MESSAGE_TYPES.TEST_COMPLETE });
-                    sendStatus(Constants.STATUS.TEST_COMPLETE);
-                    return;
-                }
-
                 const user   = state.unfollowQueue.shift();
                 const signal = state.abortController && state.abortController.signal;
                 try {

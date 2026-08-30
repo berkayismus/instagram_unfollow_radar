@@ -15,8 +15,6 @@ const IGUnfollowRadarContent = (function() {
     const state = {
         isRunning:       false,
         isPaused:        false,
-        testMode:        true,
-        testComplete:    false,
         unfollowQueue:   [],
         processedUsers:  new Set(),
         previewCount:    0,
@@ -202,16 +200,6 @@ const IGUnfollowRadarContent = (function() {
                     ]).finally(() => sendResponse({ success: true }));
                     return true;
                 }
-
-                case Constants.ACTIONS.CONTINUE_TEST:
-                    state.testComplete    = true;
-                    state.isPaused        = false;
-                    state.isRunning       = true;
-                    state.abortController = new AbortController();
-                    IGRadarAccountStorage.set({ [Constants.STORAGE_KEYS.TEST_COMPLETE]: true });
-                    runAutomation(state.runId);
-                    sendResponse({ success: true });
-                    break;
 
                 case Constants.ACTIONS.GET_STATUS: {
                     const statusUserId = IGRadarAPI.getCurrentUserId();

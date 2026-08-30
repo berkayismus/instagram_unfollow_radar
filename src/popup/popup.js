@@ -21,10 +21,6 @@
             case Constants.MESSAGE_TYPES.STATUS_UPDATE:
                 IGRadarUI.handleStatusUpdate(message);
                 break;
-            case Constants.MESSAGE_TYPES.TEST_COMPLETE:
-                IGRadarUI.el.testModeAlert.style.display = 'block';
-                IGRadarUI.updateStatus('stopped', `⏸ ${I18n.t('alerts.batchComplete')}`);
-                break;
             case Constants.MESSAGE_TYPES.RATE_LIMIT_HIT:
                 IGRadarUI.handleRateLimitMessage(message.data);
                 break;

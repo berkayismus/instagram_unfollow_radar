@@ -30,8 +30,6 @@
         "completed": "Abgeschlossen"
     },
     "alerts": {
-        "batchComplete": "Batch abgeschlossen",
-        "batchCompleteDesc": "50 Benutzer wurden entfolgt. Möchten Sie fortfahren?",
         "rateLimit": "Rate Limit!",
         "rateLimitDesc": "Instagram hat Sie wegen zu vieler Anfragen begrenzt. Bitte warten.",
         "dailyLimitReached": "24-Stunden-Limit erreicht",
@@ -41,7 +39,6 @@
     "buttons": {
         "start": "Start",
         "stop": "Stopp",
-        "continue": "Weiter (50 mehr)",
         "undo": "Rückgängig",
         "reset": "Zurücksetzen",
         "add": "Hinzufügen",
@@ -113,7 +110,6 @@
         "title": "Gut zu wissen",
         "item1": "Sie müssen bei Instagram angemeldet sein",
         "item2": "Zwischen den Schritten gibt es kurze Pausen",
-        "item3": "Nach 50 Entfolgen werden Sie gefragt, ob Sie weitermachen möchten",
         "item4": "Tageslimit: 10 im Gratis-Tarif, 500 mit Premium",
         "item5": "Das Tageslimit setzt sich alle 24 Stunden zurück"
     },
@@ -169,7 +165,6 @@
     "aria": {
         "startButton": "Automatisches Entfolgen starten",
         "stopButton": "Automatisches Entfolgen stoppen",
-        "continueButton": "Weitere 50 Benutzer entfolgen",
         "resetButton": "Alle Statistiken zurücksetzen",
         "undoButton": "{count} Aktionen können rückgängig gemacht werden",
         "themeToggle": "Theme wechseln (hell/dunkel)",

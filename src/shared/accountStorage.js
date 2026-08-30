@@ -13,8 +13,6 @@ window.IGRadarAccountStorage = (function() {
         SK.SESSION_START,
         SK.TOTAL_UNFOLLOWED,
         SK.LAST_RUN,
-        SK.TEST_MODE,
-        SK.TEST_COMPLETE,
         SK.KEYWORDS,
         SK.WHITELIST,
         SK.DRY_RUN_MODE,
@@ -26,6 +24,7 @@ window.IGRadarAccountStorage = (function() {
         SK.RUN_CHECKPOINT
     ]);
     const MIGRATION_PREFIX = 'igAccountStorageMigrated';
+    const OBSOLETE_BATCH_KEYS = ['igTestMode', 'igTestComplete'];
     let currentUserId = null;
 
     function setScope(userId) {
@@ -81,6 +80,10 @@ window.IGRadarAccountStorage = (function() {
     async function migrateLegacy() {
         if (!currentUserId) return false;
         const markerKey = `${MIGRATION_PREFIX}::${encodeURIComponent(currentUserId)}`;
+        await chrome.storage.local.remove([
+            ...OBSOLETE_BATCH_KEYS,
+            ...OBSOLETE_BATCH_KEYS.map(key => `${key}::account::${encodeURIComponent(currentUserId)}`)
+        ]);
         const logicalKeys = Array.from(SCOPED_KEYS);
         const physicalKeys = logicalKeys.map(key => physicalKey(key));
         const data = await chrome.storage.local.get([markerKey, ...logicalKeys, ...physicalKeys]);

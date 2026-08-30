@@ -69,6 +69,23 @@ test('all locales expose the same translation keys', () => {
     }
 });
 
+test('legacy batch pause controls are absent from the shipped extension', () => {
+    const shippedText = [
+        'src/shared/constants.js',
+        'src/content/automation.js',
+        'src/content/index.js',
+        'src/popup/popup.html',
+        'src/popup/popup.js',
+        'src/popup/events.js',
+        'src/popup/ui.js',
+        'locales/tr.json',
+        'locales/en.json',
+        'locales/de.json'
+    ].map(file => fs.readFileSync(path.join(root, file), 'utf8')).join('\n');
+
+    assert.doesNotMatch(shippedText, /TEST_COMPLETE|CONTINUE_TEST|BATCH_SIZE|testModeAlert|continueBtn/);
+});
+
 test('release ZIP output is deterministic', t => {
     const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'ig-radar-release-'));
     t.after(() => fs.rmSync(temporary, { recursive: true, force: true }));
