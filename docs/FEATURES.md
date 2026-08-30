@@ -46,3 +46,5 @@ Bu belge ürün davranışının kısa özetidir. Teknik ayrıntılar için [TEC
 - Türkçe, İngilizce ve Almanca
 - Açık/koyu tema
 - Ana, Filtreler, İzleme, İstatistikler ve Premium sekmeleri
+
+Premium lisanslar 12 saatte bir yeniden doğrulanır; iade, chargeback ve biten abonelikte plan düşürülür. Geçici ağ kesintilerinde son başarılı kontrolden itibaren en fazla 72 saat offline kullanım sağlanır.

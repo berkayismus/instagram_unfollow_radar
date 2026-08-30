@@ -4,13 +4,14 @@
  * @version 2.0.0
  */
 
-importScripts('../shared/constants.js');
+importScripts('../shared/constants.js', '../shared/gumroadLicense.js');
 
 const IGUnfollowRadarBackground = (function () {
     'use strict';
 
     const SK = Constants.STORAGE_KEYS.ACTIVE_RUN_LOCK;
     const LOCK_TTL = Constants.TIMING.RUN_LOCK_TTL;
+    const LICENSE_ALARM = 'igLicenseRevalidation';
     let lockQueue = Promise.resolve();
 
     function serialiseLockOperation(operation) {
@@ -91,9 +92,37 @@ const IGUnfollowRadarBackground = (function () {
         return true;
     }
 
+    async function broadcastLicenseState(result) {
+        if (!chrome.tabs || !chrome.tabs.query) return;
+        const data = await chrome.storage.local.get([
+            Constants.STORAGE_KEYS.LICENSE_KEY,
+            Constants.STORAGE_KEYS.LICENSE_EMAIL
+        ]);
+        const tabs = await chrome.tabs.query({ url: ['https://www.instagram.com/*'] });
+        await Promise.allSettled(tabs.map(tab => chrome.tabs.sendMessage(tab.id, {
+            action: Constants.ACTIONS.UPDATE_LICENSE,
+            isPremium: result.isPremium === true,
+            licenseKey: data[Constants.STORAGE_KEYS.LICENSE_KEY] || null,
+            licenseEmail: data[Constants.STORAGE_KEYS.LICENSE_EMAIL] || null
+        })));
+    }
+
     function init() {
         console.log('🟣 Instagram Unfollow Radar - Background Service Worker initialized');
         chrome.runtime.onMessage.addListener(handleMessage);
+        if (chrome.alarms) {
+            chrome.alarms.create(LICENSE_ALARM, {
+                periodInMinutes: Constants.GUMROAD.REVALIDATE_INTERVAL / 60000
+            });
+            chrome.alarms.onAlarm.addListener(alarm => {
+                if (alarm.name !== LICENSE_ALARM) return;
+                IGRadarGumroadLicense.revalidate()
+                    .then(broadcastLicenseState)
+                    .catch(err => {
+                        console.error('[IGRadar] License revalidation failed:', err);
+                    });
+            });
+        }
     }
 
     return { init };

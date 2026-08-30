@@ -47,13 +47,21 @@
      * Reads premium status from storage and renders the premium tab badge.
      */
     async function loadPremiumStatus() {
+        try {
+            await IGRadarGumroadLicense.revalidate();
+        } catch (err) {
+            console.error('[IGRadar] Premium status refresh failed:', err);
+        }
         const data      = await IGRadarAccountStorage.get([
             Constants.STORAGE_KEYS.IS_PREMIUM,
+            Constants.STORAGE_KEYS.LICENSE_KEY,
             Constants.STORAGE_KEYS.LICENSE_EMAIL
         ]);
         const isPremium = data[Constants.STORAGE_KEYS.IS_PREMIUM]    || false;
         const email     = data[Constants.STORAGE_KEYS.LICENSE_EMAIL]  || null;
+        const licenseKey = data[Constants.STORAGE_KEYS.LICENSE_KEY]   || null;
         IGRadarUI.renderPremiumStatus(isPremium, email);
+        return { isPremium, email, licenseKey };
     }
 
     // ─── INIT ─────────────────────────────────────────────────────────────────
@@ -86,7 +94,7 @@
             } catch (_) {}
         }
 
-        await Promise.all([
+        const loaded = await Promise.all([
             IGRadarUI.loadStats(),
             IGRadarUI.loadKeywords(),
             IGRadarUI.loadWhitelist(),
@@ -94,6 +102,17 @@
             IGRadarUI.loadUndoQueue(),
             loadPremiumStatus()
         ]);
+        const premiumState = loaded[5];
+        if (isOnInstagram && premiumState) {
+            try {
+                await chrome.tabs.sendMessage(tab.id, {
+                    action: Constants.ACTIONS.UPDATE_LICENSE,
+                    isPremium: premiumState.isPremium,
+                    licenseKey: premiumState.licenseKey,
+                    licenseEmail: premiumState.email
+                });
+            } catch (_) {}
+        }
 
         const savedTab = await IGRadarAccountStorage.get([Constants.STORAGE_KEYS.POPUP_ACTIVE_TAB]);
         const lastTab  = savedTab[Constants.STORAGE_KEYS.POPUP_ACTIVE_TAB];

@@ -17,13 +17,14 @@ Diğer temel özellikler iki planda da kullanılabilir.
 3. Uzantı anahtarı Gumroad `licenses/verify` API’siyle doğrular.
 4. Başarılı sonuçta Premium durumu, lisans anahtarı ve satın alma e-postası yerel depolamaya yazılır.
 
+Lisans 12 saatte bir ve popup açıldığında yeniden doğrulanır. İade, dispute/chargeback veya bitmiş/iptal edilmiş/yenilenememiş abonelik Premium erişimini kaldırır. Gumroad’a ağ nedeniyle ulaşılamazsa son başarılı doğrulamadan sonra en fazla 72 saatlik offline grace period uygulanır; Gumroad’un geçerli bir olumsuz yanıtı grace period kullanmaz.
+
 **Lisansı Kaldır** yalnızca cihazdaki Premium durumunu temizler; Gumroad aboneliğini iptal etmez. Abonelik Gumroad üzerinden yönetilir.
 
-## Mevcut teknik sınırlar
+## Teknik davranış
 
-- Doğrulama etkinleştirme sırasında yapılır; periyodik yeniden doğrulama henüz yoktur.
-- İade, chargeback ve abonelik bitişi için ek kontrol henüz uygulanmamıştır.
 - Premium bayrağı yerel depolamada tutulur.
+- Yeniden doğrulama kullanım sayısını artırmaz.
 - Premium’dan ücretsize dönüldüğünde izleme listesi ücretsiz limite kırpılır.
 
 Gizlilik ayrıntıları: [PRIVACY_POLICY.md](./PRIVACY_POLICY.md).

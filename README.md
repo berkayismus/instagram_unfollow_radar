@@ -14,6 +14,7 @@ Instagram’da oturumunuz açıkken takipçi ve takip edilen listelerini karşı
 | CSV dışa aktarma | — | ✓ |
 
 Premium Gumroad üzerinden etkinleştirilir: [cayliverse.gumroad.com/l/vnzrgn](https://cayliverse.gumroad.com/l/vnzrgn).
+Lisans durumu 12 saatte bir doğrulanır; geçici ağ kesintilerinde en fazla 72 saatlik offline süre uygulanır.
 
 ## Temel özellikler
 
