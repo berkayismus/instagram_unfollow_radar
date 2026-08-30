@@ -37,7 +37,8 @@ const Constants = (function () {
             RATE_LIMIT_WAIT:      15 * 60 * 1000,
             RATE_LIMIT_MINUTES:   15,
             RUN_LOCK_TTL:         45 * 1000,
-            RUN_LOCK_HEARTBEAT:   15 * 1000
+            RUN_LOCK_HEARTBEAT:   15 * 1000,
+            CHECKPOINT_MAX_AGE:   24 * 60 * 60 * 1000
         },
 
         // ─── LIMITS ──────────────────────────────────────────────────────────
@@ -112,7 +113,8 @@ const Constants = (function () {
             LICENSE_EMAIL:    'igLicenseEmail',
             WATCH_LIST:       'igWatchList',
             POPUP_ACTIVE_TAB: 'igPopupActiveTab',
-            ACTIVE_RUN_LOCK:  'igActiveRunLock'
+            ACTIVE_RUN_LOCK:  'igActiveRunLock',
+            RUN_CHECKPOINT:   'igRunCheckpoint'
         },
 
         // ─── MESSAGE TYPES ────────────────────────────────────────────────────

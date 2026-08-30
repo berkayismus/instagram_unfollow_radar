@@ -8,6 +8,7 @@ Bu belge ürün davranışının kısa özetidir. Teknik ayrıntılar için [TEC
 - Takip edilen hesaplar, takipçi kümesiyle karşılaştırılır.
 - Whitelist veya anahtar kelime filtresine uyan hesaplar atlanır.
 - Gerçek işlemler arasında 5–10 saniye rastgele gecikme uygulanır.
+- Tarama fazı, cursor ve işlem kuyruğu yerelde saklanır; aynı hesapta sayfa yenileme veya rate-limit sonrasında otomatik devam eder.
 - Ücretsiz plan 10, Premium plan 500 gerçek unfollow ile sınırlıdır; pencere 24 saattir.
 - İlk kullanımda 50 işlenen adaydan sonra legacy batch duraklaması gösterilebilir; devam seçimi yerelde saklanır.
 - Ayrı bir tarama-sonrası ön onay ekranı yoktur.
@@ -17,6 +18,7 @@ Bu belge ürün davranışının kısa özetidir. Teknik ayrıntılar için [TEC
 - Eksik takipçi taraması hiçbir unfollow yapmadan sona erer.
 - Aynı anda yalnızca bir Instagram sekmesi otomasyon çalıştırabilir.
 - Aktif Instagram hesabı değişirse süreç durur.
+- Kaydedilmiş ilerleme yalnızca aynı hesap ve aynı dry-run modunda, en fazla 24 saat içinde sürdürülür.
 - Dry-run gerçek kota veya unfollow istatistiği tüketmez.
 - Undo, Instagram refollow isteği başarılı olduktan sonra kuyruktan silinir.
 

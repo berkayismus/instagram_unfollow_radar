@@ -37,8 +37,9 @@ Content dosyaları `manifest.json` sırasıyla yüklenir ve IIFE namespace’ler
 4. Takip edilen sayfaları taranır; takipçi kümesinde olmayan ve filtrelenmeyen kullanıcılar kuyruğa eklenir.
 5. Kuyruk otomatik işlenir; her gerçek işlemden önce hesap kimliği tekrar doğrulanır.
 6. Başarıyla tamamlanan işlemler sayaç, geçmiş ve undo kuyruğuna yazılır.
+7. Faz, pagination cursor’ı, takipçi kümesi ve bekleyen kuyruk her sayfadan ve işlemden sonra checkpoint’e yazılır.
 
-Takipçi taraması eksik kalırsa unfollow aşamasına geçilmez. Dry-run aynı karşılaştırmayı yapar ancak gerçek sayaçları ve geçmişi değiştirmez.
+Takipçi taraması eksik kalırsa unfollow aşamasına geçilmez. Dry-run aynı karşılaştırmayı yapar ancak gerçek sayaçları ve geçmişi değiştirmez. Aynı hesap ve dry-run modu için 24 saatten yeni checkpoint sayfa açılışında otomatik sürdürülür; açıkça durdurma checkpoint’i siler.
 
 ## Çalışma kilidi
 
@@ -47,7 +48,7 @@ Takipçi taraması eksik kalırsa unfollow aşamasına geçilmez. Dry-run aynı 
 - Farklı sekme aktif lease varken yeni çalışma başlatamaz.
 - Lease kaybı veya Instagram hesabı değişikliği otomasyonu durdurur.
 
-Bu mekanizma checkpoint değildir. Sekme yenileme sonrası taramanın kaldığı yerden devam etmesi henüz desteklenmez.
+Çalışma lease’i eşzamanlılığı, checkpoint ise kalıcı ilerlemeyi korur. Yenilenen sekme önce yeni lease alır, ardından kayıtlı faz ve cursor’dan devam eder.
 
 ## Instagram çağrıları
 
@@ -97,7 +98,7 @@ Başlıca anahtarlar:
 | Premium | `igIsPremium`, `igLicenseKey`, `igLicenseEmail` |
 | Watchlist | `igWatchList` |
 | UI | `igTheme`, `igLanguage`, `igPopupActiveTab` |
-| Çalışma | `igRateLimitUntil`, `igActiveRunLock` |
+| Çalışma | `igRateLimitUntil`, `igActiveRunLock`, `igRunCheckpoint` |
 
 Veri doğrulama ve hesap kimliğine göre ayrı namespace kullanımı henüz uygulanmamıştır.
 

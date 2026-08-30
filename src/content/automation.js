@@ -50,17 +50,49 @@ const IGRadarAutomation = (function() {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
+    function isUsableCheckpoint(checkpoint, state, userId) {
+        return !!checkpoint &&
+            checkpoint.version === 1 &&
+            String(checkpoint.userId) === String(userId) &&
+            checkpoint.dryRunMode === state.dryRunMode &&
+            Date.now() - checkpoint.updatedAt <= Constants.TIMING.CHECKPOINT_MAX_AGE;
+    }
+
+    async function persistCheckpoint(state, changes = {}) {
+        state.runCheckpoint = {
+            ...(state.runCheckpoint || {}),
+            ...changes,
+            version:      1,
+            userId:       state.runUserId,
+            dryRunMode:   state.dryRunMode,
+            previewCount: state.previewCount || 0
+        };
+        try {
+            await IGRadarStorage.saveRunCheckpoint(state.runCheckpoint);
+        } catch (err) {
+            console.warn('[IGRadar] Failed to persist run checkpoint:', err);
+        }
+    }
+
+    async function clearCheckpoint(state) {
+        state.runCheckpoint = null;
+        await IGRadarStorage.clearRunCheckpoint();
+    }
+
     // ─── RATE LIMIT ───────────────────────────────────────────────────────────
 
     /**
-     * Pauses the session and schedules an automatic resume after the cool-down
+     * Pauses the session and waits until the persisted cool-down expires.
      * window defined in Constants.TIMING.RATE_LIMIT_WAIT.
      *
      * @param {Object}   state
      * @param {Function} sendStatus
      */
     async function handleRateLimit(state, sendStatus) {
-        const until          = Date.now() + Constants.TIMING.RATE_LIMIT_WAIT;
+        const existingUntil  = state.rateLimitUntil && state.rateLimitUntil > Date.now()
+            ? state.rateLimitUntil
+            : null;
+        const until          = existingUntil || Date.now() + Constants.TIMING.RATE_LIMIT_WAIT;
         state.rateLimitUntil = until;
         state.isPaused       = true;
 
@@ -73,15 +105,21 @@ const IGRadarAutomation = (function() {
         sendStatus(Constants.STATUS.RATE_LIMIT, {
             remainingMinutes: Constants.TIMING.RATE_LIMIT_MINUTES
         });
+        await persistCheckpoint(state, { rateLimitUntil: until });
 
-        setTimeout(async() => {
-            if (state.rateLimitUntil && Date.now() >= state.rateLimitUntil) {
-                state.rateLimitUntil = null;
-                state.isPaused       = false;
-                await IGRadarStorage.clearRateLimit();
-                if (state.isRunning) sendStatus(Constants.STATUS.RESUMED);
-            }
-        }, Constants.TIMING.RATE_LIMIT_WAIT);
+        while (state.isRunning && Date.now() < until) {
+            const remaining = until - Date.now();
+            const wait = Math.min(Constants.TIMING.PAUSE_CHECK_INTERVAL, remaining);
+            await randomDelay(wait, wait);
+        }
+
+        if (!state.isRunning) return false;
+        state.rateLimitUntil = null;
+        state.isPaused       = false;
+        await IGRadarStorage.clearRateLimit();
+        await persistCheckpoint(state, { rateLimitUntil: null });
+        sendStatus(Constants.STATUS.RESUMED);
+        return true;
     }
 
     // ─── SINGLE UNFOLLOW ──────────────────────────────────────────────────────
@@ -148,9 +186,10 @@ const IGRadarAutomation = (function() {
      * @param {Function}    sendStatus
      * @returns {Promise<Set<string>>}
      */
-    async function buildFollowerSet(userId, state, sendStatus) {
-        const followerSet = new Set();
-        let cursor        = null;
+    async function buildFollowerSet(userId, state, sendStatus, checkpoint) {
+        const canResume   = checkpoint && checkpoint.phase === 'followers';
+        const followerSet = new Set(canResume ? checkpoint.followerIds || [] : []);
+        let cursor        = canResume ? checkpoint.followerCursor || null : null;
         const signal      = state.abortController && state.abortController.signal;
 
         do {
@@ -167,6 +206,11 @@ const IGRadarAutomation = (function() {
 
             result.users.forEach(u => followerSet.add(String(u.pk || u.id)));
             cursor = result.nextCursor;
+            await persistCheckpoint(state, {
+                phase:          'followers',
+                followerIds:    Array.from(followerSet),
+                followerCursor: cursor
+            });
 
             if (cursor && state.isRunning) {
                 await randomDelay(Constants.TIMING.MIN_DELAY, Constants.TIMING.MAX_DELAY);
@@ -260,18 +304,49 @@ const IGRadarAutomation = (function() {
             return;
         }
 
+        const storedCheckpoint = await IGRadarStorage.getRunCheckpoint();
+        if (isUsableCheckpoint(storedCheckpoint, state, userId)) {
+            state.runCheckpoint = storedCheckpoint;
+            state.previewCount  = storedCheckpoint.previewCount || 0;
+        } else {
+            state.runCheckpoint = null;
+            if (storedCheckpoint) await IGRadarStorage.clearRunCheckpoint();
+        }
+
+        if (state.rateLimitUntil && state.rateLimitUntil > Date.now()) {
+            const resumed = await handleRateLimit(state, sendStatus);
+            if (!resumed) return;
+        }
+
         // ── Phase 1: build follower set ────────────────────────────────────────
         let followerSet;
+        const checkpoint = state.runCheckpoint;
         try {
-            followerSet = await buildFollowerSet(userId, state, sendStatus);
+            if (checkpoint && checkpoint.phase === 'following') {
+                followerSet = new Set(checkpoint.followerIds || []);
+            } else {
+                followerSet = await buildFollowerSet(userId, state, sendStatus, checkpoint);
+                await persistCheckpoint(state, {
+                    phase:              'following',
+                    followerIds:        Array.from(followerSet),
+                    followerCursor:     null,
+                    followingCursor:    null,
+                    hasMore:            true,
+                    unfollowQueue:       [],
+                    processedUsernames: [],
+                    totalScanned:       0
+                });
+            }
         } catch (err) {
             if (err.name === 'AbortError') return;
             if (err instanceof RateLimitError) {
-                await handleRateLimit(state, sendStatus);
+                const resumed = await handleRateLimit(state, sendStatus);
+                if (resumed) return mainLoop(state, sendStatus);
                 return;
             }
             if (err instanceof IncompleteFollowerScanError) {
                 state.isRunning = false;
+                await clearCheckpoint(state);
                 sendStatus(Constants.STATUS.ERROR, { message: err.code });
                 return;
             }
@@ -290,10 +365,17 @@ const IGRadarAutomation = (function() {
         if (!state.isRunning) return;
 
         // ── Phase 2: scan following list + process queue ───────────────────────
-        let cursor            = null;
-        let hasMore           = true;
+        const followingCheckpoint = state.runCheckpoint && state.runCheckpoint.phase === 'following'
+            ? state.runCheckpoint
+            : null;
+        let cursor            = followingCheckpoint ? followingCheckpoint.followingCursor || null : null;
+        let hasMore           = followingCheckpoint ? followingCheckpoint.hasMore !== false : true;
         let consecutiveErrors = 0;
-        let totalScanned      = 0;
+        let totalScanned      = followingCheckpoint ? followingCheckpoint.totalScanned || 0 : 0;
+        if (followingCheckpoint) {
+            state.unfollowQueue = [...(followingCheckpoint.unfollowQueue || [])];
+            state.processedUsers = new Set(followingCheckpoint.processedUsernames || []);
+        }
 
         while (state.isRunning) {
 
@@ -309,6 +391,7 @@ const IGRadarAutomation = (function() {
             // Session limit guard
             if (!state.dryRunMode && state.sessionCount >= state.dailyLimit) {
                 state.isRunning = false;
+                await clearCheckpoint(state);
                 sendStatus(Constants.STATUS.LIMIT_REACHED);
                 break;
             }
@@ -332,6 +415,14 @@ const IGRadarAutomation = (function() {
                         totalScanned      += scanResult.fetched;
                         cursor             = scanResult.nextCursor;
                         hasMore            = !!scanResult.nextCursor;
+                        await persistCheckpoint(state, {
+                            phase:              'following',
+                            followingCursor:    cursor,
+                            hasMore,
+                            unfollowQueue:       state.unfollowQueue,
+                            processedUsernames: Array.from(state.processedUsers),
+                            totalScanned
+                        });
                     } else {
                         consecutiveErrors++;
                         console.warn(`[IGRadar] scanPage returned null (error ${consecutiveErrors}/3)`);
@@ -352,7 +443,8 @@ const IGRadarAutomation = (function() {
                         return;
                     }
                     if (err instanceof RateLimitError) {
-                        await handleRateLimit(state, sendStatus);
+                        const resumed = await handleRateLimit(state, sendStatus);
+                        if (!resumed) return;
                         continue;
                     }
                     throw err;
@@ -384,11 +476,24 @@ const IGRadarAutomation = (function() {
                         return;
                     }
                     if (err instanceof RateLimitError) {
-                        await handleRateLimit(state, sendStatus);
-                        break;
+                        state.unfollowQueue.unshift(user);
+                        await persistCheckpoint(state, {
+                            unfollowQueue: state.unfollowQueue
+                        });
+                        const resumed = await handleRateLimit(state, sendStatus);
+                        if (!resumed) return;
+                        continue;
                     }
                     console.error('[IGRadar] Unfollow error:', err);
                 }
+
+                await persistCheckpoint(state, {
+                    unfollowQueue:       state.unfollowQueue,
+                    processedUsernames: Array.from(state.processedUsers),
+                    totalScanned,
+                    followingCursor:    cursor,
+                    hasMore
+                });
 
                 await randomDelay(Constants.TIMING.MIN_DELAY, Constants.TIMING.MAX_DELAY);
 
@@ -403,6 +508,7 @@ const IGRadarAutomation = (function() {
             // All done
             if (!hasMore && state.unfollowQueue.length === 0) {
                 state.isRunning = false;
+                await clearCheckpoint(state);
                 sendStatus(Constants.STATUS.COMPLETED);
                 break;
             }

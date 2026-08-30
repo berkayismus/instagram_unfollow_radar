@@ -25,7 +25,7 @@ The following may be stored in `chrome.storage.local`:
 - unfollow counters, timestamps, statistics, history, and undo queue;
 - watched usernames, account IDs, following snapshots, and detected changes;
 - Premium status, license key, and purchase email;
-- temporary rate-limit and automation-lock state.
+- temporary rate-limit, automation-lock, scan cursor, follower ID, and pending-queue state.
 
 The statistics reset button clears statistics and history only. Other data can be removed through the relevant controls or by uninstalling the extension/clearing its storage.
 

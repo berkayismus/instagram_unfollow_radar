@@ -9,14 +9,13 @@
 - Sekmeler arası tek aktif otomasyon kilidi ve heartbeat
 - Hesap değişikliğinde otomatik durdurma
 - Watchlist snapshot bütünlüğü ve seri mutation kuyruğu
+- Tarama/cursor/kuyruk checkpoint’leri ve sayfa yenileme veya rate-limit sonrası otomatik devam
 - Regresyon testleri, CI ve deterministik mağaza paketi
 
 ## Kalan işler
 
 ### Otomasyon dayanıklılığı
 
-- Tarama fazı, cursor ve kuyruk checkpoint’leri
-- Sayfa yenileme ve rate-limit sonrasında devam
 - Kimlik doğrulama, challenge, ağ ve sunucu hatalarını ayrı sınıflandırma
 
 ### Premium

@@ -25,6 +25,7 @@ Premium Gumroad üzerinden etkinleştirilir: [cayliverse.gumroad.com/l/vnzrgn](h
 - 30 günlük istatistik ve Premium CSV dışa aktarımı
 - TR, EN ve DE arayüz
 - Aynı anda yalnızca bir Instagram sekmesinde otomasyon
+- Sayfa yenileme ve Instagram rate-limit sonrasında otomatik devam
 - Çalışma sırasında hesap değişirse güvenli durdurma
 - İzleme listesinde yalnızca tam alınan snapshot’ları karşılaştırma
 
@@ -43,8 +44,9 @@ Premium Gumroad üzerinden etkinleştirilir: [cayliverse.gumroad.com/l/vnzrgn](h
 1. İsterseniz whitelist, anahtar kelime ve dry-run ayarlarını yapın.
 2. **Başlat** düğmesine basın.
 3. Uzantı önce takipçi listesini tamamen alır, ardından takip edilenleri tarar.
-4. Eksik takipçi verisi, hesap değişikliği veya kaybedilen çalışma kilidi algılanırsa işlem yapılmadan durur.
-5. **Durdur** ile süreci sonlandırabilir, **Geri Al** ile son başarılı işlemleri geri çevirebilirsiniz.
+4. İlerleme yerelde saklanır; aynı hesapta sayfa yenilenirse veya rate-limit süresi dolarsa otomatik devam eder.
+5. Eksik takipçi verisi, hesap değişikliği veya kaybedilen çalışma kilidi algılanırsa süreç güvenle durur.
+6. **Durdur** ile süreci ve kayıtlı ilerlemeyi sonlandırabilir, **Geri Al** ile son başarılı işlemleri geri çevirebilirsiniz.
 
 ## Gizlilik
 
