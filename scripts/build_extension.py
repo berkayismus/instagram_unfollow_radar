@@ -71,6 +71,7 @@ def write_zip(output: Path) -> None:
                     compresslevel=9,
                 )
         temporary.replace(output)
+        output.chmod(0o644)
     finally:
         if temporary.exists():
             temporary.unlink()

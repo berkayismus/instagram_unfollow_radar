@@ -14,6 +14,9 @@
 - Periyodik Premium doğrulaması, iptal/iade kontrolleri ve offline grace period
 - Legacy 50 işlem batch duraklamasının kaldırılması
 - Kimlik doğrulama, challenge, rate-limit, ağ, sunucu ve geçersiz yanıt hatalarının sınıflandırılması
+- Gerçek storage modülleriyle hesap izolasyonu ve migration entegrasyon testleri
+- Paket allowlist’i, manifest izinleri ve ürün limitleri için otomatik tutarlılık kontrolleri
+- `1.3.0` sürüm paketi
 - Regresyon testleri, CI ve deterministik mağaza paketi
 
 ## Kalan işler
@@ -21,7 +24,5 @@
 ### Ürün ve veri
 
 - Ayar/whitelist içe ve dışa aktarma
-- Daha geniş entegrasyon testleri ve storage migration doğrulamaları
-- Gizlilik, mağaza ve özellik metinlerini sürüm sürecinde otomatik kontrol etme
 
 Otomatik unfollow akışı korunacaktır. Yeni bir tarama-sonrası ön onay ekranı planlanmamaktadır.
