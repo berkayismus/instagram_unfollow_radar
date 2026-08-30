@@ -21,7 +21,7 @@ const IGRadarStorage = (function() {
     async function loadState(state) {
         const keys = [
             SK.SESSION_COUNT, SK.SESSION_START, SK.TOTAL_UNFOLLOWED,
-            SK.LAST_RUN,      SK.TEST_MODE,      SK.TEST_COMPLETE,
+            SK.LAST_RUN,
             SK.KEYWORDS,      SK.WHITELIST,      SK.DRY_RUN_MODE,
             SK.UNDO_QUEUE,    SK.RATE_LIMIT_UNTIL,
             SK.UNFOLLOW_STATS, SK.UNFOLLOW_HISTORY,
@@ -43,8 +43,6 @@ const IGRadarStorage = (function() {
         }
 
         state.totalUnfollowed = data[SK.TOTAL_UNFOLLOWED] || 0;
-        state.testMode        = data[SK.TEST_MODE] !== undefined ? data[SK.TEST_MODE] : true;
-        state.testComplete    = data[SK.TEST_COMPLETE]    || false;
         state.keywords        = data[SK.KEYWORDS]         || [];
         state.whitelist       = data[SK.WHITELIST]        || {};
         state.dryRunMode      = data[SK.DRY_RUN_MODE]     || false;

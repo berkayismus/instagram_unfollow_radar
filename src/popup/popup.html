@@ -70,16 +70,6 @@
                 <span id="statusText" data-i18n="status.ready">Hazır</span>
             </div>
 
-            <!-- Batch complete alert -->
-            <div id="testModeAlert" class="alert alert-warning" style="display: none;" role="alert"
-                aria-live="assertive">
-                <p><strong>⚠️ <span data-i18n="alerts.batchComplete">Batch Tamamlandı</span></strong></p>
-                <p data-i18n="alerts.batchCompleteDesc">50 kişi takipten çıkarıldı. Devam etmek istiyor musunuz?</p>
-                <button id="continueBtn" class="btn btn-success" type="button">✓
-                    <span data-i18n="buttons.continue">Devam Et (50 kişi daha)</span>
-                </button>
-            </div>
-
             <!-- Rate limit alert -->
             <div id="rateLimitAlert" class="alert alert-danger" style="display: none;" role="alert"
                 aria-live="assertive">
@@ -307,7 +297,6 @@
             <ul>
                 <li data-i18n="warning.item1">Instagram’da oturumunuz açık olmalı</li>
                 <li data-i18n="warning.item2">Her işlem arasında birkaç saniye beklenir</li>
-                <li data-i18n="warning.item3">50 kişiden sonra devam etmek için onay sorulur</li>
                 <li id="warningLimitItem" data-i18n="warning.item4">Günlük limit: ücretsiz 10, Premium 500 kişi</li>
                 <li data-i18n="warning.item5">Limit her 24 saatte bir sıfırlanır</li>
             </ul>

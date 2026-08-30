@@ -44,7 +44,6 @@ const Constants = (function () {
         // ─── LIMITS ──────────────────────────────────────────────────────────
         LIMITS: {
             MAX_SESSION:             100,
-            BATCH_SIZE:              50,
             MAX_UNDO_QUEUE:          10,
             HISTORY_RETENTION_DAYS:  30,
             MAX_USER_LIST_DISPLAY:   50,
@@ -99,8 +98,6 @@ const Constants = (function () {
             SESSION_START:    'igSessionStart',
             TOTAL_UNFOLLOWED: 'igTotalUnfollowed',
             LAST_RUN:         'igLastRun',
-            TEST_MODE:        'igTestMode',
-            TEST_COMPLETE:    'igTestComplete',
             KEYWORDS:         'igKeywords',
             WHITELIST:        'igWhitelist',
             DRY_RUN_MODE:     'igDryRunMode',
@@ -125,7 +122,6 @@ const Constants = (function () {
         // ─── MESSAGE TYPES ────────────────────────────────────────────────────
         MESSAGE_TYPES: {
             STATUS_UPDATE:  'STATUS_UPDATE',
-            TEST_COMPLETE:  'TEST_COMPLETE',
             RATE_LIMIT_HIT: 'RATE_LIMIT_HIT',
             USER_PROCESSED: 'USER_PROCESSED'
         },
@@ -134,7 +130,6 @@ const Constants = (function () {
         ACTIONS: {
             START:            'START',
             STOP:             'STOP',
-            CONTINUE_TEST:    'CONTINUE_TEST',
             GET_STATUS:       'GET_STATUS',
             UPDATE_KEYWORDS:  'UPDATE_KEYWORDS',
             UPDATE_WHITELIST: 'UPDATE_WHITELIST',
@@ -161,7 +156,6 @@ const Constants = (function () {
             STOPPED:       'stopped',
             COMPLETED:     'completed',
             LIMIT_REACHED: 'limit_reached',
-            TEST_COMPLETE: 'test_complete',
             RATE_LIMIT:    'rate_limit',
             RESUMED:       'resumed',
             ERROR:         'error'

@@ -95,17 +95,6 @@ const IGRadarEvents = (function() {
         }
     }
 
-    async function handleContinue() {
-        if (!_currentTab) return;
-        try {
-            await sendToContent({ action: Constants.ACTIONS.CONTINUE_TEST });
-            IGRadarUI.el.testModeAlert.style.display = 'none';
-            IGRadarUI.updateStatus('active', `🔄 ${I18n.t('status.processing')}...`);
-        } catch (err) {
-            console.error('[IGRadar] Failed to continue:', err);
-        }
-    }
-
     async function handleReset() {
         if (!confirm(I18n.t('messages.confirmReset'))) return;
         await IGRadarAccountStorage.set({
@@ -521,7 +510,6 @@ const IGRadarEvents = (function() {
 
         IGRadarUI.el.startBtn.addEventListener('click',    handleStart);
         IGRadarUI.el.stopBtn.addEventListener('click',     handleStop);
-        IGRadarUI.el.continueBtn.addEventListener('click', handleContinue);
         IGRadarUI.el.resetBtn.addEventListener('click',    handleReset);
         IGRadarUI.el.undoBtn.addEventListener('click',     handleUndo);
         IGRadarUI.el.dryRunMode.addEventListener('change', handleDryRunToggle);

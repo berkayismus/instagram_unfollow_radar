@@ -10,7 +10,7 @@ Bu belge ürün davranışının kısa özetidir. Teknik ayrıntılar için [TEC
 - Gerçek işlemler arasında 5–10 saniye rastgele gecikme uygulanır.
 - Tarama fazı, cursor ve işlem kuyruğu yerelde saklanır; aynı hesapta sayfa yenileme veya rate-limit sonrasında otomatik devam eder.
 - Ücretsiz plan 10, Premium plan 500 gerçek unfollow ile sınırlıdır; pencere 24 saattir.
-- İlk kullanımda 50 işlenen adaydan sonra legacy batch duraklaması gösterilebilir; devam seçimi yerelde saklanır.
+- Otomasyon günlük kotaya veya güvenli durdurma koşuluna kadar ek onay istemeden devam eder.
 - Ayrı bir tarama-sonrası ön onay ekranı yoktur.
 
 ## Güvenlik

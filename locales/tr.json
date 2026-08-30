@@ -30,8 +30,6 @@
         "completed": "Tamamlandı"
     },
     "alerts": {
-        "batchComplete": "Batch Tamamlandı",
-        "batchCompleteDesc": "50 kişi takipten çıkarıldı. Devam etmek istiyor musunuz?",
         "rateLimit": "Rate Limit!",
         "rateLimitDesc": "Instagram tarafından hız sınırına takıldınız. Lütfen bekleyin.",
         "dailyLimitReached": "24 Saatlik Limit Doldu",
@@ -41,7 +39,6 @@
     "buttons": {
         "start": "Başlat",
         "stop": "Durdur",
-        "continue": "Devam Et (50 kişi daha)",
         "undo": "Geri Al",
         "reset": "Sıfırla",
         "add": "Ekle",
@@ -113,7 +110,6 @@
         "title": "Bilmeniz gerekenler",
         "item1": "Instagram’da oturumunuz açık olmalı",
         "item2": "Her işlem arasında birkaç saniye beklenir",
-        "item3": "50 kişiden sonra devam etmek için onay sorulur",
         "item4": "Günlük limit: ücretsiz 10, Premium 500 kişi",
         "item5": "Limit her 24 saatte bir sıfırlanır"
     },
@@ -169,7 +165,6 @@
     "aria": {
         "startButton": "Otomatik takipten çıkarmayı başlat",
         "stopButton": "Otomatik takipten çıkarmayı durdur",
-        "continueButton": "50 kişi daha takipten çık",
         "resetButton": "Tüm istatistikleri sıfırla",
         "undoButton": "{count} işlem geri alınabilir",
         "themeToggle": "Tema değiştir (açık/koyu)",

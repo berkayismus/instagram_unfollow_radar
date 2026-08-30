@@ -12,6 +12,7 @@
 - Tarama/cursor/kuyruk checkpoint’leri ve sayfa yenileme veya rate-limit sonrası otomatik devam
 - Instagram hesabına göre ayrılmış yerel veri ve kayıpsız legacy migration
 - Periyodik Premium doğrulaması, iptal/iade kontrolleri ve offline grace period
+- Legacy 50 işlem batch duraklamasının kaldırılması
 - Regresyon testleri, CI ve deterministik mağaza paketi
 
 ## Kalan işler
@@ -26,4 +27,4 @@
 - Daha geniş entegrasyon testleri ve storage migration doğrulamaları
 - Gizlilik, mağaza ve özellik metinlerini sürüm sürecinde otomatik kontrol etme
 
-Otomatik unfollow akışı korunacaktır. Yeni bir tarama-sonrası ön onay ekranı planlanmamaktadır. İlk kullanımda görülebilen legacy batch duraklaması daha sonra ayrıca sadeleştirilecektir.
+Otomatik unfollow akışı korunacaktır. Yeni bir tarama-sonrası ön onay ekranı planlanmamaktadır.

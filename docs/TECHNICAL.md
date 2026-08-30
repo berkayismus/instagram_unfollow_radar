@@ -71,7 +71,6 @@ Kimlik doğrulama mevcut Instagram oturumu, CSRF cookie’si ve web App ID üzer
 | Ek insan benzeri duraklama | %10 olasılıkla 5–15 sn |
 | Ücretsiz kota | 10 / 24 saat |
 | Premium kota | 500 / 24 saat |
-| Legacy batch duraklaması | İlk onaya kadar 50 işlenen aday |
 | Undo kuyruğu | 10 |
 
 İstatistik sıfırlama 24 saatlik kota penceresini değiştirmez.
@@ -104,7 +103,7 @@ Instagram’a bağlı anahtarlar `::<account-id>` son ekiyle ayrı namespace’l
 
 ## Mesajlaşma
 
-Popup → content eylemleri arasında `START`, `STOP`, `GET_STATUS`, filtre güncellemeleri, undo ve watchlist işlemleri bulunur. Content → popup durumları `STATUS_UPDATE`, `USER_PROCESSED`, `RATE_LIMIT_HIT` ve `TEST_COMPLETE` mesajlarıdır. Content → background yalnızca run-lock acquire/renew/release mesajlarını gönderir.
+Popup → content eylemleri arasında `START`, `STOP`, `GET_STATUS`, filtre güncellemeleri, undo ve watchlist işlemleri bulunur. Content → popup durumları `STATUS_UPDATE`, `USER_PROCESSED` ve `RATE_LIMIT_HIT` mesajlarıdır. Content → background yalnızca run-lock acquire/renew/release mesajlarını gönderir.
 
 ## Premium
 

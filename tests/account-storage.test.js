@@ -10,8 +10,6 @@ const storageKeys = {
     SESSION_START: 'igSessionStart',
     TOTAL_UNFOLLOWED: 'igTotalUnfollowed',
     LAST_RUN: 'igLastRun',
-    TEST_MODE: 'igTestMode',
-    TEST_COMPLETE: 'igTestComplete',
     KEYWORDS: 'igKeywords',
     WHITELIST: 'igWhitelist',
     DRY_RUN_MODE: 'igDryRunMode',
@@ -83,6 +81,8 @@ test('legacy account data migrates once without overwriting scoped data', async 
         [storageKeys.KEYWORDS]: ['legacy'],
         [storageKeys.WHITELIST]: { legacy_user: { addedDate: 1 } },
         [`${storageKeys.KEYWORDS}::account::42`]: ['already-scoped'],
+        igTestMode: true,
+        'igTestComplete::account::42': true,
         [storageKeys.THEME]: 'light'
     });
     accountStorage.setScope('42');
@@ -99,5 +99,7 @@ test('legacy account data migrates once without overwriting scoped data', async 
     }));
     assert.equal(stored[storageKeys.KEYWORDS], undefined);
     assert.equal(stored[storageKeys.WHITELIST], undefined);
+    assert.equal(stored.igTestMode, undefined);
+    assert.equal(stored['igTestComplete::account::42'], undefined);
     assert.equal(await accountStorage.migrateLegacy(), false);
 });

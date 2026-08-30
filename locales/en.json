@@ -30,8 +30,6 @@
         "completed": "Completed"
     },
     "alerts": {
-        "batchComplete": "Batch Complete",
-        "batchCompleteDesc": "50 users unfollowed. Do you want to continue?",
         "rateLimit": "Rate Limit!",
         "rateLimitDesc": "Instagram has rate-limited you. Please wait.",
         "dailyLimitReached": "24 Hour Limit Reached",
@@ -41,7 +39,6 @@
     "buttons": {
         "start": "Start",
         "stop": "Stop",
-        "continue": "Continue (50 more)",
         "undo": "Undo",
         "reset": "Reset",
         "add": "Add",
@@ -113,7 +110,6 @@
         "title": "Good to know",
         "item1": "You need to be signed in to Instagram",
         "item2": "There is a short wait between each action",
-        "item3": "After 50 unfollows, you’ll be asked if you want to continue",
         "item4": "Daily limit: 10 on Free, 500 on Premium",
         "item5": "The daily limit resets every 24 hours"
     },
@@ -169,7 +165,6 @@
     "aria": {
         "startButton": "Start automatic unfollowing",
         "stopButton": "Stop automatic unfollowing",
-        "continueButton": "Continue unfollowing 50 more users",
         "resetButton": "Reset all statistics",
         "undoButton": "{count} actions can be undone",
         "themeToggle": "Toggle theme (light/dark)",
