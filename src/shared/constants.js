@@ -70,7 +70,9 @@ const Constants = (function () {
         GUMROAD: {
             PRODUCT_PERMALINK: 'vnzrgn',
             VERIFY_URL:        'https://api.gumroad.com/v2/licenses/verify',
-            MANAGE_URL:        'https://app.gumroad.com/library'
+            MANAGE_URL:        'https://app.gumroad.com/library',
+            REVALIDATE_INTERVAL: 12 * 60 * 60 * 1000,
+            OFFLINE_GRACE_PERIOD: 72 * 60 * 60 * 1000
         },
 
         // ─── INSTAGRAM API ────────────────────────────────────────────────────
@@ -111,6 +113,9 @@ const Constants = (function () {
             IS_PREMIUM:       'igIsPremium',
             LICENSE_KEY:      'igLicenseKey',
             LICENSE_EMAIL:    'igLicenseEmail',
+            LICENSE_LAST_CHECK: 'igLicenseLastCheck',
+            LICENSE_GRACE_UNTIL: 'igLicenseGraceUntil',
+            LICENSE_STATUS:     'igLicenseStatus',
             WATCH_LIST:       'igWatchList',
             POPUP_ACTIVE_TAB: 'igPopupActiveTab',
             ACTIVE_RUN_LOCK:  'igActiveRunLock',

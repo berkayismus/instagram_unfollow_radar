@@ -209,25 +209,10 @@ const IGRadarEvents = (function() {
         IGRadarUI.el.licenseStatus.style.display = 'none';
 
         try {
-            const body = new URLSearchParams({
-                product_permalink:      Constants.GUMROAD.PRODUCT_PERMALINK,
-                license_key:            key,
-                increment_uses_count:   'false'
-            });
-            const response = await fetch(Constants.GUMROAD.VERIFY_URL, {
-                method:  'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body
-            });
-            const json = await response.json();
+            const result = await IGRadarGumroadLicense.activate(key);
 
-            if (json.success === true) {
-                const email = json.purchase && json.purchase.email ? json.purchase.email : null;
-                await IGRadarAccountStorage.set({
-                    [Constants.STORAGE_KEYS.IS_PREMIUM]:    true,
-                    [Constants.STORAGE_KEYS.LICENSE_KEY]:   key,
-                    [Constants.STORAGE_KEYS.LICENSE_EMAIL]: email
-                });
+            if (result.valid) {
+                const email = result.email || null;
                 try {
                     await sendToContent({
                         action:       Constants.ACTIONS.UPDATE_LICENSE,
@@ -255,11 +240,7 @@ const IGRadarEvents = (function() {
      */
     async function handleDeactivateLicense() {
         if (!confirm(I18n.t('premium.confirmDeactivate'))) return;
-        await IGRadarAccountStorage.set({
-            [Constants.STORAGE_KEYS.IS_PREMIUM]:    false,
-            [Constants.STORAGE_KEYS.LICENSE_KEY]:   null,
-            [Constants.STORAGE_KEYS.LICENSE_EMAIL]: null
-        });
+        await IGRadarGumroadLicense.deactivate();
         try {
             await IGRadarWatchlistLimits.enforceStorageLimit();
         } catch (err) {

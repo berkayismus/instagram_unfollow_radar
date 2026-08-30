@@ -11,6 +11,7 @@
 - Watchlist snapshot bütünlüğü ve seri mutation kuyruğu
 - Tarama/cursor/kuyruk checkpoint’leri ve sayfa yenileme veya rate-limit sonrası otomatik devam
 - Instagram hesabına göre ayrılmış yerel veri ve kayıpsız legacy migration
+- Periyodik Premium doğrulaması, iptal/iade kontrolleri ve offline grace period
 - Regresyon testleri, CI ve deterministik mağaza paketi
 
 ## Kalan işler
@@ -18,12 +19,6 @@
 ### Otomasyon dayanıklılığı
 
 - Kimlik doğrulama, challenge, ağ ve sunucu hatalarını ayrı sınıflandırma
-
-### Premium
-
-- Periyodik lisans yeniden doğrulaması
-- İade, chargeback ve abonelik bitiş kontrolleri
-- Sınırlı offline kullanım süresi
 
 ### Ürün ve veri
 

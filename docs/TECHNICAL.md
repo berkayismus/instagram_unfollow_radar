@@ -108,7 +108,7 @@ Popup → content eylemleri arasında `START`, `STOP`, `GET_STATUS`, filtre gün
 
 ## Premium
 
-Popup lisans anahtarını Gumroad `licenses/verify` endpoint’ine gönderir. Başarılı sonuç yerel Premium durumuna yazılır. Periyodik yeniden doğrulama, iade/chargeback kontrolü ve offline grace period henüz yoktur.
+Popup lisans anahtarını Gumroad `licenses/verify` endpoint’ine gönderir. Service worker alarmı ve popup açılışı 12 saatlik aralıkla yeniden doğrulama yapar. `refunded`, `disputed`, `chargebacked` veya abonelik bitiş alanları doluysa Premium hemen kapatılır. Yalnızca ağ/sunucu hatalarında son başarılı kontrolden itibaren 72 saatlik offline grace period uygulanır; güncel durum açık Instagram sekmelerine iletilir.
 
 ## Test ve paketleme
 

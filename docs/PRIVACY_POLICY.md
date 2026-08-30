@@ -36,7 +36,7 @@ Instagram-dependent data is stored in separate namespaces for each Instagram acc
 The extension communicates with:
 
 - `instagram.com` for the requested Instagram operations;
-- `api.gumroad.com` when a user submits a Premium license for verification.
+- `api.gumroad.com` when a user submits a Premium license and during periodic revalidation.
 
 The Gumroad request includes the product identifier and license key. Gumroad may return purchase information such as the buyer email. Refer to Gumroad’s privacy policy for its processing practices.
 
@@ -47,6 +47,7 @@ The extension includes no analytics, advertising, tracking, or crash-reporting S
 | Permission | Purpose |
 |---|---|
 | `storage` | Store settings and operational data locally |
+| `alarms` | Schedule periodic Premium license revalidation |
 | `https://www.instagram.com/*` | Run the content script and call Instagram APIs |
 | `https://api.gumroad.com/*` | Verify an optional Premium license |
 
