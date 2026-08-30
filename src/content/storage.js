@@ -10,6 +10,8 @@ const IGRadarStorage = (function() {
     'use strict';
 
     const SK = Constants.STORAGE_KEYS;
+    let runCheckpointQueue = Promise.resolve();
+    let runActivityQueue = Promise.resolve();
 
     /**
      * Reads all persisted values into the provided mutable state object.
@@ -129,14 +131,41 @@ const IGRadarStorage = (function() {
         return data[SK.RUN_CHECKPOINT] || null;
     }
 
-    async function saveRunCheckpoint(checkpoint) {
-        await IGRadarAccountStorage.set({
+    function saveRunCheckpoint(checkpoint) {
+        runCheckpointQueue = runCheckpointQueue.catch(err => {
+            console.warn('[IGRadar] Previous checkpoint write failed:', err);
+        }).then(() => IGRadarAccountStorage.set({
             [SK.RUN_CHECKPOINT]: { ...checkpoint, updatedAt: Date.now() }
-        });
+        }));
+        return runCheckpointQueue;
     }
 
     async function clearRunCheckpoint() {
+        await runCheckpointQueue.catch(() => {});
         await IGRadarAccountStorage.remove(SK.RUN_CHECKPOINT);
+    }
+
+    async function getRunActivity() {
+        const data = await IGRadarAccountStorage.get([SK.RUN_ACTIVITY]);
+        return data[SK.RUN_ACTIVITY] || [];
+    }
+
+    function addRunActivity(entry) {
+        runActivityQueue = runActivityQueue.catch(err => {
+            console.warn('[IGRadar] Previous activity write failed:', err);
+        }).then(async() => {
+            const activity = await getRunActivity();
+            activity.push(entry);
+            await IGRadarAccountStorage.set({
+                [SK.RUN_ACTIVITY]: activity.slice(-Constants.LIMITS.MAX_USER_LIST_DISPLAY)
+            });
+        });
+        return runActivityQueue;
+    }
+
+    async function clearRunActivity() {
+        await runActivityQueue.catch(() => {});
+        await IGRadarAccountStorage.remove(SK.RUN_ACTIVITY);
     }
 
     /**
@@ -178,6 +207,9 @@ const IGRadarStorage = (function() {
         getRunCheckpoint,
         saveRunCheckpoint,
         clearRunCheckpoint,
+        getRunActivity,
+        addRunActivity,
+        clearRunActivity,
         saveLicenseState,
         getWatchList,
         saveWatchList

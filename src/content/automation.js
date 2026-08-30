@@ -41,7 +41,11 @@ const IGRadarAutomation = (function() {
         if (!err || !err.code) return false;
         state.isRunning = false;
         state.isPaused = false;
-        sendStatus(Constants.STATUS.ERROR, { message: err.code });
+        const details = { message: err.code };
+        if (err.endpoint) details.apiEndpoint = err.endpoint;
+        if (err.reason) details.apiReason = err.reason;
+        if (err.status) details.httpStatus = err.status;
+        sendStatus(Constants.STATUS.ERROR, details);
         return true;
     }
 
@@ -67,6 +71,7 @@ const IGRadarAutomation = (function() {
     }
 
     async function persistCheckpoint(state, changes = {}) {
+        if (!state.isRunning) return;
         state.runCheckpoint = {
             ...(state.runCheckpoint || {}),
             ...changes,
@@ -87,6 +92,19 @@ const IGRadarAutomation = (function() {
         await IGRadarStorage.clearRunCheckpoint();
     }
 
+    async function publishProcessedUser(username, action) {
+        const data = { username, action, timestamp: Date.now() };
+        try {
+            await IGRadarStorage.addRunActivity(data);
+        } catch (err) {
+            console.warn('[IGRadar] Failed to persist processed user:', err);
+        }
+        chrome.runtime.sendMessage({
+            type: Constants.MESSAGE_TYPES.USER_PROCESSED,
+            data
+        });
+    }
+
     // ─── RATE LIMIT ───────────────────────────────────────────────────────────
 
     /**
@@ -105,6 +123,7 @@ const IGRadarAutomation = (function() {
         state.isPaused       = true;
 
         await IGRadarStorage.setRateLimitUntil(until);
+        if (!state.isRunning) return false;
 
         chrome.runtime.sendMessage({
             type: Constants.MESSAGE_TYPES.RATE_LIMIT_HIT,
@@ -148,14 +167,7 @@ const IGRadarAutomation = (function() {
             await randomDelay(Constants.TIMING.MIN_DELAY, Constants.TIMING.MAX_DELAY);
             state.previewCount = (state.previewCount || 0) + 1;
             sendStatus(Constants.STATUS.UNFOLLOWED, { username: user.username, dryRun: true });
-            chrome.runtime.sendMessage({
-                type: Constants.MESSAGE_TYPES.USER_PROCESSED,
-                data: {
-                    username:  user.username,
-                    action:    Constants.USER_ACTIONS.DRY_RUN,
-                    timestamp: Date.now()
-                }
-            });
+            await publishProcessedUser(user.username, Constants.USER_ACTIONS.DRY_RUN);
             return true;
         }
 
@@ -172,14 +184,7 @@ const IGRadarAutomation = (function() {
         await IGRadarStorage.addToHistory(user.username, Constants.USER_ACTIONS.UNFOLLOWED);
 
         sendStatus(Constants.STATUS.UNFOLLOWED, { username: user.username });
-        chrome.runtime.sendMessage({
-            type: Constants.MESSAGE_TYPES.USER_PROCESSED,
-            data: {
-                username:  user.username,
-                action:    Constants.USER_ACTIONS.UNFOLLOWED,
-                timestamp: Date.now()
-            }
-        });
+        await publishProcessedUser(user.username, Constants.USER_ACTIONS.UNFOLLOWED);
         return true;
     }
 
@@ -211,6 +216,7 @@ const IGRadarAutomation = (function() {
 
             const result = await IGRadarAPI.fetchFollowersPage(userId, cursor, signal);
             if (!result) throw new IncompleteFollowerScanError();
+            if (!state.isRunning || (signal && signal.aborted)) break;
 
             result.users.forEach(u => followerSet.add(String(u.pk || u.id)));
             cursor = result.nextCursor;
@@ -248,11 +254,13 @@ const IGRadarAutomation = (function() {
         const signal = state.abortController && state.abortController.signal;
         const result = await IGRadarAPI.fetchFollowingPage(userId, cursor, signal);
         if (!result) return null;
+        if (!state.isRunning || (signal && signal.aborted)) return null;
 
         const { users, nextCursor } = result;
         if (users.length === 0) return { nextCursor: null, fetched: 0 };
 
         for (const user of users) {
+            if (!state.isRunning || (signal && signal.aborted)) return null;
             if (state.processedUsers.has(user.username)) continue;
             state.processedUsers.add(user.username);
 
@@ -265,10 +273,7 @@ const IGRadarAutomation = (function() {
             );
 
             if (skip) {
-                chrome.runtime.sendMessage({
-                    type: Constants.MESSAGE_TYPES.USER_PROCESSED,
-                    data: { username: user.username, action: `skipped:${reason}`, timestamp: Date.now() }
-                });
+                await publishProcessedUser(user.username, `skipped:${reason}`);
                 continue;
             }
 
@@ -409,6 +414,7 @@ const IGRadarAutomation = (function() {
             if (state.unfollowQueue.length === 0 && hasMore) {
                 try {
                     const scanResult = await scanPage(userId, cursor, followerSet, state, sendStatus, totalScanned);
+                    if (!state.isRunning) return;
                     if (scanResult) {
                         consecutiveErrors  = 0;
                         totalScanned      += scanResult.fetched;
@@ -485,6 +491,8 @@ const IGRadarAutomation = (function() {
                     }
                     console.error('[IGRadar] Unfollow error:', err);
                 }
+
+                if (!state.isRunning) return;
 
                 await persistCheckpoint(state, {
                     unfollowQueue:       state.unfollowQueue,

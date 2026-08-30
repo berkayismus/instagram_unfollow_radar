@@ -1,6 +1,6 @@
 {
   "name": "instagram-unfollow-radar",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "private": true,
   "scripts": {
     "check": "node --test --test-concurrency=1 && find src -name '*.js' -exec node --check {} \\;",

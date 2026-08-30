@@ -21,7 +21,8 @@ window.IGRadarAccountStorage = (function() {
         SK.UNFOLLOW_STATS,
         SK.UNFOLLOW_HISTORY,
         SK.WATCH_LIST,
-        SK.RUN_CHECKPOINT
+        SK.RUN_CHECKPOINT,
+        SK.RUN_ACTIVITY
     ]);
     const MIGRATION_PREFIX = 'igAccountStorageMigrated';
     const OBSOLETE_BATCH_KEYS = ['igTestMode', 'igTestComplete'];

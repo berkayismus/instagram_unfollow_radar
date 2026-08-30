@@ -48,8 +48,10 @@ class ServerError extends InstagramAPIError {
 }
 
 class InvalidResponseError extends InstagramAPIError {
-    constructor() {
-        super('Instagram returned an invalid response', 'invalid_response');
+    constructor(reason = 'invalid_payload', status = null, contentType = null) {
+        super('Instagram returned an invalid response', 'invalid_response', { status });
+        this.reason = reason;
+        this.contentType = contentType;
     }
 }
 
@@ -89,6 +91,7 @@ const IGRadarAPI = (function() {
             'X-CSRFToken':       getCookie('csrftoken') || '',
             'X-Requested-With': 'XMLHttpRequest',
             'X-Instagram-AJAX':  '1',
+            'X-ASBD-ID':         '129477',
             'Accept':            '*/*',
             'Referer':           'https://www.instagram.com/'
         };
@@ -119,13 +122,16 @@ const IGRadarAPI = (function() {
     }
 
     function validatePayload(data) {
-        if (!data || typeof data !== 'object') throw new InvalidResponseError();
+        if (!data || typeof data !== 'object') throw new InvalidResponseError('invalid_payload');
         if (data.status !== 'fail') return data;
         const serialized = JSON.stringify(data);
         throw classifyFailure(null, serialized);
     }
 
-    async function requestJSON(url, options) {
+    async function requestJSON(url, options, {
+        allowEmptySuccess = false,
+        allowPlainOkSuccess = false
+    } = {}) {
         let response;
         try {
             response = await fetch(url, { ...options, credentials: 'include' });
@@ -142,13 +148,27 @@ const IGRadarAPI = (function() {
             throw new NetworkError(err);
         }
         if (!response.ok) throw classifyFailure(response.status, text);
-        if (!text) throw new InvalidResponseError();
+        const contentType = response.headers && response.headers.get
+            ? response.headers.get('content-type')
+            : null;
+        if (!text) {
+            if (allowEmptySuccess) return {};
+            throw new InvalidResponseError('empty_body', response.status, contentType);
+        }
+        if (/^\s*</.test(text)) {
+            const finalUrl = response.url || '';
+            if (response.redirected && finalUrl.includes('/accounts/login')) {
+                throw new AuthenticationError(response.status);
+            }
+            throw new InvalidResponseError('html_response', response.status, contentType);
+        }
+        if (allowPlainOkSuccess && text.trim().toLowerCase() === 'ok') return {};
 
         let data;
         try {
             data = JSON.parse(text);
         } catch (_) {
-            throw new InvalidResponseError();
+            throw new InvalidResponseError('invalid_json', response.status, contentType);
         }
         return validatePayload(data);
     }
@@ -157,13 +177,73 @@ const IGRadarAPI = (function() {
         return requestJSON(url, { headers: getApiHeaders(), signal });
     }
 
-    async function postJSON(url, body = '', signal) {
-        return requestJSON(url, {
-            method: 'POST',
-            headers: { ...getApiHeaders(), 'Content-Type': 'application/x-www-form-urlencoded' },
-            body,
-            signal
-        });
+    async function postJSON(kind, url, body = '', signal) {
+        try {
+            return await requestJSON(
+                url,
+                {
+                    method: 'POST',
+                    headers: {
+                        ...getApiHeaders(),
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body,
+                    signal
+                },
+                { allowEmptySuccess: true, allowPlainOkSuccess: true }
+            );
+        } catch (err) {
+            if (err) err.endpoint = kind;
+            console.warn('[IGRadar] Instagram write request failed:', {
+                endpoint: kind,
+                code: err && err.code,
+                status: err && err.status,
+                reason: err && err.reason,
+                contentType: err && err.contentType
+            });
+            throw err;
+        }
+    }
+
+    function normalizeUserPage(data) {
+        const payload = Array.isArray(data.users)
+            ? data
+            : data.data && Array.isArray(data.data.users)
+                ? data.data
+                : null;
+        if (!payload) throw new InvalidResponseError('missing_users');
+        return {
+            users: payload.users,
+            nextCursor: payload.next_max_id || payload.next_cursor || null
+        };
+    }
+
+    async function fetchUserPage(kind, url, signal) {
+        const maxAttempts = Constants.LIMITS.API_READ_MAX_ATTEMPTS || 2;
+        let lastError;
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+                return normalizeUserPage(await getJSON(url, signal));
+            } catch (err) {
+                lastError = err;
+                if (err) err.endpoint = kind;
+                const canRetry = err && ['invalid_response', 'network_error', 'server_error']
+                    .includes(err.code) && attempt < maxAttempts;
+                console.warn('[IGRadar] Instagram read request failed:', {
+                    endpoint: kind,
+                    code: err && err.code,
+                    status: err && err.status,
+                    reason: err && err.reason,
+                    contentType: err && err.contentType,
+                    attempt,
+                    willRetry: canRetry
+                });
+                if (!canRetry) break;
+                const delay = Constants.TIMING.API_READ_RETRY_DELAY || 0;
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+        }
+        throw lastError;
     }
 
     // ─── INSTAGRAM ENDPOINTS ──────────────────────────────────────────────────
@@ -178,9 +258,11 @@ const IGRadarAPI = (function() {
     async function fetchFollowingPage(userId, cursor, signal) {
         const params = new URLSearchParams({ count: Constants.LIMITS.SCAN_PAGE_SIZE });
         if (cursor) params.append('max_id', cursor);
-        const data = await getJSON(`${Constants.API.FOLLOWING(userId)}?${params}`, signal);
-        if (!Array.isArray(data.users)) throw new InvalidResponseError();
-        return { users: data.users || [], nextCursor: data.next_max_id || null };
+        return fetchUserPage(
+            'following',
+            `${Constants.API.FOLLOWING(userId)}?${params}`,
+            signal
+        );
     }
 
     /**
@@ -193,9 +275,11 @@ const IGRadarAPI = (function() {
     async function fetchFollowersPage(userId, cursor, signal) {
         const params = new URLSearchParams({ count: Constants.LIMITS.SCAN_PAGE_SIZE });
         if (cursor) params.append('max_id', cursor);
-        const data = await getJSON(`${Constants.API.FOLLOWERS(userId)}?${params}`, signal);
-        if (!Array.isArray(data.users)) throw new InvalidResponseError();
-        return { users: data.users || [], nextCursor: data.next_max_id || null };
+        return fetchUserPage(
+            'followers',
+            `${Constants.API.FOLLOWERS(userId)}?${params}`,
+            signal
+        );
     }
 
     /**
@@ -234,7 +318,18 @@ const IGRadarAPI = (function() {
      * @returns {Promise<boolean>} true if the request succeeded
      */
     async function unfollowUser(userId, signal) {
-        await postJSON(Constants.API.DESTROY(userId), '', signal);
+        const body = new URLSearchParams({
+            container_module: 'profile',
+            user_id: String(userId)
+        }).toString();
+        try {
+            await postJSON('unfollow', Constants.API.DESTROY(userId), body, signal);
+        } catch (err) {
+            if (!err || err.code !== 'invalid_response' || err.reason !== 'html_response') {
+                throw err;
+            }
+            await postJSON('unfollow_fallback', Constants.API.WEB_DESTROY(userId), body, signal);
+        }
         return true;
     }
 
@@ -245,7 +340,18 @@ const IGRadarAPI = (function() {
      * @returns {Promise<boolean>}
      */
     async function refollowUser(userId, signal) {
-        await postJSON(Constants.API.CREATE(userId), '', signal);
+        const body = new URLSearchParams({
+            container_module: 'profile',
+            user_id: String(userId)
+        }).toString();
+        try {
+            await postJSON('refollow', Constants.API.CREATE(userId), body, signal);
+        } catch (err) {
+            if (!err || err.code !== 'invalid_response' || err.reason !== 'html_response') {
+                throw err;
+            }
+            await postJSON('refollow_fallback', Constants.API.WEB_CREATE(userId), body, signal);
+        }
         return true;
     }
 
