@@ -168,6 +168,25 @@ const IGRadarStorage = (function() {
         await IGRadarAccountStorage.remove(SK.RUN_ACTIVITY);
     }
 
+    async function saveApiDiagnostic(error) {
+        const diagnostic = {
+            code: String(error && error.code || 'api_error').slice(0, 64),
+            endpoint: error && error.endpoint
+                ? String(error.endpoint).slice(0, 64)
+                : null,
+            reason: error && error.reason ? String(error.reason).slice(0, 64) : null,
+            status: Number.isInteger(error && error.status) ? error.status : null,
+            timestamp: Date.now()
+        };
+        await IGRadarAccountStorage.set({ [SK.API_DIAGNOSTIC]: diagnostic });
+        return diagnostic;
+    }
+
+    async function getApiDiagnostic() {
+        const data = await IGRadarAccountStorage.get([SK.API_DIAGNOSTIC]);
+        return data[SK.API_DIAGNOSTIC] || null;
+    }
+
     /**
      * Persists Gumroad premium license information.
      * @param {boolean} isPremium
@@ -210,6 +229,8 @@ const IGRadarStorage = (function() {
         getRunActivity,
         addRunActivity,
         clearRunActivity,
+        saveApiDiagnostic,
+        getApiDiagnostic,
         saveLicenseState,
         getWatchList,
         saveWatchList

@@ -45,6 +45,9 @@ const IGRadarAutomation = (function() {
         if (err.endpoint) details.apiEndpoint = err.endpoint;
         if (err.reason) details.apiReason = err.reason;
         if (err.status) details.httpStatus = err.status;
+        IGRadarStorage.saveApiDiagnostic(err).catch(storageErr => {
+            console.warn('[IGRadar] Failed to persist API diagnostic:', storageErr);
+        });
         sendStatus(Constants.STATUS.ERROR, details);
         return true;
     }

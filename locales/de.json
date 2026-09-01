@@ -28,6 +28,8 @@
         "serverError": "Instagram ist vorübergehend nicht erreichbar. Ausstehende Aktionen wurden gespeichert",
         "invalidResponse": "Instagram hat eine unerwartete Antwort gesendet. Die Automatisierung wurde sicher gestoppt",
         "apiError": "Instagram hat die Anfrage abgelehnt. Die Automatisierung wurde sicher gestoppt",
+        "relationshipCheckFailed": "Instagram hat den aktuellen Follow-Status nicht bestätigt. Die Automatisierung wurde sicher gestoppt",
+        "relationshipChangeNotApplied": "Instagram hat die Follow-Änderung nicht bestätigt. Die Automatisierung wurde sicher gestoppt",
         "error": "Scan fehlgeschlagen — bitte Instagram neu laden und erneut versuchen",
         "processing": "Verarbeitung läuft",
         "paused": "Pausiert",

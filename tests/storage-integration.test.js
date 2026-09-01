@@ -159,3 +159,29 @@ test('checkpoint clear waits for an in-flight write and remains terminal', async
 
     assert.equal(await stack.contentStorage.getRunCheckpoint(), null);
 });
+
+test('API diagnostics are account-scoped and exclude response or user data', async () => {
+    const { accountStorage, contentStorage } = loadStorageStack();
+    accountStorage.setScope('diagnostic-a');
+    const saved = await contentStorage.saveApiDiagnostic({
+        code: 'invalid_response',
+        endpoint: 'unfollow_fallback',
+        reason: 'html_response',
+        status: 200,
+        username: 'must-not-be-stored',
+        body: '<html>private response</html>'
+    });
+
+    assert.equal(saved.code, 'invalid_response');
+    assert.equal(saved.endpoint, 'unfollow_fallback');
+    assert.equal(saved.username, undefined);
+    assert.equal(saved.body, undefined);
+
+    accountStorage.setScope('diagnostic-b');
+    assert.equal(await contentStorage.getApiDiagnostic(), null);
+
+    accountStorage.setScope('diagnostic-a');
+    const restored = await contentStorage.getApiDiagnostic();
+    assert.equal(restored.reason, 'html_response');
+    assert.equal(restored.status, 200);
+});

@@ -85,6 +85,7 @@ const Constants = (function () {
             CREATE:    (userId) => `https://www.instagram.com/api/v1/friendships/create/${userId}/`,
             WEB_DESTROY: (userId) => `https://www.instagram.com/web/friendships/${userId}/unfollow/`,
             WEB_CREATE:  (userId) => `https://www.instagram.com/web/friendships/${userId}/follow/`,
+            FRIENDSHIP_STATUS: (userId) => `https://www.instagram.com/api/v1/friendships/show/${userId}/`,
             WEB_PROFILE_INFO: (username) =>
                 `https://www.instagram.com/api/v1/users/web_profile_info/?username=${encodeURIComponent(username)}`
         },
@@ -121,7 +122,8 @@ const Constants = (function () {
             POPUP_ACTIVE_TAB: 'igPopupActiveTab',
             ACTIVE_RUN_LOCK:  'igActiveRunLock',
             RUN_CHECKPOINT:   'igRunCheckpoint',
-            RUN_ACTIVITY:     'igRunActivity'
+            RUN_ACTIVITY:     'igRunActivity',
+            API_DIAGNOSTIC:   'igApiDiagnostic'
         },
 
         // ─── MESSAGE TYPES ────────────────────────────────────────────────────
