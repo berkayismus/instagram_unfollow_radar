@@ -522,14 +522,21 @@ const IGRadarUI = (function() {
                     invalid_response: 'status.invalidResponse',
                     api_error: 'status.apiError'
                 };
+                const reasonKeys = {
+                    missing_friendship_status: 'status.relationshipCheckFailed',
+                    relationship_change_not_applied: 'status.relationshipChangeNotApplied'
+                };
+                const messageKey = reasonKeys[data.apiReason] ||
+                    errorKeys[data.message] || 'status.error';
                 const diagnostic = data.message === 'invalid_response' &&
+                    !reasonKeys[data.apiReason] &&
                     (data.apiEndpoint || data.apiReason)
                     ? ` [${[data.apiEndpoint, data.apiReason, data.httpStatus]
                         .filter(Boolean).join(' / ')}]`
                     : '';
                 updateStatus(
                     'stopped',
-                    `⚠️ ${I18n.t(errorKeys[data.message] || 'status.error')}${diagnostic}`
+                    `⚠️ ${I18n.t(messageKey)}${diagnostic}`
                 );
                 setRunning(false);
                 break;

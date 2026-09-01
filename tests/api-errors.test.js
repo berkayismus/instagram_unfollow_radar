@@ -17,6 +17,7 @@ function loadAPI(fetchImpl) {
                 CREATE: id => `https://instagram.test/${id}/create`,
                 WEB_DESTROY: id => `https://instagram.test/${id}/web-unfollow`,
                 WEB_CREATE: id => `https://instagram.test/${id}/web-follow`,
+                FRIENDSHIP_STATUS: id => `https://instagram.test/${id}/friendship-status`,
                 WEB_PROFILE_INFO: username => `https://instagram.test/${username}/profile`
             },
             LIMITS: { SCAN_PAGE_SIZE: 50, API_READ_MAX_ATTEMPTS: 2 },
@@ -109,22 +110,46 @@ test('HTML unfollow responses use the web fallback once', async () => {
     const urls = [];
     const api = loadAPI(async url => {
         urls.push(url);
-        return urls.length === 1
-            ? response(200, '<html>not found</html>')
-            : response(200, JSON.stringify({ status: 'ok' }));
+        if (url.endsWith('/destroy')) return response(200, '<html>not found</html>');
+        if (url.endsWith('/web-unfollow')) {
+            return response(200, JSON.stringify({ status: 'ok' }));
+        }
+        const statusCalls = urls.filter(item => item.endsWith('/friendship-status')).length;
+        return response(200, JSON.stringify({ following: statusCalls === 1 }));
     });
 
     assert.equal(await api.unfollowUser('42'), true);
     assert.deepEqual(urls, [
         'https://instagram.test/42/destroy',
-        'https://instagram.test/42/web-unfollow'
+        'https://instagram.test/42/friendship-status',
+        'https://instagram.test/42/web-unfollow',
+        'https://instagram.test/42/friendship-status'
+    ]);
+});
+
+test('fallback is skipped when the primary HTML response already changed the relationship', async () => {
+    const urls = [];
+    const api = loadAPI(async url => {
+        urls.push(url);
+        return url.endsWith('/destroy')
+            ? response(200, '<html>response</html>')
+            : response(200, JSON.stringify({ following: false }));
+    });
+
+    assert.equal(await api.unfollowUser('42'), true);
+    assert.deepEqual(urls, [
+        'https://instagram.test/42/destroy',
+        'https://instagram.test/42/friendship-status'
     ]);
 });
 
 test('failed web fallback is reported without another write attempt', async () => {
     let calls = 0;
-    const api = loadAPI(async () => {
+    const api = loadAPI(async url => {
         calls++;
+        if (url.endsWith('/friendship-status')) {
+            return response(200, JSON.stringify({ following: true }));
+        }
         return response(200, '<html>not found</html>');
     });
 
@@ -132,7 +157,42 @@ test('failed web fallback is reported without another write attempt', async () =
         () => api.unfollowUser('42'),
         err => err.code === 'invalid_response' && err.endpoint === 'unfollow_fallback'
     );
-    assert.equal(calls, 2);
+    assert.equal(calls, 3);
+});
+
+test('unverifiable relationship state prevents a second write request', async () => {
+    const urls = [];
+    const api = loadAPI(async url => {
+        urls.push(url);
+        return url.endsWith('/destroy')
+            ? response(200, '<html>not found</html>')
+            : response(200, JSON.stringify({ status: 'ok' }));
+    });
+
+    await assert.rejects(
+        () => api.unfollowUser('42'),
+        err => err.code === 'invalid_response' &&
+            err.reason === 'missing_friendship_status' &&
+            err.endpoint === 'friendship_status'
+    );
+    assert.equal(urls.some(url => url.endsWith('/web-unfollow')), false);
+});
+
+test('fallback success is rejected when the relationship did not change', async () => {
+    const api = loadAPI(async url => {
+        if (url.endsWith('/destroy')) return response(200, '<html>not found</html>');
+        if (url.endsWith('/friendship-status')) {
+            return response(200, JSON.stringify({ following: true }));
+        }
+        return response(200, JSON.stringify({ status: 'ok' }));
+    });
+
+    await assert.rejects(
+        () => api.unfollowUser('42'),
+        err => err.code === 'api_error' &&
+            err.reason === 'relationship_change_not_applied' &&
+            err.endpoint === 'unfollow_fallback'
+    );
 });
 
 test('login redirects do not trigger the unfollow fallback', async () => {

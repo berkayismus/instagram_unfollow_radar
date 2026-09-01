@@ -56,8 +56,9 @@ class InvalidResponseError extends InstagramAPIError {
 }
 
 class APIRequestError extends InstagramAPIError {
-    constructor(status = null) {
+    constructor(status = null, reason = null) {
         super('Instagram API request failed', 'api_error', { status });
+        this.reason = reason;
     }
 }
 
@@ -246,6 +247,76 @@ const IGRadarAPI = (function() {
         throw lastError;
     }
 
+    function normalizeFriendshipStatus(data) {
+        const candidates = [
+            data && data.friendship_status,
+            data && data.data && data.data.friendship_status,
+            data
+        ];
+        const status = candidates.find(candidate =>
+            candidate && typeof candidate.following === 'boolean'
+        );
+        if (!status) throw new InvalidResponseError('missing_friendship_status');
+        return { following: status.following };
+    }
+
+    async function fetchFriendshipStatus(userId, signal) {
+        const kind = 'friendship_status';
+        const maxAttempts = Constants.LIMITS.API_READ_MAX_ATTEMPTS || 2;
+        let lastError;
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+                return normalizeFriendshipStatus(
+                    await getJSON(Constants.API.FRIENDSHIP_STATUS(userId), signal)
+                );
+            } catch (err) {
+                lastError = err;
+                if (err) err.endpoint = kind;
+                const canRetry = err && ['invalid_response', 'network_error', 'server_error']
+                    .includes(err.code) && attempt < maxAttempts;
+                if (!canRetry) break;
+                const delay = Constants.TIMING.API_READ_RETRY_DELAY || 0;
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+        }
+        throw lastError;
+    }
+
+    async function changeFriendship({
+        userId,
+        primaryKind,
+        primaryUrl,
+        fallbackKind,
+        fallbackUrl,
+        desiredFollowing,
+        signal
+    }) {
+        const body = new URLSearchParams({
+            container_module: 'profile',
+            user_id: String(userId)
+        }).toString();
+        try {
+            await postJSON(primaryKind, primaryUrl, body, signal);
+            return true;
+        } catch (err) {
+            if (!err || err.code !== 'invalid_response' || err.reason !== 'html_response') {
+                throw err;
+            }
+        }
+
+        const beforeFallback = await fetchFriendshipStatus(userId, signal);
+        if (beforeFallback.following === desiredFollowing) return true;
+
+        await postJSON(fallbackKind, fallbackUrl, body, signal);
+        const afterFallback = await fetchFriendshipStatus(userId, signal);
+        if (afterFallback.following !== desiredFollowing) {
+            const err = new APIRequestError(null, 'relationship_change_not_applied');
+            err.endpoint = fallbackKind;
+            throw err;
+        }
+        return true;
+    }
+
     // ─── INSTAGRAM ENDPOINTS ──────────────────────────────────────────────────
 
     /**
@@ -318,19 +389,15 @@ const IGRadarAPI = (function() {
      * @returns {Promise<boolean>} true if the request succeeded
      */
     async function unfollowUser(userId, signal) {
-        const body = new URLSearchParams({
-            container_module: 'profile',
-            user_id: String(userId)
-        }).toString();
-        try {
-            await postJSON('unfollow', Constants.API.DESTROY(userId), body, signal);
-        } catch (err) {
-            if (!err || err.code !== 'invalid_response' || err.reason !== 'html_response') {
-                throw err;
-            }
-            await postJSON('unfollow_fallback', Constants.API.WEB_DESTROY(userId), body, signal);
-        }
-        return true;
+        return changeFriendship({
+            userId,
+            primaryKind: 'unfollow',
+            primaryUrl: Constants.API.DESTROY(userId),
+            fallbackKind: 'unfollow_fallback',
+            fallbackUrl: Constants.API.WEB_DESTROY(userId),
+            desiredFollowing: false,
+            signal
+        });
     }
 
     /**
@@ -340,19 +407,15 @@ const IGRadarAPI = (function() {
      * @returns {Promise<boolean>}
      */
     async function refollowUser(userId, signal) {
-        const body = new URLSearchParams({
-            container_module: 'profile',
-            user_id: String(userId)
-        }).toString();
-        try {
-            await postJSON('refollow', Constants.API.CREATE(userId), body, signal);
-        } catch (err) {
-            if (!err || err.code !== 'invalid_response' || err.reason !== 'html_response') {
-                throw err;
-            }
-            await postJSON('refollow_fallback', Constants.API.WEB_CREATE(userId), body, signal);
-        }
-        return true;
+        return changeFriendship({
+            userId,
+            primaryKind: 'refollow',
+            primaryUrl: Constants.API.CREATE(userId),
+            fallbackKind: 'refollow_fallback',
+            fallbackUrl: Constants.API.WEB_CREATE(userId),
+            desiredFollowing: true,
+            signal
+        });
     }
 
     return {

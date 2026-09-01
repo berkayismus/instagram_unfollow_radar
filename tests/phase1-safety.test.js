@@ -50,6 +50,7 @@ function loadAutomation({ api, storage, runtimeMessages = [] }) {
             setRateLimitUntil: async () => {},
             clearRateLimit: async () => {},
             addRunActivity: async () => {},
+            saveApiDiagnostic: async () => {},
             ...storage
         },
         RateLimitError,
@@ -294,6 +295,7 @@ test('a saved following checkpoint resumes its queue and next cursor', async () 
 
 test('classified API failures preserve the pending unfollow before stopping', async () => {
     const savedCheckpoints = [];
+    const diagnostics = [];
     const statuses = [];
     const automation = loadAutomation({
         api: {
@@ -314,7 +316,8 @@ test('classified API failures preserve the pending unfollow before stopping', as
             loadState: async state => state,
             saveRunCheckpoint: async checkpoint => {
                 savedCheckpoints.push(structuredClone(checkpoint));
-            }
+            },
+            saveApiDiagnostic: async error => { diagnostics.push(error); }
         }
     });
     const state = baseState();
@@ -326,6 +329,8 @@ test('classified API failures preserve the pending unfollow before stopping', as
         checkpoint.unfollowQueue?.[0]?.username === 'preserve_me'
     ));
     assert.deepEqual(statuses.at(-1), { status: 'error', message: 'network_error' });
+    assert.equal(diagnostics.length, 1);
+    assert.equal(diagnostics[0].code, 'network_error');
 });
 
 function loadContent({ initialUndoQueue, refollowResult, checkpoint = null, keepRunning = false }) {

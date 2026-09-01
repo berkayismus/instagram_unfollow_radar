@@ -28,6 +28,8 @@
         "serverError": "Instagram is temporarily unavailable. Pending work was preserved",
         "invalidResponse": "Instagram returned an unexpected response. Automation stopped safely",
         "apiError": "Instagram rejected the request. Automation stopped safely",
+        "relationshipCheckFailed": "Instagram did not confirm the current follow state. Automation stopped safely",
+        "relationshipChangeNotApplied": "Instagram did not confirm the follow change. Automation stopped safely",
         "error": "Scan failed — please reload Instagram and try again",
         "processing": "Processing",
         "paused": "Paused",

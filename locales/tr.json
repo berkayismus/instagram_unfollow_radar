@@ -28,6 +28,8 @@
         "serverError": "Instagram sunucusu geçici olarak yanıt vermiyor. Bekleyen işlemler korundu",
         "invalidResponse": "Instagram beklenmeyen bir yanıt verdi. İşlem güvenle durduruldu",
         "apiError": "Instagram isteği reddetti. İşlem güvenle durduruldu",
+        "relationshipCheckFailed": "Instagram mevcut takip durumunu doğrulamadı. İşlem güvenle durduruldu",
+        "relationshipChangeNotApplied": "Instagram takip değişikliğini doğrulamadı. İşlem güvenle durduruldu",
         "error": "Tarama başarısız — Instagram'ı yeniden yükleyip tekrar deneyin",
         "processing": "İşleniyor",
         "paused": "Duraklatıldı",
