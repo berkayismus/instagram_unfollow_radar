@@ -9,6 +9,7 @@ Bu belge ürün davranışının kısa özetidir. Teknik ayrıntılar için [TEC
 - Whitelist veya anahtar kelime filtresine uyan hesaplar atlanır.
 - Gerçek işlemler arasında 5–10 saniye rastgele gecikme uygulanır.
 - Tarama fazı, cursor ve işlem kuyruğu yerelde saklanır; aynı hesapta sayfa yenileme veya rate-limit sonrasında otomatik devam eder.
+- Popup yeniden açıldığında canlı durum ve son 50 işlenen kullanıcı geri yüklenir; popup’ı kapatmak otomasyonu durdurmaz.
 - Ücretsiz plan 10, Premium plan 500 gerçek unfollow ile sınırlıdır; pencere 24 saattir.
 - Otomasyon günlük kotaya veya güvenli durdurma koşuluna kadar ek onay istemeden devam eder.
 - Ayrı bir tarama-sonrası ön onay ekranı yoktur.
@@ -23,6 +24,8 @@ Bu belge ürün davranışının kısa özetidir. Teknik ayrıntılar için [TEC
 - Filtreler, kota, geçmiş, undo, watchlist ve çalışma ilerlemesi Instagram hesap kimliğine göre ayrılır.
 - Dry-run gerçek kota veya unfollow istatistiği tüketmez.
 - Undo, Instagram refollow isteği başarılı olduktan sonra kuyruktan silinir.
+- Ana unfollow/refollow yanıtı belirsizse ilişki durumu doğrulanır; gerekirse web fallback bir kez çalışır ve sonucu tekrar kontrol edilir.
+- **Durdur**, bekleyen checkpoint yazıları dahil çalışma durumunu terminal biçimde temizler.
 
 ## Filtreler ve geçmiş
 

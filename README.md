@@ -27,6 +27,7 @@ Lisans durumu 12 saatte bir doğrulanır; geçici ağ kesintilerinde en fazla 72
 - TR, EN ve DE arayüz
 - Aynı anda yalnızca bir Instagram sekmesinde otomasyon
 - Sayfa yenileme ve Instagram rate-limit sonrasında otomatik devam
+- Popup kapatılıp açıldığında çalışan süreci ve işlenen kullanıcıları geri yükleme
 - Instagram hesabına göre ayrı kota, filtre, geçmiş ve izleme verisi
 - Çalışma sırasında hesap değişirse güvenli durdurma
 - Giriş, challenge, rate-limit, ağ ve sunucu hatalarında ayrı güvenli davranış
@@ -48,8 +49,9 @@ Otomasyon günlük kotaya ulaşana, açıkça durdurulana veya güvenlik koşull
 2. **Başlat** düğmesine basın.
 3. Uzantı önce takipçi listesini tamamen alır, ardından takip edilenleri tarar.
 4. İlerleme yerelde saklanır; aynı hesapta sayfa yenilenirse veya rate-limit süresi dolarsa otomatik devam eder.
-5. Eksik takipçi verisi, hesap değişikliği veya kaybedilen çalışma kilidi algılanırsa süreç güvenle durur.
-6. **Durdur** ile süreci ve kayıtlı ilerlemeyi sonlandırabilir, **Geri Al** ile son başarılı işlemleri geri çevirebilirsiniz.
+5. Popup’ı kapatmak süreci durdurmaz; yeniden açıldığında canlı durum ve işlenen kullanıcılar geri gelir.
+6. Eksik veri, hesap değişikliği veya kaybedilen çalışma kilidinde süreç güvenle durur.
+7. **Durdur** süreci ve kayıtlı ilerlemeyi kesin olarak sonlandırır; **Geri Al** son başarılı işlemleri geri çevirir.
 
 ## Gizlilik
 
@@ -82,6 +84,7 @@ Belgeler:
 - [Teknik mimari](docs/TECHNICAL.md)
 - [Gizlilik politikası](docs/PRIVACY_POLICY.md)
 - [Yol haritası](docs/ROADMAP.md)
+- [Sürüm notları](docs/RELEASE_NOTES.md)
 
 ## English
 
