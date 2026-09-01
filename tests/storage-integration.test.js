@@ -6,7 +6,7 @@ const vm = require('node:vm');
 
 const root = path.resolve(__dirname, '..');
 
-function loadStorageStack(initial = {}) {
+function loadStorageStack(initial = {}, hooks = {}) {
     const stored = structuredClone(initial);
     const sandbox = {
         chrome: {
@@ -19,6 +19,7 @@ function loadStorageStack(initial = {}) {
                             .map(key => [key, structuredClone(stored[key])]));
                     },
                     async set(values) {
+                        if (hooks.beforeSet) await hooks.beforeSet(values);
                         Object.assign(stored, structuredClone(values));
                     },
                     async remove(keys) {
@@ -128,4 +129,33 @@ test('processed-user activity is capped to the popup display limit', async () =>
     const activity = await contentStorage.getRunActivity();
     assert.equal(activity.length, constants.LIMITS.MAX_USER_LIST_DISPLAY);
     assert.equal(activity[0].username, 'user-5');
+});
+
+test('checkpoint clear waits for an in-flight write and remains terminal', async () => {
+    let releaseWrite;
+    let signalWriteStarted;
+    const writeStarted = new Promise(resolve => { signalWriteStarted = resolve; });
+    const writeGate = new Promise(resolve => { releaseWrite = resolve; });
+    const checkpointKey = 'igRunCheckpoint::account::race-account';
+    const stack = loadStorageStack({}, {
+        beforeSet: async values => {
+            if (values[checkpointKey]) {
+                signalWriteStarted();
+                await writeGate;
+            }
+        }
+    });
+    stack.accountStorage.setScope('race-account');
+    await stack.accountStorage.migrateLegacy();
+
+    const save = stack.contentStorage.saveRunCheckpoint({
+        version: 1,
+        userId: 'race-account'
+    });
+    await writeStarted;
+    const clear = stack.contentStorage.clearRunCheckpoint();
+    releaseWrite();
+    await Promise.all([save, clear]);
+
+    assert.equal(await stack.contentStorage.getRunCheckpoint(), null);
 });
