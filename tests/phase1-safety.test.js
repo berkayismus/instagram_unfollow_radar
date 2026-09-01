@@ -332,6 +332,9 @@ function loadContent({ initialUndoQueue, refollowResult, checkpoint = null, keep
     let listener;
     let automationCalls = 0;
     let emitLateStatus = null;
+    let checkpointClearCalls = 0;
+    let activityClearCalls = 0;
+    let rateLimitClearCalls = 0;
     const storageWrites = [];
     const runtimeMessages = [];
     const context = vm.createContext({
@@ -393,9 +396,9 @@ function loadContent({ initialUndoQueue, refollowResult, checkpoint = null, keep
         },
         IGRadarStorage: {
             getRunCheckpoint: async () => checkpoint,
-            clearRunCheckpoint: async () => {},
-            clearRunActivity: async () => {},
-            clearRateLimit: async () => {},
+            clearRunCheckpoint: async () => { checkpointClearCalls++; },
+            clearRunActivity: async () => { activityClearCalls++; },
+            clearRateLimit: async () => { rateLimitClearCalls++; },
             loadState: async state => {
                 state.undoQueue = initialUndoQueue.map(item => ({ ...item }));
                 return state;
@@ -438,7 +441,10 @@ function loadContent({ initialUndoQueue, refollowResult, checkpoint = null, keep
         storageWrites,
         runtimeMessages,
         emitLateStatus: () => emitLateStatus && emitLateStatus(),
-        getAutomationCalls: () => automationCalls
+        getAutomationCalls: () => automationCalls,
+        getCheckpointClearCalls: () => checkpointClearCalls,
+        getActivityClearCalls: () => activityClearCalls,
+        getRateLimitClearCalls: () => rateLimitClearCalls
     };
 }
 
@@ -480,6 +486,27 @@ test('content initialization automatically resumes a recent matching checkpoint'
     await new Promise(resolve => setImmediate(resolve));
 
     assert.equal(content.getAutomationCalls(), 1);
+    assert.equal(content.getActivityClearCalls(), 0);
+});
+
+test('content initialization rejects and clears a stale checkpoint', async () => {
+    const content = loadContent({
+        initialUndoQueue: [],
+        refollowResult: true,
+        checkpoint: {
+            version: 1,
+            userId: 'self',
+            dryRunMode: false,
+            updatedAt: Date.now() - 86400001,
+            phase: 'following'
+        }
+    });
+
+    await new Promise(resolve => setImmediate(resolve));
+    await new Promise(resolve => setImmediate(resolve));
+
+    assert.equal(content.getAutomationCalls(), 0);
+    assert.equal(content.getCheckpointClearCalls(), 1);
 });
 
 test('GET_STATUS returns the live run snapshot without broadcasting idle', async () => {
@@ -518,6 +545,8 @@ test('STOP suppresses late active status updates from in-flight work', async () 
     assert.equal(response.isRunning, false);
     assert.equal(response.statusData.status, 'stopped');
     assert.equal(content.runtimeMessages.at(-1).status, 'stopped');
+    assert.equal(content.getCheckpointClearCalls(), 1);
+    assert.equal(content.getRateLimitClearCalls(), 1);
 });
 
 test('statistics reset does not reset the protected daily quota window', () => {
