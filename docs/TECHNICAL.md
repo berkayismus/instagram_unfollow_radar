@@ -19,7 +19,7 @@ Popup durum mesajlarını content script’ten doğrudan alır. Service worker y
 |---|---|
 | `src/background/index.js` | Tek aktif çalışma lease’i, heartbeat yenileme ve stale lock temizliği |
 | `src/content/api.js` | Instagram GET/POST çağrıları ve cookie tabanlı kimlik |
-| `src/content/storage.js` | Sayaç, geçmiş, lisans ve watchlist depolama işlemleri |
+| `src/content/storage.js` | Sayaç, geçmiş, checkpoint, aktivite, tanı ve watchlist depolama işlemleri |
 | `src/content/filters.js` | Whitelist ve anahtar kelime kontrolü |
 | `src/content/automation.js` | Takipçi seti, following taraması ve unfollow döngüsü |
 | `src/content/watchlist.js` | Tam snapshot baseline’ı ve yeni takip karşılaştırması |
@@ -38,8 +38,9 @@ Content dosyaları `manifest.json` sırasıyla yüklenir ve IIFE namespace’ler
 5. Kuyruk otomatik işlenir; her gerçek işlemden önce hesap kimliği tekrar doğrulanır.
 6. Başarıyla tamamlanan işlemler sayaç, geçmiş ve undo kuyruğuna yazılır.
 7. Faz, pagination cursor’ı, takipçi kümesi ve bekleyen kuyruk her sayfadan ve işlemden sonra checkpoint’e yazılır.
+8. Popup için son 50 işlenen kullanıcı hesap kapsamında saklanır.
 
-Takipçi taraması eksik kalırsa unfollow aşamasına geçilmez. Dry-run aynı karşılaştırmayı yapar ancak gerçek sayaçları ve geçmişi değiştirmez. Aynı hesap ve dry-run modu için 24 saatten yeni checkpoint sayfa açılışında otomatik sürdürülür; açıkça durdurma checkpoint’i siler.
+Takipçi taraması eksik kalırsa unfollow aşamasına geçilmez. Dry-run aynı karşılaştırmayı yapar ancak gerçek sayaçları ve geçmişi değiştirmez. Aynı hesap ve dry-run modu için 24 saatten yeni checkpoint sayfa açılışında otomatik sürdürülür. Popup kapanınca content script çalışmaya devam eder; yeniden açılışta `GET_STATUS` snapshot’ı ve aktivite listesi geri yüklenir. Açıkça durdurma checkpoint’i ve cooldown’ı terminal biçimde temizler.
 
 ## Çalışma kilidi
 
@@ -59,10 +60,13 @@ Takipçi taraması eksik kalırsa unfollow aşamasına geçilmez. Dry-run aynı 
 | Profil | `GET /api/v1/users/web_profile_info/` |
 | Unfollow | `POST /api/v1/friendships/destroy/{id}/` |
 | Refollow | `POST /api/v1/friendships/create/{id}/` |
+| İlişki doğrulama | `GET /api/v1/friendships/show/{id}/` |
+| Unfollow fallback | `POST /web/friendships/{id}/unfollow/` |
+| Refollow fallback | `POST /web/friendships/{id}/follow/` |
 
 Kimlik doğrulama mevcut Instagram oturumu, CSRF cookie’si ve web App ID üzerinden yapılır. API belgelenmemiştir; yanıt yapıları değişebilir.
 
-API katmanı hataları `auth_required`, `challenge_required`, `rate_limit`, `network_error`, `server_error`, `invalid_response` ve genel `api_error` kodlarına dönüştürür. Rate-limit cooldown sonrasında otomatik sürer. Diğer hatalarda otomasyon güvenle durur; POST için kuyruktan alınmış aday checkpoint’e geri konur. Watchlist toplu yenilemesi terminal API hatasında kalan hesaplara istek göndermeyi bırakır.
+API katmanı hataları `auth_required`, `challenge_required`, `rate_limit`, `network_error`, `server_error`, `invalid_response` ve genel `api_error` kodlarına dönüştürür. Salt-okuma isteği geçici ağ/sunucu/geçersiz yanıtında bir kez yinelenir. Ana yazma endpoint’i HTML döndürürse mevcut ilişki kontrol edilir; değişiklik zaten uygulanmışsa ikinci POST gönderilmez, uygulanmamışsa web fallback çalışır ve sonucu yeniden doğrulanır. Belirsizlikte aday checkpoint’e geri konur ve süreç güvenle durur.
 
 ## Kota ve zamanlama
 
@@ -99,9 +103,10 @@ Başlıca anahtarlar:
 | Premium | `igIsPremium`, `igLicenseKey`, `igLicenseEmail` |
 | Watchlist | `igWatchList` |
 | UI | `igTheme`, `igLanguage`, `igPopupActiveTab` |
-| Çalışma | `igRateLimitUntil`, `igActiveRunLock`, `igRunCheckpoint` |
+| Çalışma | `igRateLimitUntil`, `igActiveRunLock`, `igRunCheckpoint`, `igRunActivity` |
+| Tanı | `igApiDiagnostic` |
 
-Instagram’a bağlı anahtarlar `::<account-id>` son ekiyle ayrı namespace’lerde tutulur. Kota, filtreler, geçmiş, undo, watchlist ve checkpoint hesap kapsamındadır; tema, dil, popup sekmesi, lisans ve extension-geneli çalışma kilidi globaldir. Eski kapsamlandırılmamış veri, güncelleme sonrası görülen ilk hesaba bir kez ve mevcut scoped veriyi ezmeden taşınır.
+Instagram’a bağlı anahtarlar `::<account-id>` son ekiyle ayrı namespace’lerde tutulur. Kota, filtreler, geçmiş, undo, watchlist, checkpoint, popup aktivitesi ve API tanısı hesap kapsamındadır; tema, dil, popup sekmesi, lisans ve extension-geneli çalışma kilidi globaldir. API tanısı yalnızca kod, endpoint kategorisi, neden, HTTP durumu ve zaman içerir. Eski kapsamlandırılmamış veri, ilk görülen hesaba mevcut scoped veriyi ezmeden bir kez taşınır.
 
 ## Mesajlaşma
 
@@ -119,4 +124,4 @@ npm run check
 npm run package
 ```
 
-Testler Node’un yerleşik test runner’ını tek worker ile kullanır. Paketleme scripti sabit dosya sırası, zaman damgası ve izinlerle deterministik ZIP üretir. Testler gerçek storage katmanlarının hesap izolasyonunu/migration’ını, ZIP allowlist’ini, manifest izinlerinin gizlilik metnindeki karşılığını ve ürün limitlerinin dokümanlarla uyumunu doğrular. GitHub Actions PR’larda bu kontrolleri çalıştırır ve mağaza paketini artifact olarak oluşturur.
+Testler Node’un yerleşik test runner’ını tek worker ile kullanır. Popup yeniden açılma, Stop, stale checkpoint, storage yarışları ve Instagram yanıt/fallback varyantları regresyon kapsamındadır. Paketleme scripti sabit dosya sırası, zaman damgası ve izinlerle deterministik ZIP üretir. GitHub Actions PR’larda kontrolleri çalıştırır ve mağaza paketini artifact olarak oluşturur.

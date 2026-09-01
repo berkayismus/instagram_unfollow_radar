@@ -18,13 +18,14 @@ Instagram Unfollow Radar, tarayıcıdaki mevcut Instagram oturumunuzu kullanarak
 - Gerçek işlem yapmayan dry-run modu
 - İşlemler arasında 5–10 saniye rastgele gecikme
 - Son 10 işlem için undo
+- Popup yeniden açıldığında çalışma durumu ve işlenen kullanıcıları geri yükleme
 - 30 günlük istatistik
 - TR, EN ve DE arayüz
 - Ücretsiz planda 10, Premium’da 500 işlem/24 saat
 - İzleme listesi: ücretsiz 1, Premium 10 hesap
 - Premium CSV dışa aktarımı
 
-Güvenlik için eksik takipçi listesinde işlem yapılmaz, aynı anda tek sekme çalışır ve aktif Instagram hesabı değişirse otomasyon durur.
+Güvenlik için eksik takipçi listesinde işlem yapılmaz, aynı anda tek sekme çalışır, aktif Instagram hesabı değişirse otomasyon durur ve belirsiz yazma yanıtları ilişki durumu üzerinden doğrulanır.
 
 Instagram verileri geliştirici sunucusuna gönderilmez. Premium lisans etkinleştirme işlemi Gumroad API’siyle yapılır. Bu uzantı Instagram veya Meta ile bağlantılı değildir.
 
@@ -44,18 +45,20 @@ Highlights:
 - Dry-run mode with no real actions
 - Random 5–10 second action delays
 - Undo for the 10 most recent actions
+- Live run and processed-user restoration when the popup is reopened
 - 30-day statistics
 - Turkish, English, and German UI
 - 10 actions/24h on Free, 500 on Premium
 - Watch list: 1 account on Free, 10 on Premium
 - Premium CSV export
 
-For safety, the extension stops on incomplete follower data, allows only one active automation tab, and stops if the active Instagram account changes.
+For safety, the extension stops on incomplete follower data, allows only one active automation tab, stops if the active Instagram account changes, and verifies ambiguous write responses against the current relationship state.
 
 Instagram data is not sent to a developer-operated server. Optional Premium activation contacts the Gumroad API. This extension is not affiliated with Instagram or Meta.
 
 ## İzin açıklamaları
 
 - `storage`: ayarları ve işlem verilerini cihazda saklamak
+- `alarms`: Premium lisansını periyodik olarak yeniden doğrulamak
 - `instagram.com`: listeleme ve kullanıcı tarafından başlatılan follow/unfollow işlemleri
 - `api.gumroad.com`: isteğe bağlı Premium lisans doğrulaması

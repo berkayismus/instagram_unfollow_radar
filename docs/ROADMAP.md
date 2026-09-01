@@ -16,10 +16,15 @@
 - Kimlik doğrulama, challenge, rate-limit, ağ, sunucu ve geçersiz yanıt hatalarının sınıflandırılması
 - Gerçek storage modülleriyle hesap izolasyonu ve migration entegrasyon testleri
 - Paket allowlist’i, manifest izinleri ve ürün limitleri için otomatik tutarlılık kontrolleri
-- `1.3.0` sürüm paketi
+- Popup kapat/aç sırasında canlı durum ve işlenen kullanıcıların korunması
+- Terminal Stop davranışı ve checkpoint yazma/silme yarış koruması
+- Instagram web unfollow/refollow fallback’i ve ilişki durumu doğrulaması
+- Hesap kapsamlı, kişisel veri içermeyen API tanısı
+- Popup ve checkpoint yaşam döngüsü regresyon testleri
+- `1.3.1` sürüm paketi
 - Regresyon testleri, CI ve deterministik mağaza paketi
 
-## Kalan işler
+## Ertelenen işler
 
 ### Ürün ve veri
 
